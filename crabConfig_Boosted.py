@@ -9,7 +9,7 @@ config.General.transferLogs = True
 config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
-config.JobType.inputFiles = ['FrameworkJobReport.xml', 'execute_for_crab.py', 'iheartny_topxs_fwlite.py', 'JECs/Fall15_25nsV2_DATA_L1FastJet_AK4PFchs.txt', 'JECs/Fall15_25nsV2_MC_L1FastJet_AK4PFchs.txt', 'JECs/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt', 'JECs/Fall15_25nsV2_MC_L2Relative_AK4PFchs.txt', 'JECs/Fall15_25nsV2_DATA_L2Relative_AK4PFchs.txt', 'JECs/Fall15_25nsV2_MC_L3Absolute_AK4PFchs.txt', 'JECs/Fall15_25nsV2_DATA_L3Absolute_AK4PFchs.txt', 'JECs/Fall15_25nsV2_MC_Uncertainty_AK4PFchs.txt', 'JECs/Fall15_25nsV2_DATA_Uncertainty_AK4PFchs.txt']
+config.JobType.inputFiles = ['FrameworkJobReport.xml', 'execute_for_crab.py', 'iheartny_topxs_fwlite.py', 'JECs']
 config.JobType.outputFiles = ['test_iheartNY.root']
 config.JobType.scriptExe = 'execute_iheartNY.sh'
 
