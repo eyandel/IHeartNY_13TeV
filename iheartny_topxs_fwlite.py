@@ -766,9 +766,10 @@ for event in events :
     ntotal += 1
 
     # TEMP hack to make small file
-    if ntotal > 100:
-        continue
+    #if ntotal > 100:
+    #    continue
 
+    
     # ------------------------------
     # Require a good primary vertex
     # ------------------------------
