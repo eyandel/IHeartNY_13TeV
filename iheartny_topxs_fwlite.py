@@ -58,6 +58,11 @@ parser.add_option('--isMC', metavar='M', action='store_true',
                   dest='isMC',
                   help='Running on Monte Carlo')
 
+parser.add_option('--debug', metavar='M', action='store_true',
+                  default=False,
+                  dest='debug',
+                  help='Print out debug statements')
+
 
 (options, args) = parser.parse_args()
 argv = []
@@ -67,6 +72,8 @@ ROOT.gROOT.Macro("rootlogon.C")
 
 from array import *
 
+import sys
+from DataFormats.FWLite import Events, Handle
 
 
 # -------------------------------------------------------------------------------------
@@ -75,56 +82,35 @@ from array import *
 
 ROOT.gSystem.Load('libCondFormatsJetMETObjects')
 
+jetname = "chs"
+if options.usePuppi:
+    jetname = "puppi"
+
 if options.isMC : 
-    if options.usePuppi:
-        L3JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L3Absolute_AK4PFpuppi.txt");
-        L2JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L2Relative_AK4PFpuppi.txt");
-        L1JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L1FastJet_AK4PFpuppi.txt");
-        UncertJetAK4  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_MC_Uncertainty_AK4PFpuppi.txt");
-        
-        #L3JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L3Absolute_AK8PFpuppi.txt");
-        #L2JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L2Relative_AK8PFpuppi.txt");
-        #L1JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L1FastJet_AK8PFpuppi.txt");
-        #UncertJetAK8  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_MC_Uncertainty_AK8PFpuppi.txt");
-    else:
-        L3JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L3Absolute_AK4PFpuppi.txt");
-        L2JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L2Relative_AK4PFpuppi.txt");
-        L1JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L1FastJet_AK4PFpuppi.txt");
-        UncertJetAK4  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_MC_Uncertainty_AK4PFpuppi.txt");
-        
-        #L3JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L3Absolute_AK8PFpuppi.txt");
-        #L2JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L2Relative_AK8PFpuppi.txt");
-        #L1JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_MC_L1FastJet_AK8PFpuppi.txt");
-        #UncertJetAK8  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_MC_Uncertainty_AK8PFpuppi.txt");        
+    L3JecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStr);
+    L2JecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_L2Relative_AK4PF'+jetname+'.txt')
+    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStr);
+    L1JecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStr);
+    UncJecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_Uncertainty_AK4PF'+jetname+'.txt')
+    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStr);
+    
 else :
-    if options.usePuppi:
-        L3JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L3Absolute_AK4PFpuppi.txt");
-        L2JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2Relative_AK4PFpuppi.txt");
-        L1JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L1FastJet_AK4PFpuppi.txt");
-        ResJetParAK4 = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2L3Residual_AK4PFpuppi.txt");
-        UncertJetAK4  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_DATA_Uncertainty_AK4PFpuppi.txt");
-        
-        #L3JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L3Absolute_AK8PFpuppi.txt");
-        #L2JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2Relative_AK8PFpuppi.txt");
-        #L1JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L1FastJet_AK8PFpuppi.txt");
-        #ResJetParAK8 = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2L3Residual_AK8PFpuppi.txt");
-        #UncertJetAK8  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_DATA_Uncertainty_AK8PFpuppi.txt");
-    else :
-        L3JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L3Absolute_AK4PFchs.txt");
-        L2JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2Relative_AK4PFchs.txt");
-        L1JetParAK4  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L1FastJet_AK4PFchs.txt");
-        ResJetParAK4 = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2L3Residual_AK4PFchs.txt");
-        UncertJetAK4  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_DATA_Uncertainty_AK4PFchs.txt");
-        
-        #L3JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L3Absolute_AK8PFchs.txt");
-        #L2JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2Relative_AK8PFchs.txt");
-        #L1JetParAK8  = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L1FastJet_AK8PFchs.txt");
-        #ResJetParAK8 = ROOT.JetCorrectorParameters("JECs/Fall15_25nsV2_DATA_L2L3Residual_AK8PFchs.txt");
-        #UncertJetAK8  = ROOT.JetCorrectionUncertainty("JECs/Fall15_25nsV2_DATA_Uncertainty_AK8PFchs.txt");
+    L3JecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStr);
+    L2JecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2Relative_AK4PF'+jetname+'.txt')
+    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStr);
+    L1JecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStr);
+    ResJecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
+    ResJetParAK4 = ROOT.JetCorrectorParameters(ResJecStr);
+    UncJecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_Uncertainty_AK4PF'+jetname+'.txt')
+    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStr);
 
     
 #  load JetCorrectorParameter objects into vector (order matters!)
-vParJecAK4 = ROOT.vector('JetCorrectorParameters')()
+vParJecAK4 = ROOT.std.vector(ROOT.JetCorrectorParameters)()
 vParJecAK4.push_back(L1JetParAK4)
 vParJecAK4.push_back(L2JetParAK4)
 vParJecAK4.push_back(L3JetParAK4)
@@ -160,9 +146,6 @@ class GenTopQuark :
     def match( self, jets ) :
         return findClosestInList( self.p4, jets )
 
-
-import sys
-from DataFormats.FWLite import Events, Handle
 
 
 # -------------------------------------------------------------------------------------
@@ -345,6 +328,10 @@ myTree.Branch('ak8jetSDsubjet1CSV'     , ak8jetSDsubjet1CSV     )
 
 events = Events (files)
 
+jetname = "CHS"
+if options.usePuppi:
+    jetname = "Puppi"
+
 pvChiHandle  = Handle("std::vector<float>")
 pvChiLabel   = ( "vertexInfo", "chi" )
 pvRhoHandle  = Handle("std::vector<float>")
@@ -381,24 +368,15 @@ genParticlesMom0IDLabel      = ("genPart", "genPartMom0ID")
 
 # genJets
 ak4GenJetPtHandle   = Handle("std::vector<float>")
-ak4GenJetPtLabel    = ("jetsAK4CHS", "jetAK4CHSGenJetPt")
+ak4GenJetPtLabel    = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetPt")
 ak4GenJetEtaHandle  = Handle("std::vector<float>")
-ak4GenJetEtaLabel   = ("jetsAK4CHS", "jetAK4CHSGenJetEta")
+ak4GenJetEtaLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetEta")
 ak4GenJetPhiHandle  = Handle("std::vector<float>")
-ak4GenJetPhiLabel   = ("jetsAK4CHS", "jetAK4CHSGenJetPhi")
+ak4GenJetPhiLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetPhi")
 ak4GenJetEnergyHandle = Handle("std::vector<float>")
-ak4GenJetEnergyLabel  = ("jetsAK4CHS", "jetAK4CHSGenJetE")
+ak4GenJetEnergyLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetE")
 
-if options.usePuppi :
-    ak4GenJetPtHandle   = Handle("std::vector<float>")
-    ak4GenJetPtLabel    = ("jetsAK4Puppi", "jetAK4PuppiGenJetPt")
-    ak4GenJetEtaHandle  = Handle("std::vector<float>")
-    ak4GenJetEtaLabel   = ("jetsAK4Puppi", "jetAK4PuppiGenJetEta")
-    ak4GenJetPhiHandle  = Handle("std::vector<float>")
-    ak4GenJetPhiLabel   = ("jetsAK4Puppi", "jetAK4PuppiGenJetPhi")
-    ak4GenJetEnergyHandle = Handle("std::vector<float>")
-    ak4GenJetEnergyLabel  = ("jetsAK4Puppi", "jetAK4PuppiGenJetE")
-    
+## only have one version of AK8 gen jets (presumably CHS, no Puppi version available??)
 ak8GenJetPtHandle   = Handle("std::vector<float>")
 ak8GenJetPtLabel    = ("genJetsAK8", "genJetsAK8Pt")
 ak8GenJetEtaHandle  = Handle("std::vector<float>")
@@ -486,168 +464,85 @@ elKeyLabel = ( "electronKeys" )
 
 # AK4 jet collection
 ak4JetPtHandle   = Handle( "std::vector<float>" )
-ak4JetPtLabel    = ("jetsAK4CHS", "jetAK4CHSPt")
+ak4JetPtLabel    = ("jetsAK4"+jetname, "jetAK4"+jetname+"Pt")
 ak4JetEtaHandle  = Handle( "std::vector<float>" )
-ak4JetEtaLabel   = ("jetsAK4CHS", "jetAK4CHSEta")
+ak4JetEtaLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"Eta")
 ak4JetPhiHandle  = Handle( "std::vector<float>" )
-ak4JetPhiLabel   = ("jetsAK4CHS", "jetAK4CHSPhi")
+ak4JetPhiLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"Phi")
 ak4JetMassHandle = Handle( "std::vector<float>" )
-ak4JetMassLabel  = ("jetsAK4CHS", "jetAK4CHSMass")
+ak4JetMassLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"Mass")
 ak4JetCSVHandle  = Handle( "std::vector<float>" )
-ak4JetCSVLabel   = ("jetsAK4CHS", "jetAK4CHSCSVv2")
+ak4JetCSVLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"CSVv2")
 ak4JetVtxMassHandle = Handle( "std::vector<float>" )
-ak4JetVtxMassLabel  = ("jetsAK4CHS", "jetAK4CHSSV0mass")    
+ak4JetVtxMassLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"SV0mass")    
 ak4JetAreaHandle = Handle( "std::vector<float>" )
-ak4JetAreaLabel  = ("jetsAK4CHS", "jetAK4CHSjetArea")
+ak4JetAreaLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"jetArea")
 
 ak4JetNeuHadEnergyHandle = Handle("std::vector<float>")
-ak4JetNeuHadEnergyLabel = ("jetsAK4CHS" , "jetAK4CHSneutralHadronEnergy")
+ak4JetNeuHadEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralHadronEnergy")
 ak4JetNeuEmEnergyHandle = Handle("std::vector<float>")
-ak4JetNeuEmEnergyLabel = ("jetsAK4CHS" , "jetAK4CHSneutralEmEnergy")
+ak4JetNeuEmEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralEmEnergy")
 ak4JetChHadEnergyHandle = Handle("std::vector<float>")
-ak4JetChHadEnergyLabel = ("jetsAK4CHS" , "jetAK4CHSchargedHadronEnergy")
+ak4JetChHadEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedHadronEnergy")
 ak4JetChEmEnergyHandle = Handle("std::vector<float>")
-ak4JetChEmEnergyLabel = ("jetsAK4CHS" , "jetAK4CHSchargedEmEnergy")
+ak4JetChEmEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedEmEnergy")
 ak4JetNumDaughterHandle = Handle("std::vector<float>")
-ak4JetNumDaughterLabel = ("jetsAK4CHS" , "jetAK4CHSnumberOfDaughters")
+ak4JetNumDaughterLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"numberOfDaughters")
 ak4JetChMultiHandle = Handle("std::vector<float>")
-ak4JetChMultiLabel = ("jetsAK4CHS" , "jetAK4CHSchargedMultiplicity")
+ak4JetChMultiLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedMultiplicity")
 
 ak4JetJECHandle = Handle("std::vector<float>")
-ak4JetJECLabel = ("jetsAK4CHS" , "jetAK4CHSjecFactor0") 
+ak4JetJECLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"jecFactor0") 
 
 ak4JetKeysHandle = Handle("std::vector<std::vector<int> >")
-ak4JetKeysLabel = ( "jetKeysAK4CHS" , "" )
+ak4JetKeysLabel = ( "jetKeysAK4"+jetname , "" )
 
 
-if options.usePuppi :
-    ak4JetPtHandle   = Handle( "std::vector<float>" )
-    ak4JetPtLabel    = ("jetsAK4Puppi", "jetAK4PuppiPt")
-    ak4JetEtaHandle  = Handle( "std::vector<float>" )
-    ak4JetEtaLabel   = ("jetsAK4Puppi", "jetAK4PuppiEta")
-    ak4JetPhiHandle  = Handle( "std::vector<float>" )
-    ak4JetPhiLabel   = ("jetsAK4Puppi", "jetAK4PuppiPhi")
-    ak4JetMassHandle = Handle( "std::vector<float>" )
-    ak4JetMassLabel  = ("jetsAK4Puppi", "jetAK4PuppiMass")
-    ak4JetCSVHandle  = Handle( "std::vector<float>" )
-    ak4JetCSVLabel   = ("jetsAK4Puppi", "jetAK4PuppiCSVv2")
-    ak4JetVtxMassHandle = Handle( "std::vector<float>" )
-    ak4JetVtxMassLabel  = ("jetsAK4Puppi", "jetAK4PuppiSV0mass")
-    ak4JetAreaHandle = Handle( "std::vector<float>" )
-    ak4JetAreaLabel  = ("jetsAK4Puppi", "jetAK4CHSjetArea")
-
-    ak4JetNeuHadEnergyHandle = Handle("std::vector<float>")
-    ak4JetNeuHadEnergyLabel = ("jetsAK4Puppi" , "jetAK4PuppineutralHadronEnergy")
-    ak4JetNeuEmEnergyHandle = Handle("std::vector<float>")
-    ak4JetNeuEmEnergyLabel = ("jetsAK4Puppi" , "jetAK4PuppineutralEmEnergy")
-    ak4JetChHadEnergyHandle = Handle("std::vector<float>")
-    ak4JetChHadEnergyLabel = ("jetsAK4Puppi" , "jetAK4PuppichargedHadronEnergy")
-    ak4JetChEmEnergyHandle = Handle("std::vector<float>")
-    ak4JetChEmEnergyLabel = ("jetsAK4Puppi" , "jetAK4PuppichargedEmEnergy")
-    ak4JetNumDaughterHandle = Handle("std::vector<float>")
-    ak4JetNumDaughterLabel = ("jetsAK4Puppi" , "jetAK4PuppinumberOfDaughters")
-    ak4JetChMultiHandle = Handle("std::vector<float>")
-    ak4JetChMultiLabel = ("jetsAK4Puppi" , "jetAK4PuppichargedMultiplicity")
-    
-    ak4JetJECHandle = Handle("std::vector<float>")
-    ak4JetJECLabel = ("jetsAK4Puppi" , "jetAK4PuppijecFactor0") 
-
-    ak4JetKeysHandle = Handle("std::vector<std::vector<int> >")
-    ak4JetKeysLabel = ( "jetKeysAK4Puppi" , "" )
-
-
-
-# top-tagged jet collection
+# AK8 jet collection
 ak8JetPtHandle   = Handle( "std::vector<float>" )
-ak8JetPtLabel    = ("jetsAK8CHS", "jetAK8CHSPt")
+ak8JetPtLabel    = ("jetsAK8"+jetname, "jetAK8"+jetname+"Pt")
 ak8JetEtaHandle  = Handle( "std::vector<float>" )
-ak8JetEtaLabel   = ("jetsAK8CHS", "jetAK8CHSEta")
+ak8JetEtaLabel   = ("jetsAK8"+jetname, "jetAK8"+jetname+"Eta")
 ak8JetPhiHandle  = Handle( "std::vector<float>" )
-ak8JetPhiLabel   = ("jetsAK8CHS", "jetAK8CHSPhi")
+ak8JetPhiLabel   = ("jetsAK8"+jetname, "jetAK8"+jetname+"Phi")
 ak8JetYHandle    = Handle( "std::vector<float>" )
-ak8JetYLabel     = ("jetsAK8CHS", "jetAK8CHSY" )
+ak8JetYLabel     = ("jetsAK8"+jetname, "jetAK8"+jetname+"Y" )
 ak8JetMassHandle = Handle( "std::vector<float>" )
-ak8JetMassLabel  = ("jetsAK8CHS", "jetAK8CHSMass")
+ak8JetMassLabel  = ("jetsAK8"+jetname, "jetAK8"+jetname+"Mass")
 ak8JetTrimMassHandle = Handle("std::vector<float>")
-ak8JetTrimMassLabel = ("jetsAK8CHS", "jetAK8CHStrimmedMass" )
+ak8JetTrimMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"trimmedMass" )
 ak8JetPrunMassHandle = Handle("std::vector<float>")
-ak8JetPrunMassLabel = ("jetsAK8CHS", "jetAK8CHSprunedMass" )
+ak8JetPrunMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"prunedMass" )
 ak8JetFiltMassHandle = Handle("std::vector<float>")
-ak8JetFiltMassLabel = ("jetsAK8CHS", "jetAK8CHSfilteredMass" )
+ak8JetFiltMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"filteredMass" )
 ak8JetTau1Handle = Handle("std::vector<float>")
-ak8JetTau1Label = ("jetsAK8CHS", "jetAK8CHStau1" )
+ak8JetTau1Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau1" )
 ak8JetTau2Handle = Handle("std::vector<float>")
-ak8JetTau2Label = ("jetsAK8CHS", "jetAK8CHStau2" )
+ak8JetTau2Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau2" )
 ak8JetTau3Handle = Handle("std::vector<float>")
-ak8JetTau3Label = ("jetsAK8CHS", "jetAK8CHStau3" )
+ak8JetTau3Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau3" )
 ak8JetCSVHandle = Handle("std::vector<float>")               
-ak8JetCSVLabel = ( "jetsAK8CHS" , "jetAK8CHSCSVv2" )
+ak8JetCSVLabel = ( "jetsAK8"+jetname , "jetAK8"+jetname+"CSVv2" )
 
 ak8JetSoftDropMassHandle = Handle("std::vector<float>")
-ak8JetSoftDropMassLabel = ("jetsAK8CHS", "jetAK8CHSsoftDropMass" )
+ak8JetSoftDropMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"softDropMass" )
 ak8JetSoftDropSubjet0Handle    = Handle("std::vector<float>")
-ak8JetSoftDropSubjet0Label     = ("jetsAK8CHS", "jetAK8CHSvSubjetIndex0")
+ak8JetSoftDropSubjet0Label     = ("jetsAK8"+jetname, "jetAK8"+jetname+"vSubjetIndex0")
 ak8JetSoftDropSubjet1Handle    = Handle("std::vector<float>")
-ak8JetSoftDropSubjet1Label     = ("jetsAK8CHS", "jetAK8CHSvSubjetIndex1")
+ak8JetSoftDropSubjet1Label     = ("jetsAK8"+jetname, "jetAK8"+jetname+"vSubjetIndex1")
 
 sjSoftDropPtHandle              = Handle( "std::vector<float>")
-sjSoftDropPtLabel               = ("subjetsAK8CHS", "subjetAK8CHSPt")
+sjSoftDropPtLabel               = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Pt")
 sjSoftDropEtaHandle             = Handle( "std::vector<float>")
-sjSoftDropEtaLabel              = ("subjetsAK8CHS", "subjetAK8CHSEta")
+sjSoftDropEtaLabel              = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Eta")
 sjSoftDropPhiHandle             = Handle( "std::vector<float>")
-sjSoftDropPhiLabel              = ("subjetsAK8CHS", "subjetAK8CHSPhi")
+sjSoftDropPhiLabel              = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Phi")
 sjSoftDropMassHandle            = Handle( "std::vector<float>")
-sjSoftDropMassLabel             = ("subjetsAK8CHS", "subjetAK8CHSMass")
+sjSoftDropMassLabel             = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Mass")
 sjSoftDropYHandle               = Handle( "std::vector<float>")
-sjSoftDropYLabel                = ("subjetsAK8CHS", "subjetAK8CHSY")
+sjSoftDropYLabel                = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Y")
 sjSoftDropCSVHandle           = Handle( "std::vector<float>")
-sjSoftDropCSVLabel            = ("subjetsAK8CHS", "subjetAK8CHSCSVv2")
-
-if options.usePuppi :
-    ak8JetPtHandle   = Handle( "std::vector<float>" )
-    ak8JetPtLabel    = ("jetsAK8Puppi", "jetAK8PuppiPt")
-    ak8JetEtaHandle  = Handle( "std::vector<float>" )
-    ak8JetEtaLabel   = ("jetsAK8Puppi", "jetAK8PuppiEta")
-    ak8JetPhiHandle  = Handle( "std::vector<float>" )
-    ak8JetPhiLabel   = ("jetsAK8Puppi", "jetAK8PuppiPhi")
-    ak8JetYHandle    = Handle( "std::vector<float>" )
-    ak8JetYLabel     = ("jetsAK8Puppi", "jetAK8PuppiY" )
-    ak8JetMassHandle = Handle( "std::vector<float>" )
-    ak8JetMassLabel  = ("jetsAK8Puppi", "jetAK8PuppiMass")
-    ak8JetTrimMassHandle = Handle("std::vector<float>")
-    ak8JetTrimMassLabel = ("jetsAK8Puppi", "jetAK8PuppitrimmedMass" )
-    ak8JetPrunMassHandle = Handle("std::vector<float>")
-    ak8JetPrunMassLabel = ("jetsAK8Puppi", "jetAK8PuppiprunedMass" )
-    ak8JetFiltMassHandle = Handle("std::vector<float>")
-    ak8JetFiltMassLabel = ("jetsAK8Puppi", "jetAK8PuppifilteredMass" )
-    ak8JetTau1Handle = Handle("std::vector<float>")
-    ak8JetTau1Label = ("jetsAK8Puppi", "jetAK8Puppitau1" )
-    ak8JetTau2Handle = Handle("std::vector<float>")
-    ak8JetTau2Label = ("jetsAK8Puppi", "jetAK8Puppitau2" )
-    ak8JetTau3Handle = Handle("std::vector<float>")
-    ak8JetTau3Label = ("jetsAK8Puppi", "jetAK8Puppitau3" )
-    ak8JetCSVHandle = Handle("std::vector<float>")               
-    ak8JetCSVLabel = ( "jetsAK8Puppi" , "jetAK8PuppiCSVv2" )
-    
-    ak8JetSoftDropMassHandle = Handle("std::vector<float>")
-    ak8JetSoftDropMassLabel = ("jetsAK8Puppi", "jetAK8PuppisoftDropMass" )
-    ak8JetSoftDropSubjet0Handle    = Handle("std::vector<float>")
-    ak8JetSoftDropSubjet0Label     = ("jetsAK8Puppi", "jetAK8PuppivSubjetIndex0")
-    ak8JetSoftDropSubjet1Handle    = Handle("std::vector<float>")
-    ak8JetSoftDropSubjet1Label     = ("jetsAK8Puppi", "jetAK8PuppivSubjetIndex1")
-    
-    sjSoftDropPtHandle              = Handle( "std::vector<float>")
-    sjSoftDropPtLabel               = ("subjetsAK8Puppi", "subjetAK8PuppiPt")
-    sjSoftDropEtaHandle             = Handle( "std::vector<float>")
-    sjSoftDropEtaLabel              = ("subjetsAK8Puppi", "subjetAK8PuppiEta")
-    sjSoftDropPhiHandle             = Handle( "std::vector<float>")
-    sjSoftDropPhiLabel              = ("subjetsAK8Puppi", "subjetAK8PuppiPhi")
-    sjSoftDropMassHandle            = Handle( "std::vector<float>")
-    sjSoftDropMassLabel             = ("subjetsAK8Puppi", "subjetAK8PuppiMass")
-    sjSoftDropYHandle               = Handle( "std::vector<float>")
-    sjSoftDropYLabel                = ("subjetsAK8Puppi", "subjetAK8PuppiY")
-    sjSoftDropCSVHandle           = Handle( "std::vector<float>")
-    sjSoftDropCSVLabel            = ("subjetsAK8Puppi", "subjetAK8PuppiCSVv2")
+sjSoftDropCSVLabel            = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"CSVv2")
 
 
 rhoHandle = Handle("double")
@@ -1185,13 +1080,6 @@ for event in events :
             lepCand.append(p4)
             elCandKey.append(elKeys[ielectronPt])
             lepCandKey.append(elKeys[ielectronPt])
-            
-            #eleJet = findClosestInList(p4, jetsFor2D )
-            #
-            #if p4.DeltaR(eleJet) > 0.4 or p4.Perp(eleJet.Vect()) > 20. :
-            #    el2Diso.push_back(1)
-            #else :
-            #    el2Diso.push_back(0)
                 
             if manualEisMedium :
                 elMedium.push_back(1)
@@ -1299,16 +1187,8 @@ for event in events :
 
             muCand.append(p4)
             lepCand.append(p4)
-            muCandKey.append(muKeys[ielectronPt])
-            lepCandKey.append(muKeys[ielectronPt])
-
-            #muJet = findClosestInList( p4, jetsFor2D )
-            #    
-            ## 2D isolation cut            
-            #if p4.DeltaR(muJet) > 0.4 or p4.Perp(muJet.Vect()) > 20 :
-            #    mu2Diso.push_back(1)
-            #else :
-            #    mu2Diso.push_back(0)
+            muCandKey.append(muKeys[imuonPt])
+            lepCandKey.append(muKeys[imuonPt])
 
             if muIsMedium :
                 muMedium.push_back(1)
@@ -1413,7 +1293,8 @@ for event in events :
                     for ipf in range(0, pfcands) :
                         # if jet daughter matches lepton, remove lepton p4 from (raw) jet p4
                         if ak4JetKeys[ijet][ipf] in lepCandKey[ilep]: 
-                            print 'removing lepton, pt/eta/phi = {0:6.2f},{1:6.2f},{2:6.2f}'.format(lepCand[ilep].Perp(), lepCand[ilep].Eta(), lepCand[ilep].Phi())
+                            if options.debug:
+                                print 'removing lepton, pt/eta/phi = {0:6.2f},{1:6.2f},{2:6.2f}'.format(lepCand[ilep].Perp(), lepCand[ilep].Eta(), lepCand[ilep].Phi())
                             if lepCand[ilep].E() > jetP4Raw.E() :
                                 zeroedEnergy = True
                             jetP4Raw -= lepCand[ilep]
@@ -1463,8 +1344,15 @@ for event in events :
     if len(elCand) > 0:
         for electron in elCand :
 
+            if len(jetsFor2D) < 1: 
+                el2Diso.push_back(1)
+                continue
+            
             eleJet = findClosestInList(electron, jetsFor2D)
 
+            if options.debug:
+                "dR(electron, closest jet) = " + str(electron.DeltaR(eleJet)) + " ptrel = " + str(electron.Perp(eleJet.Vect()))
+            
             if electron.DeltaR(eleJet) > 0.4 or electron.Perp(eleJet.Vect()) > 20. :
                 el2Diso.push_back(1)
             else :
@@ -1473,8 +1361,15 @@ for event in events :
     if len(muCand) > 0:
         for muon in muCand :
 
+            if len(jetsFor2D) < 1: 
+                mu2Diso.push_back(1)
+                continue
+
             muJet = findClosestInList(muon, jetsFor2D)
             
+            if options.debug:
+                "dR(muon, closest jet) = " + str(muon.DeltaR(muJet)) + " ptrel = " + str(muon.Perp(muJet.Vect()))
+
             if muon.DeltaR(muJet) > 0.4 or muon.Perp(muJet.Vect()) > 20 :
                 mu2Diso.push_back(1)
             else :
