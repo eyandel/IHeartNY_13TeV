@@ -1,4 +1,3 @@
-
 #! /usr/bin/env python
 import os
 import glob
@@ -21,6 +20,7 @@ MAX_EL_ETA = 2.5
 # jets
 MIN_JET_PT  = 50.0
 MAX_JET_ETA = 2.4
+
 
 # -------------------------------------------------------------------------------------
 # define input options
@@ -58,6 +58,12 @@ parser.add_option('--isMC', metavar='M', action='store_true',
                   dest='isMC',
                   help='Running on Monte Carlo')
 
+parser.add_option('--debug', metavar='M', action='store_true',
+                  default=False,
+                  dest='debug',
+                  help='Print out debug statements')
+
+
 (options, args) = parser.parse_args()
 argv = []
 
@@ -66,6 +72,54 @@ ROOT.gROOT.Macro("rootlogon.C")
 
 from array import *
 
+import sys
+from DataFormats.FWLite import Events, Handle
+
+
+# -------------------------------------------------------------------------------------
+# jet energy corrections
+# -------------------------------------------------------------------------------------
+
+ROOT.gSystem.Load('libCondFormatsJetMETObjects')
+
+jetname = "chs"
+if options.usePuppi:
+    jetname = "puppi"
+
+if options.isMC : 
+    L3JecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStr);
+    L2JecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_L2Relative_AK4PF'+jetname+'.txt')
+    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStr);
+    L1JecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStr);
+    UncJecStr = ROOT.std.string('JECs/Fall15_25nsV2_MC_Uncertainty_AK4PF'+jetname+'.txt')
+    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStr);
+    
+else :
+    L3JecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStr);
+    L2JecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2Relative_AK4PF'+jetname+'.txt')
+    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStr);
+    L1JecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStr);
+    ResJecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
+    ResJetParAK4 = ROOT.JetCorrectorParameters(ResJecStr);
+    UncJecStr = ROOT.std.string('JECs/Fall15_25nsV2_DATA_Uncertainty_AK4PF'+jetname+'.txt')
+    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStr);
+
+    
+#  load JetCorrectorParameter objects into vector (order matters!)
+vParJecAK4 = ROOT.std.vector(ROOT.JetCorrectorParameters)()
+vParJecAK4.push_back(L1JetParAK4)
+vParJecAK4.push_back(L2JetParAK4)
+vParJecAK4.push_back(L3JetParAK4)
+if not options.isMC : 
+    vParJecAK4.push_back(ResJetParAK4)
+
+ak4JetCorrector = ROOT.FactorizedJetCorrector(vParJecAK4)
+
+    
 # -------------------------------------------------------------------------------------
 # define helper classes that use ROOT
 # -------------------------------------------------------------------------------------
@@ -93,8 +147,6 @@ class GenTopQuark :
         return findClosestInList( self.p4, jets )
 
 
-import sys
-from DataFormats.FWLite import Events, Handle
 
 # -------------------------------------------------------------------------------------
 # input and output files
@@ -276,6 +328,10 @@ myTree.Branch('ak8jetSDsubjet1CSV'     , ak8jetSDsubjet1CSV     )
 
 events = Events (files)
 
+jetname = "CHS"
+if options.usePuppi:
+    jetname = "Puppi"
+
 pvChiHandle  = Handle("std::vector<float>")
 pvChiLabel   = ( "vertexInfo", "chi" )
 pvRhoHandle  = Handle("std::vector<float>")
@@ -312,24 +368,15 @@ genParticlesMom0IDLabel      = ("genPart", "genPartMom0ID")
 
 # genJets
 ak4GenJetPtHandle   = Handle("std::vector<float>")
-ak4GenJetPtLabel    = ("jetsAK4CHS", "jetAK4CHSGenJetPt")
+ak4GenJetPtLabel    = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetPt")
 ak4GenJetEtaHandle  = Handle("std::vector<float>")
-ak4GenJetEtaLabel   = ("jetsAK4CHS", "jetAK4CHSGenJetEta")
+ak4GenJetEtaLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetEta")
 ak4GenJetPhiHandle  = Handle("std::vector<float>")
-ak4GenJetPhiLabel   = ("jetsAK4CHS", "jetAK4CHSGenJetPhi")
+ak4GenJetPhiLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetPhi")
 ak4GenJetEnergyHandle = Handle("std::vector<float>")
-ak4GenJetEnergyLabel  = ("jetsAK4CHS", "jetAK4CHSGenJetE")
+ak4GenJetEnergyLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"GenJetE")
 
-if options.usePuppi :
-    ak4GenJetPtHandle   = Handle("std::vector<float>")
-    ak4GenJetPtLabel    = ("jetsAK4Puppi", "jetAK4PuppiGenJetPt")
-    ak4GenJetEtaHandle  = Handle("std::vector<float>")
-    ak4GenJetEtaLabel   = ("jetsAK4Puppi", "jetAK4PuppiGenJetEta")
-    ak4GenJetPhiHandle  = Handle("std::vector<float>")
-    ak4GenJetPhiLabel   = ("jetsAK4Puppi", "jetAK4PuppiGenJetPhi")
-    ak4GenJetEnergyHandle = Handle("std::vector<float>")
-    ak4GenJetEnergyLabel  = ("jetsAK4Puppi", "jetAK4PuppiGenJetE")
-    
+## only have one version of AK8 gen jets (presumably CHS, no Puppi version available??)
 ak8GenJetPtHandle   = Handle("std::vector<float>")
 ak8GenJetPtLabel    = ("genJetsAK8", "genJetsAK8Pt")
 ak8GenJetEtaHandle  = Handle("std::vector<float>")
@@ -380,6 +427,9 @@ muDzLabel         = ("muons" , "muDz" )
 muMiniIsoHandle   = Handle( "std::vector<float>" )
 muMiniIsoLabel    = ("muons" , "muMiniIso" )
 
+muKeyHandle = Handle("std::vector<std::vector<int> >")
+muKeyLabel = ("muonKeys")
+
 electronPtHandle          = Handle( "std::vector<float>")
 electronPtLabel           = ("electrons", "elPt")
 electronEtaHandle         = Handle( "std::vector<float>")
@@ -409,125 +459,95 @@ electronDzLabel           = ( "electrons" , "elDz" )
 electronMiniIsoHandle     = Handle("std::vector<float>")
 electronMiniIsoLabel      = ( "electrons" , "elMiniIso" )
 
+elKeyHandle = Handle("std::vector<std::vector<int> >")
+elKeyLabel = ( "electronKeys" )
+
 # AK4 jet collection
 ak4JetPtHandle   = Handle( "std::vector<float>" )
-ak4JetPtLabel    = ("jetsAK4CHS", "jetAK4CHSPt")
+ak4JetPtLabel    = ("jetsAK4"+jetname, "jetAK4"+jetname+"Pt")
 ak4JetEtaHandle  = Handle( "std::vector<float>" )
-ak4JetEtaLabel   = ("jetsAK4CHS", "jetAK4CHSEta")
+ak4JetEtaLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"Eta")
 ak4JetPhiHandle  = Handle( "std::vector<float>" )
-ak4JetPhiLabel   = ("jetsAK4CHS", "jetAK4CHSPhi")
+ak4JetPhiLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"Phi")
 ak4JetMassHandle = Handle( "std::vector<float>" )
-ak4JetMassLabel  = ("jetsAK4CHS", "jetAK4CHSMass")
+ak4JetMassLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"Mass")
 ak4JetCSVHandle  = Handle( "std::vector<float>" )
-ak4JetCSVLabel   = ("jetsAK4CHS", "jetAK4CHSCSVv2")
+ak4JetCSVLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"CSVv2")
 ak4JetVtxMassHandle = Handle( "std::vector<float>" )
-ak4JetVtxMassLabel  = ("jetsAK4CHS", "jetAK4CHSSV0mass")    
+ak4JetVtxMassLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"SV0mass")    
+ak4JetAreaHandle = Handle( "std::vector<float>" )
+ak4JetAreaLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"jetArea")
 
-if options.usePuppi :
-    ak4JetPtHandle   = Handle( "std::vector<float>" )
-    ak4JetPtLabel    = ("jetsAK4Puppi", "jetAK4PuppiPt")
-    ak4JetEtaHandle  = Handle( "std::vector<float>" )
-    ak4JetEtaLabel   = ("jetsAK4Puppi", "jetAK4PuppiEta")
-    ak4JetPhiHandle  = Handle( "std::vector<float>" )
-    ak4JetPhiLabel   = ("jetsAK4Puppi", "jetAK4PuppiPhi")
-    ak4JetMassHandle = Handle( "std::vector<float>" )
-    ak4JetMassLabel  = ("jetsAK4Puppi", "jetAK4PuppiMass")
-    ak4JetCSVHandle  = Handle( "std::vector<float>" )
-    ak4JetCSVLabel   = ("jetsAK4Puppi", "jetAK4PuppiCSVv2")
-    ak4JetVtxMassHandle = Handle( "std::vector<float>" )
-    ak4JetVtxMassLabel  = ("jetsAK4Puppi", "jetAK4PuppiSV0mass")
+ak4JetNeuHadEnergyHandle = Handle("std::vector<float>")
+ak4JetNeuHadEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralHadronEnergy")
+ak4JetNeuEmEnergyHandle = Handle("std::vector<float>")
+ak4JetNeuEmEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralEmEnergy")
+ak4JetChHadEnergyHandle = Handle("std::vector<float>")
+ak4JetChHadEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedHadronEnergy")
+ak4JetChEmEnergyHandle = Handle("std::vector<float>")
+ak4JetChEmEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedEmEnergy")
+ak4JetNumDaughterHandle = Handle("std::vector<float>")
+ak4JetNumDaughterLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"numberOfDaughters")
+ak4JetChMultiHandle = Handle("std::vector<float>")
+ak4JetChMultiLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedMultiplicity")
 
-# top-tagged jet collection
+ak4JetJECHandle = Handle("std::vector<float>")
+ak4JetJECLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"jecFactor0") 
+
+ak4JetKeysHandle = Handle("std::vector<std::vector<int> >")
+ak4JetKeysLabel = ( "jetKeysAK4"+jetname , "" )
+
+
+# AK8 jet collection
 ak8JetPtHandle   = Handle( "std::vector<float>" )
-ak8JetPtLabel    = ("jetsAK8CHS", "jetAK8CHSPt")
+ak8JetPtLabel    = ("jetsAK8"+jetname, "jetAK8"+jetname+"Pt")
 ak8JetEtaHandle  = Handle( "std::vector<float>" )
-ak8JetEtaLabel   = ("jetsAK8CHS", "jetAK8CHSEta")
+ak8JetEtaLabel   = ("jetsAK8"+jetname, "jetAK8"+jetname+"Eta")
 ak8JetPhiHandle  = Handle( "std::vector<float>" )
-ak8JetPhiLabel   = ("jetsAK8CHS", "jetAK8CHSPhi")
+ak8JetPhiLabel   = ("jetsAK8"+jetname, "jetAK8"+jetname+"Phi")
 ak8JetYHandle    = Handle( "std::vector<float>" )
-ak8JetYLabel     = ("jetsAK8CHS", "jetAK8CHSY" )
+ak8JetYLabel     = ("jetsAK8"+jetname, "jetAK8"+jetname+"Y" )
 ak8JetMassHandle = Handle( "std::vector<float>" )
-ak8JetMassLabel  = ("jetsAK8CHS", "jetAK8CHSMass")
+ak8JetMassLabel  = ("jetsAK8"+jetname, "jetAK8"+jetname+"Mass")
 ak8JetTrimMassHandle = Handle("std::vector<float>")
-ak8JetTrimMassLabel = ("jetsAK8CHS", "jetAK8CHStrimmedMass" )
+ak8JetTrimMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"trimmedMass" )
 ak8JetPrunMassHandle = Handle("std::vector<float>")
-ak8JetPrunMassLabel = ("jetsAK8CHS", "jetAK8CHSprunedMass" )
+ak8JetPrunMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"prunedMass" )
 ak8JetFiltMassHandle = Handle("std::vector<float>")
-ak8JetFiltMassLabel = ("jetsAK8CHS", "jetAK8CHSfilteredMass" )
+ak8JetFiltMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"filteredMass" )
 ak8JetTau1Handle = Handle("std::vector<float>")
-ak8JetTau1Label = ("jetsAK8CHS", "jetAK8CHStau1" )
+ak8JetTau1Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau1" )
 ak8JetTau2Handle = Handle("std::vector<float>")
-ak8JetTau2Label = ("jetsAK8CHS", "jetAK8CHStau2" )
+ak8JetTau2Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau2" )
 ak8JetTau3Handle = Handle("std::vector<float>")
-ak8JetTau3Label = ("jetsAK8CHS", "jetAK8CHStau3" )
+ak8JetTau3Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau3" )
 ak8JetCSVHandle = Handle("std::vector<float>")               
-ak8JetCSVLabel = ( "jetsAK8CHS" , "jetAK8CHSCSVv2" )
+ak8JetCSVLabel = ( "jetsAK8"+jetname , "jetAK8"+jetname+"CSVv2" )
 
 ak8JetSoftDropMassHandle = Handle("std::vector<float>")
-ak8JetSoftDropMassLabel = ("jetsAK8CHS", "jetAK8CHSsoftDropMass" )
+ak8JetSoftDropMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"softDropMass" )
 ak8JetSoftDropSubjet0Handle    = Handle("std::vector<float>")
-ak8JetSoftDropSubjet0Label     = ("jetsAK8CHS", "jetAK8CHSvSubjetIndex0")
+ak8JetSoftDropSubjet0Label     = ("jetsAK8"+jetname, "jetAK8"+jetname+"vSubjetIndex0")
 ak8JetSoftDropSubjet1Handle    = Handle("std::vector<float>")
-ak8JetSoftDropSubjet1Label     = ("jetsAK8CHS", "jetAK8CHSvSubjetIndex1")
+ak8JetSoftDropSubjet1Label     = ("jetsAK8"+jetname, "jetAK8"+jetname+"vSubjetIndex1")
 
 sjSoftDropPtHandle              = Handle( "std::vector<float>")
-sjSoftDropPtLabel               = ("subjetsAK8CHS", "subjetAK8CHSPt")
+sjSoftDropPtLabel               = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Pt")
 sjSoftDropEtaHandle             = Handle( "std::vector<float>")
-sjSoftDropEtaLabel              = ("subjetsAK8CHS", "subjetAK8CHSEta")
+sjSoftDropEtaLabel              = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Eta")
 sjSoftDropPhiHandle             = Handle( "std::vector<float>")
-sjSoftDropPhiLabel              = ("subjetsAK8CHS", "subjetAK8CHSPhi")
+sjSoftDropPhiLabel              = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Phi")
 sjSoftDropMassHandle            = Handle( "std::vector<float>")
-sjSoftDropMassLabel             = ("subjetsAK8CHS", "subjetAK8CHSMass")
+sjSoftDropMassLabel             = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Mass")
 sjSoftDropYHandle               = Handle( "std::vector<float>")
-sjSoftDropYLabel                = ("subjetsAK8CHS", "subjetAK8CHSY")
+sjSoftDropYLabel                = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Y")
 sjSoftDropCSVHandle           = Handle( "std::vector<float>")
-sjSoftDropCSVLabel            = ("subjetsAK8CHS", "subjetAK8CHSCSVv2")
+sjSoftDropCSVLabel            = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"CSVv2")
 
-if options.usePuppi :
-    ak8JetPtHandle   = Handle( "std::vector<float>" )
-    ak8JetPtLabel    = ("jetsAK8Puppi", "jetAK8PuppiPt")
-    ak8JetEtaHandle  = Handle( "std::vector<float>" )
-    ak8JetEtaLabel   = ("jetsAK8Puppi", "jetAK8PuppiEta")
-    ak8JetPhiHandle  = Handle( "std::vector<float>" )
-    ak8JetPhiLabel   = ("jetsAK8Puppi", "jetAK8PuppiPhi")
-    ak8JetYHandle    = Handle( "std::vector<float>" )
-    ak8JetYLabel     = ("jetsAK8Puppi", "jetAK8PuppiY" )
-    ak8JetMassHandle = Handle( "std::vector<float>" )
-    ak8JetMassLabel  = ("jetsAK8Puppi", "jetAK8PuppiMass")
-    ak8JetTrimMassHandle = Handle("std::vector<float>")
-    ak8JetTrimMassLabel = ("jetsAK8Puppi", "jetAK8PuppitrimmedMass" )
-    ak8JetPrunMassHandle = Handle("std::vector<float>")
-    ak8JetPrunMassLabel = ("jetsAK8Puppi", "jetAK8PuppiprunedMass" )
-    ak8JetFiltMassHandle = Handle("std::vector<float>")
-    ak8JetFiltMassLabel = ("jetsAK8Puppi", "jetAK8PuppifilteredMass" )
-    ak8JetTau1Handle = Handle("std::vector<float>")
-    ak8JetTau1Label = ("jetsAK8Puppi", "jetAK8Puppitau1" )
-    ak8JetTau2Handle = Handle("std::vector<float>")
-    ak8JetTau2Label = ("jetsAK8Puppi", "jetAK8Puppitau2" )
-    ak8JetTau3Handle = Handle("std::vector<float>")
-    ak8JetTau3Label = ("jetsAK8Puppi", "jetAK8Puppitau3" )
-    ak8JetCSVHandle = Handle("std::vector<float>")               
-    ak8JetCSVLabel = ( "jetsAK8Puppi" , "jetAK8PuppiCSVv2" )
-    
-    ak8JetSoftDropMassHandle = Handle("std::vector<float>")
-    ak8JetSoftDropMassLabel = ("jetsAK8Puppi", "jetAK8PuppisoftDropMass" )
-    ak8JetSoftDropSubjet0Handle    = Handle("std::vector<float>")
-    ak8JetSoftDropSubjet0Label     = ("jetsAK8Puppi", "jetAK8PuppivSubjetIndex0")
-    ak8JetSoftDropSubjet1Handle    = Handle("std::vector<float>")
-    ak8JetSoftDropSubjet1Label     = ("jetsAK8Puppi", "jetAK8PuppivSubjetIndex1")
-    
-    sjSoftDropPtHandle              = Handle( "std::vector<float>")
-    sjSoftDropPtLabel               = ("subjetsAK8Puppi", "subjetAK8PuppiPt")
-    sjSoftDropEtaHandle             = Handle( "std::vector<float>")
-    sjSoftDropEtaLabel              = ("subjetsAK8Puppi", "subjetAK8PuppiEta")
-    sjSoftDropPhiHandle             = Handle( "std::vector<float>")
-    sjSoftDropPhiLabel              = ("subjetsAK8Puppi", "subjetAK8PuppiPhi")
-    sjSoftDropMassHandle            = Handle( "std::vector<float>")
-    sjSoftDropMassLabel             = ("subjetsAK8Puppi", "subjetAK8PuppiMass")
-    sjSoftDropYHandle               = Handle( "std::vector<float>")
-    sjSoftDropYLabel                = ("subjetsAK8Puppi", "subjetAK8PuppiY")
-    sjSoftDropCSVHandle           = Handle( "std::vector<float>")
-    sjSoftDropCSVLabel            = ("subjetsAK8Puppi", "subjetAK8PuppiCSVv2")
+
+rhoHandle = Handle("double")
+rhoLabel = ("fixedGridRhoFastjetAll", "")
+
 
 
 # -------------------------------------------------------------------------------------
@@ -641,9 +661,10 @@ for event in events :
     ntotal += 1
 
     # TEMP hack to make small file
-    #if ntotal > 10000:
+    #if ntotal > 100:
     #    continue
 
+    
     # ------------------------------
     # Require a good primary vertex
     # ------------------------------
@@ -708,363 +729,223 @@ for event in events :
             continue
         
     nPassTrig += 1
-            
+
+
+    # -------------------------------------------------------------------------------------
+    # read event rho value
+    # -------------------------------------------------------------------------------------
+
+    event.getByLabel( rhoLabel, rhoHandle )
+    if len(rhoHandle.product()) == 0 :
+        print "Event has no rho values."
+        continue
+    rho = rhoHandle.product()[0]
+
+
+    
     # -------------------------------------------------------------------------------------
     # Get parton-level info
     # -------------------------------------------------------------------------------------
 
-    topQuarks = []
-    genMuons = []
-    genElectrons = []
-    hadTop = None
-    lepTop = None
-    isSemiLeptonicGen = True
-    isMuon = False
-    isElectron = False
-    
-    event.getByLabel( genParticlesPtLabel, genParticlesPtHandle )
-    event.getByLabel( genParticlesEtaLabel, genParticlesEtaHandle )
-    event.getByLabel( genParticlesPhiLabel, genParticlesPhiHandle )
-    event.getByLabel( genParticlesMassLabel, genParticlesMassHandle )
-    event.getByLabel( genParticlesPdgIdLabel, genParticlesPdgIdHandle )
-    event.getByLabel( genParticlesStatusLabel, genParticlesStatusHandle )
-    event.getByLabel( genParticlesMom0IDLabel, genParticlesMom0IDHandle)
-    
-    if genParticlesPtHandle.isValid() == False :
-        continue
+    if options.isMC and options.semilep is not None :
 
-    genParticlesPt  = genParticlesPtHandle.product()
-    genParticlesEta = genParticlesEtaHandle.product()
-    genParticlesPhi = genParticlesPhiHandle.product()
-    genParticlesMass   = genParticlesMassHandle.product()
-    genParticlesPdgId  = genParticlesPdgIdHandle.product()
-    genParticlesStatus = genParticlesStatusHandle.product()
-    genParticlesMom0ID = genParticlesMom0IDHandle.product()
+        topQuarks = []
+        genMuons = []
+        genElectrons = []
+        hadTop = None
+        lepTop = None
+        isSemiLeptonicGen = True
+        isMuon = False
+        isElectron = False
         
-    p4Top = ROOT.TLorentzVector()
-    p4Antitop = ROOT.TLorentzVector()
-    topDecay = 0        # 0 = hadronic, 1 = leptonic
-    antitopDecay = 0    # 0 = hadronic, 1 = leptonic
-    
-    # loop over gen particles
-    for igen in xrange( len(genParticlesPt) ) :
-
-        # Find tops -- |pdgID| = 6, status 22
-        if genParticlesPdgId[igen] == 6 and genParticlesStatus[igen] == 22 :
-            gen = ROOT.TLorentzVector()
-            gen.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )                    
-            p4Top = gen
-        if genParticlesPdgId[igen] == -6 and genParticlesStatus[igen] == 22:
-            gen = ROOT.TLorentzVector()
-            gen.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
-            p4Antitop = gen
+        event.getByLabel( genParticlesPtLabel, genParticlesPtHandle )
+        event.getByLabel( genParticlesEtaLabel, genParticlesEtaHandle )
+        event.getByLabel( genParticlesPhiLabel, genParticlesPhiHandle )
+        event.getByLabel( genParticlesMassLabel, genParticlesMassHandle )
+        event.getByLabel( genParticlesPdgIdLabel, genParticlesPdgIdHandle )
+        event.getByLabel( genParticlesStatusLabel, genParticlesStatusHandle )
+        event.getByLabel( genParticlesMom0IDLabel, genParticlesMom0IDHandle)
+        
+        if genParticlesPtHandle.isValid() == False :
+            continue
+        
+        genParticlesPt  = genParticlesPtHandle.product()
+        genParticlesEta = genParticlesEtaHandle.product()
+        genParticlesPhi = genParticlesPhiHandle.product()
+        genParticlesMass   = genParticlesMassHandle.product()
+        genParticlesPdgId  = genParticlesPdgIdHandle.product()
+        genParticlesStatus = genParticlesStatusHandle.product()
+        genParticlesMom0ID = genParticlesMom0IDHandle.product()
+        
+        p4Top = ROOT.TLorentzVector()
+        p4Antitop = ROOT.TLorentzVector()
+        topDecay = 0        # 0 = hadronic, 1 = leptonic
+        antitopDecay = 0    # 0 = hadronic, 1 = leptonic
+        
+        # loop over gen particles
+        for igen in xrange( len(genParticlesPt) ) :
             
-        # If there is an antilepton (e+, mu+, tau+) in the W+ decay then the top is leptonic
-        if ( genParticlesPdgId[igen] == -11 or genParticlesPdgId[igen] == -13 or genParticlesPdgId[igen] == -15) :
-            if genParticlesMom0ID[igen] == 24 :
-                topDecay = 1
-        # If there is an lepton (e-, mu-, tau-) in the W- decay then the antitop is leptonic
-        if ( genParticlesPdgId[igen] == 11 or genParticlesPdgId[igen] == 13 or genParticlesPdgId[igen] == 15) :
-            if genParticlesMom0ID[igen] == -24 :
-                antitopDecay = 1
+            # Find tops -- |pdgID| = 6, status 22
+            if genParticlesPdgId[igen] == 6 and genParticlesStatus[igen] == 22 :
+                gen = ROOT.TLorentzVector()
+                gen.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )                    
+                p4Top = gen
+            if genParticlesPdgId[igen] == -6 and genParticlesStatus[igen] == 22:
+                gen = ROOT.TLorentzVector()
+                gen.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
+                p4Antitop = gen
             
-        if (abs(genParticlesPdgId[igen]) == 13 and abs(genParticlesMom0ID[igen]) == 24) :
-            isMuon = True
-            p4Muon = ROOT.TLorentzVector()
-            p4Muon.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
-            genMuons.append(p4Muon)
+            # If there is an antilepton (e+, mu+, tau+) in the W+ decay then the top is leptonic
+            if ( genParticlesPdgId[igen] == -11 or genParticlesPdgId[igen] == -13 or genParticlesPdgId[igen] == -15) :
+                if genParticlesMom0ID[igen] == 24 :
+                    topDecay = 1
+            # If there is an lepton (e-, mu-, tau-) in the W- decay then the antitop is leptonic
+            if ( genParticlesPdgId[igen] == 11 or genParticlesPdgId[igen] == 13 or genParticlesPdgId[igen] == 15) :
+                if genParticlesMom0ID[igen] == -24 :
+                    antitopDecay = 1
             
-        if (abs(genParticlesPdgId[igen]) == 11 and abs(genParticlesMom0ID[igen]) == 24) :
-            isElectron = True
-            p4Electron = ROOT.TLorentzVector()
-            p4Electron.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
-            genElectrons.append(p4Electron)
+            if (abs(genParticlesPdgId[igen]) == 13 and abs(genParticlesMom0ID[igen]) == 24) :
+                isMuon = True
+                p4Muon = ROOT.TLorentzVector()
+                p4Muon.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
+                genMuons.append(p4Muon)
                 
-    topQuarks.append( GenTopQuark( 6, p4Top, topDecay) )
-    topQuarks.append( GenTopQuark( -6, p4Antitop, antitopDecay) )
+            if (abs(genParticlesPdgId[igen]) == 11 and abs(genParticlesMom0ID[igen]) == 24) :
+                isElectron = True
+                p4Electron = ROOT.TLorentzVector()
+                p4Electron.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
+                genElectrons.append(p4Electron)
+                
+        topQuarks.append( GenTopQuark( 6, p4Top, topDecay) )
+        topQuarks.append( GenTopQuark( -6, p4Antitop, antitopDecay) )
+        
+        if (topDecay + antitopDecay == 1) and (isMuon == True) and (isElectron == False) :
+            isSemiLeptonicGen = True
+        elif (topDecay + antitopDecay == 1) and (isMuon == False) and (isElectron == True) :
+            isSemiLeptonicGen = True
+        else :
+            isSemiLeptonicGen = False
 
-    if (topDecay + antitopDecay == 1) and (isMuon == True) and (isElectron == False) :
-        isSemiLeptonicGen = True
-    elif (topDecay + antitopDecay == 1) and (isMuon == False) and (isElectron == True) :
-        isSemiLeptonicGen = True
-    else :
-        isSemiLeptonicGen = False
-
-    if options.semilep > 0 and isSemiLeptonicGen == False:
-        continue
-    if options.semilep < 0 and isSemiLeptonicGen == True:
-        continue
-
-    nSemilep += 1
-
-    if topDecay == 0 :
-        hadTop = topQuarks[0]
-        lepTop = topQuarks[1]
-    else :
-        hadTop = topQuarks[1]
-        lepTop = topQuarks[0]
-
-    
-    # cut on generated m(ttbar) if stitching sample
-    ttbarGen = hadTop.p4 + lepTop.p4
-    mttbarGen = ttbarGen.M()
-
-    if options.mttGenMax is not None :
-        if mttbarGen > options.mttGenMax :
+        if options.semilep > 0 and isSemiLeptonicGen == False:
+            continue
+        if options.semilep < 0 and isSemiLeptonicGen == True:
             continue
 
-    genTopPt.push_back(hadTop.p4.Perp())
-    genTopEta.push_back(hadTop.p4.Eta())
-    genTopPhi.push_back(hadTop.p4.Phi())
-    genTTbarMass.push_back(ttbarGen.M())
+        nSemilep += 1
+        
+        if topDecay == 0 :
+            hadTop = topQuarks[0]
+            lepTop = topQuarks[1]
+        else :
+            hadTop = topQuarks[1]
+            lepTop = topQuarks[0]
 
-    if len(genMuons) != 0:
-        genMuPt.push_back(genMuons[0].Perp())
-        genMuEta.push_back(genMuons[0].Eta())
-        genMuPhi.push_back(genMuons[0].Phi())
+            
+        # cut on generated m(ttbar) if stitching sample
+        ttbarGen = hadTop.p4 + lepTop.p4
+        mttbarGen = ttbarGen.M()
+        
+        if options.mttGenMax is not None :
+            if mttbarGen > options.mttGenMax :
+                continue
 
-    if len(genElectrons) != 0:
-        genElPt.push_back(genElectrons[0].Perp())
-        genElEta.push_back(genElectrons[0].Eta())
-        genElPhi.push_back(genElectrons[0].Phi())   
-             
+        genTopPt.push_back(hadTop.p4.Perp())
+        genTopEta.push_back(hadTop.p4.Eta())
+        genTopPhi.push_back(hadTop.p4.Phi())
+        genTTbarMass.push_back(ttbarGen.M())
+        
+        if len(genMuons) != 0:
+            genMuPt.push_back(genMuons[0].Perp())
+            genMuEta.push_back(genMuons[0].Eta())
+            genMuPhi.push_back(genMuons[0].Phi())
+            
+        if len(genElectrons) != 0:
+            genElPt.push_back(genElectrons[0].Perp())
+            genElEta.push_back(genElectrons[0].Eta())
+            genElPhi.push_back(genElectrons[0].Phi())   
+
+            
     # -------------------------------------------------------------------------------------
     # read gen jets
     # -------------------------------------------------------------------------------------
-
-    event.getByLabel( ak4GenJetPtLabel, ak4GenJetPtHandle )
-    if ak4GenJetPtHandle.isValid() == False :
-        continue
-    event.getByLabel( ak4GenJetEtaLabel, ak4GenJetEtaHandle )
-    event.getByLabel( ak4GenJetPhiLabel, ak4GenJetPhiHandle )
-    event.getByLabel( ak4GenJetEnergyLabel, ak4GenJetEnergyHandle )
-
-    ak4GenJetPt   = ak4GenJetPtHandle.product()
-    ak4GenJetEta  = ak4GenJetEtaHandle.product()
-    ak4GenJetPhi  = ak4GenJetPhiHandle.product()
-    ak4GenJetE    = ak4GenJetEnergyHandle.product()
-
-    if len(ak4GenJetPt) == 0 :
-        continue
         
-    # loop over AK4 gen jets
-    for iak4 in xrange( len(ak4GenJetPt) ) :
-        if ak4GenJetPt[iak4] > MIN_JET_PT and abs(ak4GenJetEta[iak4]) < MAX_JET_ETA :
-            p4 = ROOT.TLorentzVector()
-            p4.SetPtEtaPhiE( ak4GenJetPt[iak4], ak4GenJetEta[iak4], ak4GenJetPhi[iak4], ak4GenJetE[iak4] )
-            genAK4jetPt.push_back(ak4GenJetPt[iak4])
-            genAK4jetEta.push_back(ak4GenJetEta[iak4])
-            genAK4jetPhi.push_back(ak4GenJetPhi[iak4])
-            genAK4jetMass.push_back(p4.M())
+    if options.isMC and options.semilep is not None :
 
-    event.getByLabel( ak8GenJetPtLabel, ak8GenJetPtHandle )
-    if ak8GenJetPtHandle.isValid() == False :
-        continue
-    event.getByLabel( ak8GenJetEtaLabel, ak8GenJetEtaHandle )
-    event.getByLabel( ak8GenJetPhiLabel, ak8GenJetPhiHandle )
-    event.getByLabel( ak8GenJetMassLabel, ak8GenJetMassHandle )
+        event.getByLabel( ak4GenJetPtLabel, ak4GenJetPtHandle )
+        if ak4GenJetPtHandle.isValid() == False :
+            continue
+        event.getByLabel( ak4GenJetEtaLabel, ak4GenJetEtaHandle )
+        event.getByLabel( ak4GenJetPhiLabel, ak4GenJetPhiHandle )
+        event.getByLabel( ak4GenJetEnergyLabel, ak4GenJetEnergyHandle )
         
-    ak8GenJetPt   = ak8GenJetPtHandle.product()
-    ak8GenJetEta  = ak8GenJetEtaHandle.product()
-    ak8GenJetPhi  = ak8GenJetPhiHandle.product()
-    ak8GenJetMass = ak8GenJetMassHandle.product()
+        ak4GenJetPt   = ak4GenJetPtHandle.product()
+        ak4GenJetEta  = ak4GenJetEtaHandle.product()
+        ak4GenJetPhi  = ak4GenJetPhiHandle.product()
+        ak4GenJetE    = ak4GenJetEnergyHandle.product()
+
+        if len(ak4GenJetPt) == 0 :
+            continue
         
-    if len(ak8GenJetPt) == 0 :
-        continue
-
-    # loop over AK8 gen jets
-    for iak8 in xrange( len(ak8GenJetPt) ) :
-        if ak8GenJetPt[iak8] > MIN_JET_PT and abs(ak8GenJetEta[iak8]) < MAX_JET_ETA :
-            p4 = ROOT.TLorentzVector()
-            p4.SetPtEtaPhiM( ak8GenJetPt[iak8], ak8GenJetEta[iak8], ak8GenJetPhi[iak8], ak8GenJetMass[iak8] )
-            genAK8jetPt.push_back(ak8GenJetPt[iak8])
-            genAK8jetEta.push_back(ak8GenJetEta[iak8])
-            genAK8jetPhi.push_back(ak8GenJetPhi[iak8])
-            genAK8jetMass.push_back(p4.M())
-
-    # -------------------------------------------------------------------------------------
-    # Get particle-level leptons
-    # -------------------------------------------------------------------------------------
-
-    for iMuon in genMuons:
-        if iMuon.Perp() > MIN_MU_PT and abs(iMuon.Eta()) < MAX_MU_ETA:  ## pt>50, |eta|<2.1
-            partMuPt.push_back(iMuon.Perp())
-            partMuEta.push_back(iMuon.Eta())
-            partMuPhi.push_back(iMuon.Phi())
-    
-    for iEle in genElectrons:
-        if iEle.Perp() > MIN_MU_PT and abs(iEle.Eta()) < MAX_MU_ETA:  ## pt>50, |eta|<2.1  (same selection as for muons here!)
-            partElPt.push_back(iEle.Perp())
-            partElEta.push_back(iEle.Eta())
-            partElPhi.push_back(iEle.Phi())
-                     
-    # -------------------------------------------------------------------------------------
-    # read AK4 jet information
-    # -------------------------------------------------------------------------------------
-
-    event.getByLabel (ak4JetPtLabel, ak4JetPtHandle)
-    if ak4JetPtHandle.isValid(): 
-
-        ak4JetPts = ak4JetPtHandle.product()
-        event.getByLabel (ak4JetEtaLabel, ak4JetEtaHandle)
-        ak4JetEtas = ak4JetEtaHandle.product()
-        event.getByLabel (ak4JetPhiLabel, ak4JetPhiHandle)
-        ak4JetPhis = ak4JetPhiHandle.product()
-        event.getByLabel (ak4JetMassLabel, ak4JetMassHandle)
-        ak4JetMasss = ak4JetMassHandle.product()
-        event.getByLabel (ak4JetCSVLabel, ak4JetCSVHandle)
-        ak4JetCSVs = ak4JetCSVHandle.product()
-        event.getByLabel (ak4JetVtxMassLabel, ak4JetVtxMassHandle)
-        ak4JetVtxMasses = ak4JetVtxMassHandle.product()
-
-        jetsFor2D = []
-        HT = 0.0
+        # loop over AK4 gen jets
+        for iak4 in xrange( len(ak4GenJetPt) ) :
+            if ak4GenJetPt[iak4] > MIN_JET_PT and abs(ak4GenJetEta[iak4]) < MAX_JET_ETA :
+                p4 = ROOT.TLorentzVector()
+                p4.SetPtEtaPhiE( ak4GenJetPt[iak4], ak4GenJetEta[iak4], ak4GenJetPhi[iak4], ak4GenJetE[iak4] )
+                genAK4jetPt.push_back(ak4GenJetPt[iak4])
+                genAK4jetEta.push_back(ak4GenJetEta[iak4])
+                genAK4jetPhi.push_back(ak4GenJetPhi[iak4])
+                genAK4jetMass.push_back(p4.M())
+                
+        event.getByLabel( ak8GenJetPtLabel, ak8GenJetPtHandle )
+        if ak8GenJetPtHandle.isValid() == False :
+            continue
+        event.getByLabel( ak8GenJetEtaLabel, ak8GenJetEtaHandle )
+        event.getByLabel( ak8GenJetPhiLabel, ak8GenJetPhiHandle )
+        event.getByLabel( ak8GenJetMassLabel, ak8GenJetMassHandle )
         
-        for ijet in xrange( len(ak4JetPts) ) :
-            thisJet = ROOT.TLorentzVector()
-            thisJet.SetPtEtaPhiM( ak4JetPts[ijet], ak4JetEtas[ijet], ak4JetPhis[ijet], ak4JetMasss[ijet] )
-            
-            if ak4JetPts[ijet] > 15. and abs(ak4JetEtas[ijet]) < 3.0:
-                jetsFor2D.append(thisJet)
-
-            if ak4JetPts[ijet] < MIN_JET_PT or abs(ak4JetEtas[ijet]) > MAX_JET_ETA:
-                continue
-
-            # calculate HT
-            HT += ak4JetPts[ijet]
-
-            ak4jetPt.push_back(ak4JetPts[ijet])
-            ak4jetEta.push_back(ak4JetEtas[ijet])
-            ak4jetPhi.push_back(ak4JetPhis[ijet])
-            ak4jetMass.push_back(ak4JetMasss[ijet])
-            ak4jetCSV.push_back(ak4JetCSVs[ijet])
-            if (ak4JetVtxMasses[ijet] >= 0.0) :
-                ak4jetVtxMass.push_back(ak4JetVtxMasses[ijet])
-            else :
-                ak4jetVtxMass.push_back(-1.0)
+        ak8GenJetPt   = ak8GenJetPtHandle.product()
+        ak8GenJetEta  = ak8GenJetEtaHandle.product()
+        ak8GenJetPhi  = ak8GenJetPhiHandle.product()
+        ak8GenJetMass = ak8GenJetMassHandle.product()
         
-    # -------------------------------------------------------------------------------------
-    # read variables for AK8 jets
-    # -------------------------------------------------------------------------------------
-
-    event.getByLabel (ak8JetPtLabel, ak8JetPtHandle)
-    if ak8JetPtHandle.isValid() :
-        ak8JetPt = ak8JetPtHandle.product()    
-
-        event.getByLabel (ak8JetPhiLabel, ak8JetPhiHandle)
-        ak8JetPhi = ak8JetPhiHandle.product()
-        event.getByLabel (ak8JetEtaLabel, ak8JetEtaHandle)
-        ak8JetEta = ak8JetEtaHandle.product()
-        event.getByLabel (ak8JetYLabel, ak8JetYHandle)
-        ak8JetY = ak8JetYHandle.product()
-        event.getByLabel (ak8JetMassLabel, ak8JetMassHandle)
-        ak8JetMass = ak8JetMassHandle.product()
-        event.getByLabel (ak8JetTrimMassLabel, ak8JetTrimMassHandle)
-        ak8JetTrimMass = ak8JetTrimMassHandle.product()
-        event.getByLabel (ak8JetPrunMassLabel, ak8JetPrunMassHandle)
-        ak8JetPrunMass = ak8JetPrunMassHandle.product()
-        event.getByLabel (ak8JetFiltMassLabel, ak8JetFiltMassHandle)
-        ak8JetFiltMass = ak8JetFiltMassHandle.product()
-        event.getByLabel (ak8JetTau1Label, ak8JetTau1Handle)
-        ak8JetTau1 = ak8JetTau1Handle.product()
-        event.getByLabel (ak8JetTau2Label, ak8JetTau2Handle)
-        ak8JetTau2 = ak8JetTau2Handle.product()
-        event.getByLabel (ak8JetTau3Label, ak8JetTau3Handle)
-        ak8JetTau3 = ak8JetTau3Handle.product()
-        event.getByLabel (ak8JetCSVLabel, ak8JetCSVHandle)
-        ak8JetCSV = ak8JetCSVHandle.product()
-        event.getByLabel (ak8JetSoftDropMassLabel, ak8JetSoftDropMassHandle)
-        ak8JetSoftDropMass = ak8JetSoftDropMassHandle.product()
-        event.getByLabel (ak8JetSoftDropSubjet0Label, ak8JetSoftDropSubjet0Handle)
-        ak8JetSDSj0 = ak8JetSoftDropSubjet0Handle.product()
-        event.getByLabel (ak8JetSoftDropSubjet1Label, ak8JetSoftDropSubjet1Handle)
-        ak8JetSDSj1 = ak8JetSoftDropSubjet1Handle.product()
-
-        # Get subjet info
-        event.getByLabel(sjSoftDropPtLabel, sjSoftDropPtHandle)
-        sjSoftDropPt   = sjSoftDropPtHandle.product()
-        event.getByLabel(sjSoftDropEtaLabel, sjSoftDropEtaHandle)
-        sjSoftDropEta  = sjSoftDropEtaHandle.product()
-        event.getByLabel(sjSoftDropPhiLabel, sjSoftDropPhiHandle)
-        sjSoftDropPhi  = sjSoftDropPhiHandle.product()
-        event.getByLabel(sjSoftDropYLabel, sjSoftDropYHandle)
-        sjSoftDropY    = sjSoftDropYHandle.product()
-        event.getByLabel(sjSoftDropMassLabel, sjSoftDropMassHandle)
-        sjSoftDropMass = sjSoftDropMassHandle.product()
-        event.getByLabel(sjSoftDropCSVLabel, sjSoftDropCSVHandle)
-        sjSoftDropCSV  = sjSoftDropCSVHandle.product()
+        if len(ak8GenJetPt) == 0 :
+            continue
         
+        # loop over AK8 gen jets
+        for iak8 in xrange( len(ak8GenJetPt) ) :
+            if ak8GenJetPt[iak8] > MIN_JET_PT and abs(ak8GenJetEta[iak8]) < MAX_JET_ETA :
+                p4 = ROOT.TLorentzVector()
+                p4.SetPtEtaPhiM( ak8GenJetPt[iak8], ak8GenJetEta[iak8], ak8GenJetPhi[iak8], ak8GenJetMass[iak8] )
+                genAK8jetPt.push_back(ak8GenJetPt[iak8])
+                genAK8jetEta.push_back(ak8GenJetEta[iak8])
+                genAK8jetPhi.push_back(ak8GenJetPhi[iak8])
+                genAK8jetMass.push_back(p4.M())
+
         # -------------------------------------------------------------------------------------
-        # loop over AK8 jets
+        # Get particle-level leptons
         # -------------------------------------------------------------------------------------
-    
-        # loop over jets
-        for ijet in xrange( len(ak8JetPt) ) :
-            
-            thisJet = ROOT.TLorentzVector()
-            thisJet.SetPtEtaPhiM( ak8JetPt[ijet], ak8JetEta[ijet], ak8JetPhi[ijet], ak8JetMass[ijet] )
         
-            if (thisJet.Perp() < MIN_JET_PT or abs(thisJet.Eta()) > MAX_JET_ETA):
-                continue
-        
-            #print 'Subjet 0 index (SD) is ' + str(int(ak8JetSDSj0[ijet]))
-            #print 'Subjet 1 index (SD) is ' + str(int(ak8JetSDSj1[ijet]))
+        for iMuon in genMuons:
+            if iMuon.Perp() > MIN_MU_PT and abs(iMuon.Eta()) < MAX_MU_ETA:  ## pt>50, |eta|<2.1
+                partMuPt.push_back(iMuon.Perp())
+                partMuEta.push_back(iMuon.Eta())
+                partMuPhi.push_back(iMuon.Phi())
+                
+        for iEle in genElectrons:
+            if iEle.Perp() > MIN_MU_PT and abs(iEle.Eta()) < MAX_MU_ETA:  ## pt>50, |eta|<2.1  (same selection as for muons here!)
+                partElPt.push_back(iEle.Perp())
+                partElEta.push_back(iEle.Eta())
+                partElPhi.push_back(iEle.Phi())
 
-            ak8jetPt.push_back(ak8JetPt[ijet])
-            ak8jetEta.push_back(ak8JetEta[ijet])
-            ak8jetPhi.push_back(ak8JetPhi[ijet])
-            ak8jetY.push_back(ak8JetY[ijet])
-            ak8jetMass.push_back(ak8JetMass[ijet])
-            if ak8JetPrunMass[ijet] >= 0.0 :
-                ak8jetMassPruned.push_back(ak8JetPrunMass[ijet])
-            else :
-                ak8jetMassPruned.push_back(-10.0)
-            if ak8JetFiltMass[ijet] >= 0.0 :
-                ak8jetMassFiltered.push_back(ak8JetFiltMass[ijet])
-            else :
-                ak8jetMassFiltered.push_back(-10.0)
-            if ak8JetTrimMass[ijet] >= 0.0 :
-                ak8jetMassTrimmed.push_back(ak8JetTrimMass[ijet])
-            else :
-                ak8jetMassTrimmed.push_back(-10.0)
-            ak8jetTau1.push_back(ak8JetTau1[ijet])
-            ak8jetTau2.push_back(ak8JetTau2[ijet])
-            ak8jetTau3.push_back(ak8JetTau3[ijet])
-            ak8jetCSV.push_back(ak8JetCSV[ijet])
-            if ak8JetSoftDropMass[ijet] >= 0.0 :
-                ak8jetSDmass.push_back(ak8JetSoftDropMass[ijet])
-            else :
-                ak8jetSDmass.push_back(-10.0)
-            if int(ak8JetSDSj0[ijet]) >= 0 and int(ak8JetSDSj0[ijet]) < len(sjSoftDropPt) :
-                ak8jetSDsubjet0pt.push_back(sjSoftDropPt[int(ak8JetSDSj0[ijet])])
-                ak8jetSDsubjet0eta.push_back(sjSoftDropEta[int(ak8JetSDSj0[ijet])])
-                ak8jetSDsubjet0phi.push_back(sjSoftDropPhi[int(ak8JetSDSj0[ijet])])
-                ak8jetSDsubjet0mass.push_back(sjSoftDropMass[int(ak8JetSDSj0[ijet])])
-                ak8jetSDsubjet0CSV.push_back(sjSoftDropCSV[int(ak8JetSDSj0[ijet])])
-            else :
-                ak8jetSDsubjet0pt.push_back(-10.0)
-                ak8jetSDsubjet0eta.push_back(-10.0)
-                ak8jetSDsubjet0phi.push_back(-10.0)
-                ak8jetSDsubjet0mass.push_back(-10.0)
-                ak8jetSDsubjet0CSV.push_back(-10.0)
-            if int(ak8JetSDSj1[ijet]) >= 0 and int(ak8JetSDSj1[ijet]) < len(sjSoftDropPt) :
-                ak8jetSDsubjet1pt.push_back(sjSoftDropPt[int(ak8JetSDSj1[ijet])])
-                ak8jetSDsubjet1eta.push_back(sjSoftDropEta[int(ak8JetSDSj1[ijet])])
-                ak8jetSDsubjet1phi.push_back(sjSoftDropPhi[int(ak8JetSDSj1[ijet])])
-                ak8jetSDsubjet1mass.push_back(sjSoftDropMass[int(ak8JetSDSj1[ijet])])
-                ak8jetSDsubjet1CSV.push_back(sjSoftDropCSV[int(ak8JetSDSj1[ijet])])
-            else :
-                ak8jetSDsubjet1pt.push_back(-10.0)
-                ak8jetSDsubjet1eta.push_back(-10.0)
-                ak8jetSDsubjet1phi.push_back(-10.0)
-                ak8jetSDsubjet1mass.push_back(-10.0)
-                ak8jetSDsubjet1CSV.push_back(-10.0)                
                 
     # -------------------------------------------------------------------------------------
     # get electrons
     # -------------------------------------------------------------------------------------
 
-    nElectrons = 0
+    elCand = []
+    elCandKey = []
+    lepCand = []
+    lepCandKey = []
     
     event.getByLabel (electronPtLabel, electronPtHandle)
     if electronPtHandle.isValid() :
@@ -1095,6 +976,9 @@ for event in events :
         electronDzs = electronDzHandle.product()
         event.getByLabel (electronMiniIsoLabel, electronMiniIsoHandle)
         electronMiniIsos = electronMiniIsoHandle.product()
+
+        event.getByLabel (elKeyLabel, elKeyHandle)
+        elKeys = elKeyHandle.product()
 
         for ielectronPt in range(0,len(electronPts)) :
             electronPt = electronPts[ielectronPt]
@@ -1191,13 +1075,11 @@ for event in events :
             elEta.push_back(electronEta)
             elPhi.push_back(electronPhi)
             elMiniIso.push_back(electronMiniIsos[ielectronPt])
-            
-            eleJet = findClosestInList(p4, jetsFor2D )
 
-            if p4.DeltaR(eleJet) > 0.4 or p4.Perp(eleJet.Vect()) > 20. :
-                el2Diso.push_back(1)
-            else :
-                el2Diso.push_back(0)
+            elCand.append(p4)
+            lepCand.append(p4)
+            elCandKey.append(elKeys[ielectronPt])
+            lepCandKey.append(elKeys[ielectronPt])
                 
             if manualEisMedium :
                 elMedium.push_back(1)
@@ -1209,9 +1091,14 @@ for event in events :
             else :
                 elTight.push_back(0)
                 
+
+
     # --------------------------
     # get muons
     # --------------------------
+
+    muCand = []
+    muCandKey = []
 
     event.getByLabel (muonPtLabel, muonPtHandle)
     if muonPtHandle.isValid() : 
@@ -1249,11 +1136,14 @@ for event in events :
         event.getByLabel (muMiniIsoLabel, muMiniIsoHandle)
         muMiniIsos = muMiniIsoHandle.product()
 
+        event.getByLabel (muKeyLabel, muKeyHandle)
+        muKeys = muKeyHandle.product()
+        
         for imuonPt in range(0,len(muonPts)) :
             muonPt = muonPts[imuonPt]
             muonEta = muonEtas[imuonPt]
             muonPhi = muonPhis[imuonPt]
-            muonMass = 0.105
+            muonMass = 0.105658
             if muonPt < MIN_MU_PT or abs(muonEta) > MAX_MU_ETA :
                 continue
             nMuRaw += 1.0
@@ -1295,13 +1185,10 @@ for event in events :
             muPhi.push_back(muonPhi)
             muMiniIso.push_back(muMiniIsos[imuonPt])
 
-            muJet = findClosestInList( p4, jetsFor2D )
-                
-            # 2D isolation cut
-            if p4.DeltaR(muJet) > 0.4 or p4.Perp(muJet.Vect()) > 20 :
-                mu2Diso.push_back(1)
-            else :
-                mu2Diso.push_back(0)
+            muCand.append(p4)
+            lepCand.append(p4)
+            muCandKey.append(muKeys[imuonPt])
+            lepCandKey.append(muKeys[imuonPt])
 
             if muIsMedium :
                 muMedium.push_back(1)
@@ -1312,6 +1199,316 @@ for event in events :
                 muTight.push_back(1)
             else :
                 muTight.push_back(0)
+                
+
+    # -------------------------------------------------------------------------------------
+    # check that we have at least one lepton candidate
+    # -------------------------------------------------------------------------------------
+
+    if len(lepCand) == 0:
+        continue
+    
+    
+    
+    # -------------------------------------------------------------------------------------
+    # read AK4 jet information
+    # -------------------------------------------------------------------------------------
+
+    event.getByLabel (ak4JetPtLabel, ak4JetPtHandle)
+    if ak4JetPtHandle.isValid(): 
+
+        ak4JetPts = ak4JetPtHandle.product()
+        event.getByLabel (ak4JetEtaLabel, ak4JetEtaHandle)
+        ak4JetEtas = ak4JetEtaHandle.product()
+        event.getByLabel (ak4JetPhiLabel, ak4JetPhiHandle)
+        ak4JetPhis = ak4JetPhiHandle.product()
+        event.getByLabel (ak4JetMassLabel, ak4JetMassHandle)
+        ak4JetMasss = ak4JetMassHandle.product()
+        event.getByLabel (ak4JetCSVLabel, ak4JetCSVHandle)
+        ak4JetCSVs = ak4JetCSVHandle.product()
+        event.getByLabel (ak4JetVtxMassLabel, ak4JetVtxMassHandle)
+        ak4JetVtxMasses = ak4JetVtxMassHandle.product()
+        event.getByLabel (ak4JetAreaLabel, ak4JetAreaHandle)
+        ak4JetAreas = ak4JetAreaHandle.product()
+
+        # variables needed for jet ID 
+        event.getByLabel( ak4JetNeuHadEnergyLabel, ak4JetNeuHadEnergyHandle )
+        event.getByLabel( ak4JetNeuEmEnergyLabel, ak4JetNeuEmEnergyHandle )
+        event.getByLabel( ak4JetChHadEnergyLabel, ak4JetChHadEnergyHandle )
+        event.getByLabel( ak4JetChEmEnergyLabel, ak4JetChEmEnergyHandle )
+        event.getByLabel( ak4JetNumDaughterLabel, ak4JetNumDaughterHandle )
+        event.getByLabel( ak4JetChMultiLabel, ak4JetChMultiHandle )
+
+        ak4JetNeuHadEnergys = ak4JetNeuHadEnergyHandle.product()
+        ak4JetNeuEmEnergys = ak4JetNeuEmEnergyHandle.product()
+        ak4JetChHadEnergys = ak4JetChHadEnergyHandle.product()
+        ak4JetChEmEnergys = ak4JetChEmEnergyHandle.product()
+        ak4JetNumDaughters = ak4JetNumDaughterHandle.product()
+        ak4JetChMultis = ak4JetChMultiHandle.product()
+
+        # applied JEC
+        event.getByLabel( ak4JetJECLabel, ak4JetJECHandle )
+        ak4JetJECs = ak4JetJECHandle.product()
+
+        # jet constituents 
+        event.getByLabel( ak4JetKeysLabel, ak4JetKeysHandle )
+        ak4JetKeys = ak4JetKeysHandle.product()
+        
+        jetsFor2D = []
+        HT = 0.0
+        
+
+        # -------------------------------------------------------------------------------------
+        # loop over AK4 jets
+        # -------------------------------------------------------------------------------------
+
+        for ijet in xrange( len(ak4JetPts) ) :
+
+            # jet IDs must be calculated prior to JECs, so remove them 
+            jetP4Raw = ROOT.TLorentzVector()
+            jetP4Raw.SetPtEtaPhiM( ak4JetPts[ijet], ak4JetEtas[ijet], ak4JetPhis[ijet], ak4JetMasss[ijet] )
+
+            # get the raw jet energy
+            jetP4Raw *= ak4JetJECs[ijet]
+
+            # calculate the neutral/charged hadron/em energy fractions
+            nhf = ak4JetNeuHadEnergys[ijet] / jetP4Raw.E()
+            nef = ak4JetNeuEmEnergys[ijet] / jetP4Raw.E()
+            chf = ak4JetChHadEnergys[ijet] / jetP4Raw.E()
+            cef = ak4JetChEmEnergys[ijet] / jetP4Raw.E()
+            nconstituents = ak4JetNumDaughters[ijet]
+            nchmult = ak4JetChMultis[ijet] 
+
+            # require loose jet ID
+            if (nhf >= 0.99 or nef >= 0.99 or chf <= 0.00 or cef >= 0.99 or nconstituents <= 1 or nchmult <= 0) :
+                continue
+
+            # clean leptons from jets 
+            zeroedEnergy = False
+            
+            for ilep in xrange( len(lepCand) ) :
+                if lepCand[ilep].DeltaR(jetP4Raw) < 0.4 :
+                    # check jet daughters close to the lepton
+                    pfcands = int(ak4JetNumDaughters[ijet])
+                    for ipf in range(0, pfcands) :
+                        # if jet daughter matches lepton, remove lepton p4 from (raw) jet p4
+                        if ak4JetKeys[ijet][ipf] in lepCandKey[ilep]: 
+                            if options.debug:
+                                print 'removing lepton, pt/eta/phi = {0:6.2f},{1:6.2f},{2:6.2f}'.format(lepCand[ilep].Perp(), lepCand[ilep].Eta(), lepCand[ilep].Phi())
+                            if lepCand[ilep].E() > jetP4Raw.E() :
+                                zeroedEnergy = True
+                            jetP4Raw -= lepCand[ilep]
+                            break
+
+            if zeroedEnergy: 
+                continue
+
+
+            # apply back jet energy corrections
+            ak4JetCorrector.setJetEta( jetP4Raw.Eta() )
+            ak4JetCorrector.setJetPt( jetP4Raw.Perp() )
+            ak4JetCorrector.setJetE( jetP4Raw.E() )
+            ak4JetCorrector.setJetA( ak4JetAreas[ijet] )
+            ak4JetCorrector.setRho( rho )
+            ak4JetCorrector.setNPV( NPV )
+
+            newJEC = ak4JetCorrector.getCorrection()
+            jetP4 = jetP4Raw*newJEC
+            
+            
+            if jetP4.Perp() > 15. and abs(jetP4.Eta()) < 3.0:
+                jetsFor2D.append(jetP4)
+
+            if jetP4.Perp() < MIN_JET_PT or abs(jetP4.Eta()) > MAX_JET_ETA:
+                continue
+
+            # calculate HT
+            HT += jetP4.Perp()
+
+            ak4jetPt.push_back(jetP4.Perp())
+            ak4jetEta.push_back(jetP4.Eta())
+            ak4jetPhi.push_back(jetP4.Phi())
+            ak4jetMass.push_back(jetP4.M())
+            ak4jetCSV.push_back(ak4JetCSVs[ijet])
+            if (ak4JetVtxMasses[ijet] >= 0.0) :
+                ak4jetVtxMass.push_back(ak4JetVtxMasses[ijet])
+            else :
+                ak4jetVtxMass.push_back(-1.0)
+
+                
+        
+    # -------------------------------------------------------------------------------------
+    # now we can calculate electron / muon 2D cuts
+    # -------------------------------------------------------------------------------------
+
+    if len(elCand) > 0:
+        for electron in elCand :
+
+            if len(jetsFor2D) < 1: 
+                el2Diso.push_back(1)
+                continue
+            
+            eleJet = findClosestInList(electron, jetsFor2D)
+
+            if options.debug:
+                "dR(electron, closest jet) = " + str(electron.DeltaR(eleJet)) + " ptrel = " + str(electron.Perp(eleJet.Vect()))
+            
+            if electron.DeltaR(eleJet) > 0.4 or electron.Perp(eleJet.Vect()) > 20. :
+                el2Diso.push_back(1)
+            else :
+                el2Diso.push_back(0)
+                
+    if len(muCand) > 0:
+        for muon in muCand :
+
+            if len(jetsFor2D) < 1: 
+                mu2Diso.push_back(1)
+                continue
+
+            muJet = findClosestInList(muon, jetsFor2D)
+            
+            if options.debug:
+                "dR(muon, closest jet) = " + str(muon.DeltaR(muJet)) + " ptrel = " + str(muon.Perp(muJet.Vect()))
+
+            if muon.DeltaR(muJet) > 0.4 or muon.Perp(muJet.Vect()) > 20 :
+                mu2Diso.push_back(1)
+            else :
+                mu2Diso.push_back(0)
+                
+
+
+    # -------------------------------------------------------------------------------------
+    # read variables for AK8 jets
+    # -------------------------------------------------------------------------------------
+
+    event.getByLabel (ak8JetPtLabel, ak8JetPtHandle)
+    if ak8JetPtHandle.isValid() :
+        ak8JetPt = ak8JetPtHandle.product()    
+
+        event.getByLabel (ak8JetPhiLabel, ak8JetPhiHandle)
+        ak8JetPhi = ak8JetPhiHandle.product()
+        event.getByLabel (ak8JetEtaLabel, ak8JetEtaHandle)
+        ak8JetEta = ak8JetEtaHandle.product()
+        event.getByLabel (ak8JetYLabel, ak8JetYHandle)
+        ak8JetY = ak8JetYHandle.product()
+        event.getByLabel (ak8JetMassLabel, ak8JetMassHandle)
+        ak8JetMass = ak8JetMassHandle.product()
+        event.getByLabel (ak8JetTrimMassLabel, ak8JetTrimMassHandle)
+        ak8JetTrimMass = ak8JetTrimMassHandle.product()
+        event.getByLabel (ak8JetPrunMassLabel, ak8JetPrunMassHandle)
+        ak8JetPrunMass = ak8JetPrunMassHandle.product()
+        event.getByLabel (ak8JetFiltMassLabel, ak8JetFiltMassHandle)
+        ak8JetFiltMass = ak8JetFiltMassHandle.product()
+        event.getByLabel (ak8JetTau1Label, ak8JetTau1Handle)
+        ak8JetTau1 = ak8JetTau1Handle.product()
+        event.getByLabel (ak8JetTau2Label, ak8JetTau2Handle)
+        ak8JetTau2 = ak8JetTau2Handle.product()
+        event.getByLabel (ak8JetTau3Label, ak8JetTau3Handle)
+        ak8JetTau3 = ak8JetTau3Handle.product()
+        event.getByLabel (ak8JetCSVLabel, ak8JetCSVHandle)
+        ak8JetCSV = ak8JetCSVHandle.product()
+        event.getByLabel (ak8JetSoftDropMassLabel, ak8JetSoftDropMassHandle)
+        ak8JetSoftDropMass = ak8JetSoftDropMassHandle.product()
+        event.getByLabel (ak8JetSoftDropSubjet0Label, ak8JetSoftDropSubjet0Handle)
+        ak8JetSDSj0 = ak8JetSoftDropSubjet0Handle.product()
+        event.getByLabel (ak8JetSoftDropSubjet1Label, ak8JetSoftDropSubjet1Handle)
+        ak8JetSDSj1 = ak8JetSoftDropSubjet1Handle.product()
+
+        # Get subjet info
+        event.getByLabel(sjSoftDropPtLabel, sjSoftDropPtHandle)
+        sjSoftDropPt   = sjSoftDropPtHandle.product()
+        event.getByLabel(sjSoftDropEtaLabel, sjSoftDropEtaHandle)
+        sjSoftDropEta  = sjSoftDropEtaHandle.product()
+        event.getByLabel(sjSoftDropPhiLabel, sjSoftDropPhiHandle)
+        sjSoftDropPhi  = sjSoftDropPhiHandle.product()
+        event.getByLabel(sjSoftDropYLabel, sjSoftDropYHandle)
+        sjSoftDropY    = sjSoftDropYHandle.product()
+        event.getByLabel(sjSoftDropMassLabel, sjSoftDropMassHandle)
+        sjSoftDropMass = sjSoftDropMassHandle.product()
+        event.getByLabel(sjSoftDropCSVLabel, sjSoftDropCSVHandle)
+        sjSoftDropCSV  = sjSoftDropCSVHandle.product()
+
+
+        
+        # -------------------------------------------------------------------------------------
+        # loop over AK8 jets
+        # -------------------------------------------------------------------------------------
+    
+        # loop over jets
+        for ijet in xrange( len(ak8JetPt) ) :
+            
+            thisJet = ROOT.TLorentzVector()
+            thisJet.SetPtEtaPhiM( ak8JetPt[ijet], ak8JetEta[ijet], ak8JetPhi[ijet], ak8JetMass[ijet] )
+        
+            if (thisJet.Perp() < MIN_JET_PT or abs(thisJet.Eta()) > MAX_JET_ETA):
+                continue
+
+            # require the AK8 jets to be separated in dR from the lepton
+            # ---> for now we can apply this at plotting level (until decision on lepton cuts clear)
+            #
+            #closeLepton = False
+            #for ilep in xrange( len(lepCand) ) :
+            #    if lepCand[ilep].DeltaR(thisJet) < 0.8 :
+            #        closeLepton = True
+            #
+            #if closeLepton: 
+            #    continue
+
+            
+            #print 'Subjet 0 index (SD) is ' + str(int(ak8JetSDSj0[ijet]))
+            #print 'Subjet 1 index (SD) is ' + str(int(ak8JetSDSj1[ijet]))
+
+            ak8jetPt.push_back(ak8JetPt[ijet])
+            ak8jetEta.push_back(ak8JetEta[ijet])
+            ak8jetPhi.push_back(ak8JetPhi[ijet])
+            ak8jetY.push_back(ak8JetY[ijet])
+            ak8jetMass.push_back(ak8JetMass[ijet])
+            if ak8JetPrunMass[ijet] >= 0.0 :
+                ak8jetMassPruned.push_back(ak8JetPrunMass[ijet])
+            else :
+                ak8jetMassPruned.push_back(-10.0)
+            if ak8JetFiltMass[ijet] >= 0.0 :
+                ak8jetMassFiltered.push_back(ak8JetFiltMass[ijet])
+            else :
+                ak8jetMassFiltered.push_back(-10.0)
+            if ak8JetTrimMass[ijet] >= 0.0 :
+                ak8jetMassTrimmed.push_back(ak8JetTrimMass[ijet])
+            else :
+                ak8jetMassTrimmed.push_back(-10.0)
+            ak8jetTau1.push_back(ak8JetTau1[ijet])
+            ak8jetTau2.push_back(ak8JetTau2[ijet])
+            ak8jetTau3.push_back(ak8JetTau3[ijet])
+            ak8jetCSV.push_back(ak8JetCSV[ijet])
+            if ak8JetSoftDropMass[ijet] >= 0.0 :
+                ak8jetSDmass.push_back(ak8JetSoftDropMass[ijet])
+            else :
+                ak8jetSDmass.push_back(-10.0)
+            if int(ak8JetSDSj0[ijet]) >= 0 and int(ak8JetSDSj0[ijet]) < len(sjSoftDropPt) :
+                ak8jetSDsubjet0pt.push_back(sjSoftDropPt[int(ak8JetSDSj0[ijet])])
+                ak8jetSDsubjet0eta.push_back(sjSoftDropEta[int(ak8JetSDSj0[ijet])])
+                ak8jetSDsubjet0phi.push_back(sjSoftDropPhi[int(ak8JetSDSj0[ijet])])
+                ak8jetSDsubjet0mass.push_back(sjSoftDropMass[int(ak8JetSDSj0[ijet])])
+                ak8jetSDsubjet0CSV.push_back(sjSoftDropCSV[int(ak8JetSDSj0[ijet])])
+            else :
+                ak8jetSDsubjet0pt.push_back(-10.0)
+                ak8jetSDsubjet0eta.push_back(-10.0)
+                ak8jetSDsubjet0phi.push_back(-10.0)
+                ak8jetSDsubjet0mass.push_back(-10.0)
+                ak8jetSDsubjet0CSV.push_back(-10.0)
+            if int(ak8JetSDSj1[ijet]) >= 0 and int(ak8JetSDSj1[ijet]) < len(sjSoftDropPt) :
+                ak8jetSDsubjet1pt.push_back(sjSoftDropPt[int(ak8JetSDSj1[ijet])])
+                ak8jetSDsubjet1eta.push_back(sjSoftDropEta[int(ak8JetSDSj1[ijet])])
+                ak8jetSDsubjet1phi.push_back(sjSoftDropPhi[int(ak8JetSDSj1[ijet])])
+                ak8jetSDsubjet1mass.push_back(sjSoftDropMass[int(ak8JetSDSj1[ijet])])
+                ak8jetSDsubjet1CSV.push_back(sjSoftDropCSV[int(ak8JetSDSj1[ijet])])
+            else :
+                ak8jetSDsubjet1pt.push_back(-10.0)
+                ak8jetSDsubjet1eta.push_back(-10.0)
+                ak8jetSDsubjet1phi.push_back(-10.0)
+                ak8jetSDsubjet1mass.push_back(-10.0)
+                ak8jetSDsubjet1CSV.push_back(-10.0)                
+
+        
                 
     # -------------------------------------------------------------------------------------
     # read MET 
@@ -1336,6 +1533,8 @@ for event in events :
     nEventsPass += 1
     
     myTree.Fill()
+
+
     
 # -------------------------------------------------------------------------------------
 # END OF LOOPING OVER EVENTS!!!
