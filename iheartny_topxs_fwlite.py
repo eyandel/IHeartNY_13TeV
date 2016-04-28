@@ -21,6 +21,7 @@ MAX_EL_ETA = 2.5
 MIN_JET_PT  = 50.0
 MAX_JET_ETA = 2.4
 
+MIN_FATJET_PT = 350.0
 
 # -------------------------------------------------------------------------------------
 # define input options
@@ -62,6 +63,11 @@ parser.add_option('--debug', metavar='M', action='store_true',
                   default=False,
                   dest='debug',
                   help='Print out debug statements')
+
+parser.add_option('--fullTruth', metavar='M', action='store_true',
+                  default=False,
+                  dest='fullTruth',
+                  help='Save truth info for all events')
 
 
 (options, args) = parser.parse_args()
@@ -558,6 +564,9 @@ ntotal = 0       # total number of events
 nPassNPV = 0
 nPassTrig = 0
 nSemilep = 0
+nPassLep = 0
+nPassAK4jet = 0
+nPassAK8jet = 0
 nEventsPass = 0
 
 nLooseNotManualEl = 0.0
@@ -1205,10 +1214,13 @@ for event in events :
     # check that we have at least one lepton candidate
     # -------------------------------------------------------------------------------------
 
-    if len(lepCand) == 0:
-        continue
-    
-    
+    passReco = True
+    if len(lepCand) == 0 :
+        passReco = False
+        if not options.fullTruth :
+            continue
+    else :
+        nPassLep += 1
     
     # -------------------------------------------------------------------------------------
     # read AK4 jet information
@@ -1335,7 +1347,16 @@ for event in events :
             else :
                 ak4jetVtxMass.push_back(-1.0)
 
-                
+    # -------------------------------------------------------
+    # If not storing full truth information, require AK4 jet
+    # -------------------------------------------------------
+
+    if len(ak4jetPt) == 0 :
+        passReco = False
+        if not options.fullTruth :
+            continue
+    else :
+        nPassAK4jet += 1
         
     # -------------------------------------------------------------------------------------
     # now we can calculate electron / muon 2D cuts
@@ -1440,7 +1461,7 @@ for event in events :
             thisJet = ROOT.TLorentzVector()
             thisJet.SetPtEtaPhiM( ak8JetPt[ijet], ak8JetEta[ijet], ak8JetPhi[ijet], ak8JetMass[ijet] )
         
-            if (thisJet.Perp() < MIN_JET_PT or abs(thisJet.Eta()) > MAX_JET_ETA):
+            if (thisJet.Perp() < MIN_FATJET_PT or abs(thisJet.Eta()) > MAX_JET_ETA):
                 continue
 
             # require the AK8 jets to be separated in dR from the lepton
@@ -1508,7 +1529,12 @@ for event in events :
                 ak8jetSDsubjet1mass.push_back(-10.0)
                 ak8jetSDsubjet1CSV.push_back(-10.0)                
 
-        
+    if len(ak8jetPt) == 0 :
+        passReco = False
+        if not options.fullTruth :
+            continue
+    else :
+        nPassAK8jet += 1
                 
     # -------------------------------------------------------------------------------------
     # read MET 
@@ -1530,7 +1556,73 @@ for event in events :
     metPhi.push_back(metv.Phi())
     ht.push_back(HT)
 
-    nEventsPass += 1
+    if passReco :
+        nEventsPass += 1
+    else :
+        if options.fullTruth : # Don't want to store anything but top (unfolding) truth info if not a good reco event
+            genMuPt.clear()
+            genMuEta.clear()
+            genMuPhi.clear()
+            genElPt.clear()
+            genElEta.clear()
+            genElPhi.clear()
+            genTTbarMass.clear()
+            genAK4jetPt.clear()
+            genAK4jetEta.clear()
+            genAK4jetPhi.clear()
+            genAK4jetMass.clear()
+            partMuPt.clear()
+            partMuEta.clear()
+            partMuPhi.clear()
+            partElPt.clear()
+            partElEta.clear()
+            partElPhi.clear()
+            metPt.clear()
+            metPhi.clear()
+            ht.clear()
+            muPt.clear()
+            muEta.clear()
+            muPhi.clear()
+            muMiniIso.clear()
+            mu2Diso.clear()
+            muMedium.clear()
+            muTight.clear()
+            elPt.clear()
+            elEta.clear()
+            elPhi.clear()
+            elMiniIso.clear()
+            el2Diso.clear()
+            elMedium.clear()
+            elTight.clear()
+            ak4jetPt.clear()
+            ak4jetEta.clear()
+            ak4jetPhi.clear()
+            ak4jetMass.clear()
+            ak4jetCSV.clear()
+            ak4jetVtxMass.clear()
+            ak8jetPt.clear()
+            ak8jetEta.clear()
+            ak8jetPhi.clear()
+            ak8jetY.clear()
+            ak8jetMass.clear()
+            ak8jetMassPruned.clear()
+            ak8jetMassFiltered.clear()
+            ak8jetMassTrimmed.clear()   
+            ak8jetTau1.clear()
+            ak8jetTau2.clear()
+            ak8jetTau3.clear()
+            ak8jetCSV.clear()
+            ak8jetSDmass.clear()
+            ak8jetSDsubjet0pt.clear()
+            ak8jetSDsubjet0eta.clear()
+            ak8jetSDsubjet0phi.clear()
+            ak8jetSDsubjet0mass.clear()
+            ak8jetSDsubjet0CSV.clear()
+            ak8jetSDsubjet1pt.clear()
+            ak8jetSDsubjet1eta.clear()
+            ak8jetSDsubjet1phi.clear()
+            ak8jetSDsubjet1mass.clear()
+            ak8jetSDsubjet1CSV.clear()    
     
     myTree.Fill()
 
