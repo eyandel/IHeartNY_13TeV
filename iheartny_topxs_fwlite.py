@@ -222,12 +222,14 @@ muPhi                  = ROOT.vector('float')()
 muMiniIso              = ROOT.vector('float')()
 mu2Diso                = ROOT.vector('int')()
 muTight                = ROOT.vector('int')()
+muPassTrig             = ROOT.vector('int')()
 elPt                   = ROOT.vector('float')()
 elEta                  = ROOT.vector('float')()
 elPhi                  = ROOT.vector('float')()
 elMiniIso              = ROOT.vector('float')()
 el2Diso                = ROOT.vector('int')()
 elTight                = ROOT.vector('int')()
+elPassTrig             = ROOT.vector('int')()
 ak4jetPt               = ROOT.vector('float')()
 ak4jetEta              = ROOT.vector('float')()
 ak4jetPhi              = ROOT.vector('float')()
@@ -256,6 +258,8 @@ ak8jetSDsubjet1eta     = ROOT.vector('float')()
 ak8jetSDsubjet1phi     = ROOT.vector('float')()
 ak8jetSDsubjet1mass    = ROOT.vector('float')()
 ak8jetSDsubjet1CSV     = ROOT.vector('float')()
+
+eventWeight            = ROOT.vector('float')()
 
 myTree.Branch('genTopPt'               , genTopPt               )
 myTree.Branch('genTopEta'              , genTopEta              )
@@ -292,12 +296,14 @@ myTree.Branch('muPhi'                  , muPhi                  )
 myTree.Branch('muMiniIso'              , muMiniIso              )
 myTree.Branch('mu2Diso'                , mu2Diso                )
 myTree.Branch('muTight'                , muTight                )
+myTree.Branch('muPassTrig'             , muPassTrig             )
 myTree.Branch('elPt'                   , elPt                   )
 myTree.Branch('elEta'                  , elEta                  )
 myTree.Branch('elPhi'                  , elPhi                  )
 myTree.Branch('elMiniIso'              , elMiniIso              )
 myTree.Branch('el2Diso'                , el2Diso                )
 myTree.Branch('elTight'                , elTight                )
+myTree.Branch('elPassTrig'             , elPassTrig             )
 myTree.Branch('ak4jetPt'               , ak4jetPt               )
 myTree.Branch('ak4jetEta'              , ak4jetEta              )
 myTree.Branch('ak4jetPhi'              , ak4jetPhi              )
@@ -326,6 +332,8 @@ myTree.Branch('ak8jetSDsubjet1eta'     , ak8jetSDsubjet1eta     )
 myTree.Branch('ak8jetSDsubjet1phi'     , ak8jetSDsubjet1phi     )
 myTree.Branch('ak8jetSDsubjet1mass'    , ak8jetSDsubjet1mass    )
 myTree.Branch('ak8jetSDsubjet1CSV'     , ak8jetSDsubjet1CSV     )
+
+myTree.Branch('eventWeight'            , eventWeight            )
 
 # -------------------------------------------------------------------------------------
 # define all variables to be read from input files
@@ -594,7 +602,6 @@ ntotal = 0       # total number of events
 # Event quality
 nPassNPV = 0
 nPassMetFilter = 0
-nPassTrig = 0
 nPassRho = 0
 nPassSemiLep = 0
 
@@ -661,12 +668,14 @@ for event in events :
     muMiniIso.clear()
     mu2Diso.clear()
     muTight.clear()
+    muPassTrig.clear()
     elPt.clear()
     elEta.clear()
     elPhi.clear()
     elMiniIso.clear()
     el2Diso.clear()
     elTight.clear()
+    elPassTrig.clear()
     ak4jetPt.clear()
     ak4jetEta.clear()
     ak4jetPhi.clear()
@@ -695,6 +704,7 @@ for event in events :
     ak8jetSDsubjet1phi.clear()
     ak8jetSDsubjet1mass.clear()
     ak8jetSDsubjet1CSV.clear()
+    eventWeight.clear()
     
     weight = 1.0 #event weight
 
@@ -708,6 +718,8 @@ for event in events :
         if ntotal > 1000:
             continue
         print 'Event ' + str(ntotal)
+
+    filledEvent = False
 
     # ------------------------------
     # Require a good primary vertex
@@ -727,6 +739,27 @@ for event in events :
     for ivtx in xrange( len(pv_chi) ) :
         if abs(pv_z[ivtx]) < 24. and pv_ndof[ivtx] > 4 and abs(pv_rho[ivtx]) < 2.0 :
             NPV += 1
+
+    # -------------------------------
+    # Do pileup reweighting if MC
+    # -------------------------------
+    
+    NPUtrue  = 1
+    PUweight = 1.0
+
+    if options.isMC :
+        event.getByLabel(puNtrueIntLabel, puNtrueIntHandle)
+        puNTrueInt = puNtrueIntHandle.product()[0] 
+        h_NtrueIntPU.Fill( puNTrueInt )
+
+        if options.puFile is not None :
+            weight *= hPUweight.GetBinContent( hPUweight.GetXaxis().FindBin( puNTrueInt ) )
+            if options.debug :
+                print 'Event weight after pileup reweigting is : ' + str(weight)
+
+    #Fill NPV hists before and after PU reweighting
+    h_NPV_noweight.Fill(NPV)
+    h_NPV.Fill(NPV,weight)
 
     if NPV == 0 :
         continue
@@ -765,27 +798,6 @@ for event in events :
     if hbheFilt == False or metFilt == False :
         continue
     nPassMetFilter += 1
-
-    # -------------------------------
-    # Do pileup reweighting if MC
-    # -------------------------------
-    
-    NPUtrue  = 1
-    PUweight = 1.0
-
-    if options.isMC :
-        event.getByLabel(puNtrueIntLabel, puNtrueIntHandle)
-        puNTrueInt = puNtrueIntHandle.product()[0] 
-        h_NtrueIntPU.Fill( puNTrueInt )
-
-        if options.puFile is not None :
-            weight *= hPUweight.GetBinContent( hPUweight.GetXaxis().FindBin( puNTrueInt ) )
-            if options.debug :
-                print 'Event weight after pileup reweigting is : ' + str(weight)
-
-    #Fill NPV hists before and after PU reweighting
-    h_NPV_noweight.Fill(NPV)
-    h_NPV.Fill(NPV,weight)
                 
     # -------------------------------
     # Require a trigger if MC
@@ -822,36 +834,6 @@ for event in events :
                 h_muPrescale.Fill(triggerPrescales[itrig])
             
         weight = weight * prescale #Currently prescale has both mu and el prescales if both triggers fire
-
-    # Get leptons for trigger
-    nElForTrig = 0
-    event.getByLabel (electronPtLabel, electronPtHandle)
-    if electronPtHandle.isValid() :
-        electronPts = electronPtHandle.product()
-        event.getByLabel (electronEtaLabel, electronEtaHandle)
-        electronEtas = electronEtaHandle.product()
-
-        for ielectronPt in range(0,len(electronPts)) :
-            if (electronPts[ielectronPt] < MIN_EL_PT or abs(electronEtas[ielectronPt]) > MAX_EL_ETA ) :
-                continue
-            nElForTrig += 1
-
-    nMuForTrig = 0
-    event.getByLabel (muonPtLabel, muonPtHandle)
-    if muonPtHandle.isValid() : 
-        muonPts = muonPtHandle.product()
-        event.getByLabel (muonEtaLabel, muonEtaHandle)
-        muonEtas = muonEtaHandle.product()
-
-        for imuonPt in range(0,len(muonPts)) :
-            if (muonPts[imuonPt] < MIN_MU_PT or abs(muonEtas[imuonPt]) > MAX_MU_ETA ) :
-                continue
-            nMuForTrig += 1
-
-    # Implement trigger requirement here
-    if not ((passMuTrig and nMuForTrig > 0) or (passElTrig and nElForTrig > 0)):
-        continue
-    nPassTrig += 1
 
     # -------------------------------------------------------------------------------------
     # read event rho value
@@ -997,6 +979,7 @@ for event in events :
         
         if hadTop.p4.Perp() > TOP_PT_CUT :
             nPassParton += 1
+            filledEvent = True
             genTopPt.push_back(hadTop.p4.Perp())
             genTopEta.push_back(hadTop.p4.Eta())
             genTopPhi.push_back(hadTop.p4.Phi())
@@ -1082,6 +1065,7 @@ for event in events :
 
         if len(genTops) >= 1 and len(genBJets) >= 1 and (len(partMu) + len(partEl)) >= 1:
             nPassParticle += 1
+            filledEvent = True
             for ibjet in genBJets :
                 genAK4jetPt.push_back(ibjet.Perp())
                 genAK4jetEta.push_back(ibjet.Eta())
@@ -1120,8 +1104,12 @@ for event in events :
     elCandKey = []
     lepCand = []
     lepCandKey = []
-    
-    if electronPtHandle.isValid() : #Already got electron pt, eta for trigger cut
+
+    event.getByLabel (electronPtLabel, electronPtHandle)
+    if electronPtHandle.isValid() :
+        electronPts = electronPtHandle.product()
+        event.getByLabel (electronEtaLabel, electronEtaHandle)
+        electronEtas = electronEtaHandle.product()
         event.getByLabel (electronPhiLabel, electronPhiHandle)
         electronPhis = electronPhiHandle.product()
         event.getByLabel (electronTightLabel, electronTightHandle)
@@ -1158,26 +1146,6 @@ for event in events :
             if (electronPt < MIN_EL_PT or abs(electronEta) > MAX_EL_ETA ) :
                 continue
             nEleRaw += 1.0
-            manualEisLoose = False
-            if abs( electronEta ) <= 1.479 :
-                if abs(electronDEtaIns[ielectronPt]) < 0.0105 :
-                    if abs(electronDPhiIns[ielectronPt] ) < 0.115 :
-                        if electronFull5x5siees[ielectronPt] < 0.0103 :
-                            if electronHoEs[ielectronPt] <  0.104 :
-                                if abs(electronD0s[ielectronPt]) < 0.0261 :
-                                    if abs(electronDzs[ielectronPt]) <  0.41 :
-                                        if electronooEmooPs[ielectronPt] <  0.102 :
-                                            manualEisLoose = True
-            else :
-                if abs(electronDEtaIns[ielectronPt]) < 0.00814 :
-                    if abs(electronDPhiIns[ielectronPt] ) < 0.182 :
-                        if electronFull5x5siees[ielectronPt] < 0.0301 :
-                            if electronHoEs[ielectronPt] <  0.0897 :
-                                if abs(electronD0s[ielectronPt]) < 0.118 :
-                                    if abs(electronDzs[ielectronPt]) <  0.822 :
-                                        if electronooEmooPs[ielectronPt] <  0.126 :
-                                            manualEisLoose = True
-
             manualEisMedium = False
             if abs( electronEta ) <= 1.479 :
                 if abs(electronDEtaIns[ielectronPt]) < 0.0103 :
@@ -1220,12 +1188,7 @@ for event in events :
                                             
             eIsTight = isElectronTight[ielectronPt]
             eIsMedium = isElectronMedium[ielectronPt]
-            eIsLoose = isElectronLoose[ielectronPt]
             
-            if eIsLoose and not manualEisLoose :
-                nLooseNotManualEl += 1.0
-            if manualEisLoose and not eIsLoose :
-                nManualNotLooseEl += 1.0
             if eIsMedium and not manualEisMedium :
                 nMediumNotManualEl += 1.0
             if manualEisMedium and not eIsMedium :
@@ -1240,7 +1203,7 @@ for event in events :
 
             p4 = ROOT.TLorentzVector()
             p4.SetPtEtaPhiM( electronPt, electronEta, electronPhi, electronMass )
-            
+
             elPt.push_back(electronPt)
             elEta.push_back(electronEta)
             elPhi.push_back(electronPhi)
@@ -1255,6 +1218,11 @@ for event in events :
                 elTight.push_back(1)
             else :
                 elTight.push_back(0)
+
+            if passElTrig :
+                elPassTrig.push_back(1)
+            else :
+                elPassTrig.push_back(0)
                 
     # --------------------------
     # get muons
@@ -1263,7 +1231,11 @@ for event in events :
     muCand = []
     muCandKey = []
 
-    if muonPtHandle.isValid() : # Already got muon pt, eta for trigger cut
+    event.getByLabel (muonPtLabel, muonPtHandle)
+    if muonPtHandle.isValid() : 
+        muonPts = muonPtHandle.product()
+        event.getByLabel (muonEtaLabel, muonEtaHandle)
+        muonEtas = muonEtaHandle.product()
         event.getByLabel (muonPhiLabel, muonPhiHandle)
         muonPhis = muonPhiHandle.product()
         event.getByLabel (muTightLabel, muTightHandle)
@@ -1306,10 +1278,6 @@ for event in events :
             if muonPt < MIN_MU_PT or abs(muonEta) > MAX_MU_ETA :
                 continue
             nMuRaw += 1.0
-            manualMuIsLoose = False
-            if isPFMuon[imuonPt] :
-                if isGlobalMuon[imuonPt] or isTrackerMuon[imuonPt] :
-                    manualMuIsLoose = True
             manualMuIsTight = False
             if isPFMuon[imuonPt] :
                 if isGlobalMuon[imuonPt] :
@@ -1323,11 +1291,6 @@ for event in events :
                                                 manualMuIsTight = True
             muIsTight = isTightMuon[imuonPt]
             muIsMedium = isMediumMuon[imuonPt]
-            muIsLoose = isLooseMuon[imuonPt]
-            if muIsLoose and not manualMuIsLoose :
-                nLooseNotManualMu += 1.0
-            if manualMuIsLoose and not muIsLoose :
-                nManualNotLooseMu += 1.0
             if muIsTight and not manualMuIsTight :
                 nTightNotManualMu += 1.0
             if manualMuIsTight and not muIsTight :
@@ -1354,11 +1317,16 @@ for event in events :
             else :
                 muTight.push_back(0)
 
+            if passMuTrig :
+                muPassTrig.push_back(1)
+            else :
+                muPassTrig.push_back(0)
+                
     # -------------------------------------------------------------------------------------
     # check that we have at least one lepton candidate
     # -------------------------------------------------------------------------------------
 
-    if len(lepCand) == 0 :
+    if not ((passMuTrig and len(muCand) > 0) or (passElTrig and len(elCand) > 0)):
         passReco = False
         if not options.fullTruth :
             continue
@@ -1692,6 +1660,10 @@ for event in events :
 
     if passReco :
         nEventsPass += 1
+        filledEvent = True
+
+    if filledEvent :
+        eventWeight.push_back(weight)
         
     if options.fullTruth : # Only store information relevant for unfolding -- differential quantities and things needed for selection
 
@@ -1720,12 +1692,14 @@ for event in events :
             muMiniIso.clear()
             mu2Diso.clear()
             muTight.clear()
+            muPassTrig.clear()
             elPt.clear()
             elEta.clear()
             elPhi.clear()
             elMiniIso.clear()
             el2Diso.clear()
             elTight.clear()
+            elPassTrig.clear()
             ak4jetPt.clear()
             ak4jetEta.clear()
             ak4jetPhi.clear()
@@ -1751,7 +1725,6 @@ print 'Total Events:    ' + str(ntotal)
 print '-------------------------------'
 print 'Pass nPV:        ' + str(nPassNPV)
 print 'Pass MET filter: ' + str(nPassMetFilter)
-print 'Pass trigger:    ' + str(nPassTrig)
 print 'Pass rho:        ' + str(nPassRho)
 print 'Pass semilep:    ' + str(nPassSemiLep)
 print '-------------------------------'
@@ -1764,14 +1737,10 @@ print 'Pass AK4 jet:    ' + str(nPassAK4jet)
 print 'Pass AK8 jet:    ' + str(nPassAK8jet)
 print 'Pass reco:       ' + str(nEventsPass)
 print '-------------------------------'
-print 'Fraction of all loose electrons not passing twiki cuts:  ' + str(nLooseNotManualEl / nEleRaw)
-print 'Fraction of all electrons passing twiki cuts not loose:  ' + str(nManualNotLooseEl / nEleRaw)
 print 'Fraction of all medium electrons not passing twiki cuts: ' + str(nMediumNotManualEl / nEleRaw)
 print 'Fraction of all electrons passing twiki cuts not medium: ' + str(nManualNotMediumEl / nEleRaw)
 print 'Fraction of all tight electrons not passing twiki cuts:  ' + str(nTightNotManualEl / nEleRaw)
 print 'Fraction of all electrons passing twiki cuts not tight:  ' + str(nManualNotTightEl / nEleRaw)
-print 'Fraction of all loose muons not passing twiki cuts:      ' + str(nLooseNotManualMu / nMuRaw)
-print 'Fraction of all muons passing twiki cuts not loose:      ' + str(nManualNotLooseMu / nMuRaw)
 print 'Fraction of all tight muons not passing twiki cuts:      ' + str(nTightNotManualMu / nMuRaw)
 print 'Fraction of all muons passing twiki cuts not tight:      ' + str(nManualNotTightMu / nMuRaw)
 
