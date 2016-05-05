@@ -24,7 +24,7 @@ using namespace std;
 
 void calcPUweight(){
   TFile * F_data_PUnom       = new TFile( "MyDataPileupHistogram.root"                      );
-  TFile * F_MC               = new TFile( "test_iheartNY.root" );
+  TFile * F_MC               = new TFile( "pu.root" );
 
   TH1D * NPU_data_true       = (TH1D*) F_data_PUnom->Get("pileup");
   TH1D * NPU_MC_true         = (TH1D*) F_MC->Get("h_NtrueIntPU");

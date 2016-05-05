@@ -1066,6 +1066,17 @@ for event in events :
         if len(genTops) >= 1 and len(genBJets) >= 1 and (len(partMu) + len(partEl)) >= 1:
             nPassParticle += 1
             filledEvent = True
+            #if options.fullTruth:
+            #    genAK8jetPt.push_back(genTops[0].Perp())
+            #    genAK8jetEta.push_back(genTops[0].Eta())
+            #    genAK8jetPhi.push_back(genTops[0].Phi())
+            #    genAK8jetMass.push_back(genTops[0].M())
+            #    if len(partMu) != 0:
+            #        partMuPt.push_back(partMu[0].Perp())
+            #    if len(partEl) != 0:
+            #        partElPt.push_back(partEl[0].Perp())
+
+            #else :
             for ibjet in genBJets :
                 genAK4jetPt.push_back(ibjet.Perp())
                 genAK4jetEta.push_back(ibjet.Eta())
@@ -1662,12 +1673,9 @@ for event in events :
         nEventsPass += 1
         filledEvent = True
 
-    if filledEvent :
-        eventWeight.push_back(weight)
-        
     if options.fullTruth : # Only store information relevant for unfolding -- differential quantities and things needed for selection
 
-        ak8jetTau1.clear() # Don't need this for unfolding
+        ak8jetTau1.clear() 
         ak8jetMassPruned.clear()
         ak8jetMassFiltered.clear()
         ak8jetMassTrimmed.clear()   
@@ -1681,41 +1689,10 @@ for event in events :
         ak8jetSDsubjet1phi.clear()
         ak8jetSDsubjet1mass.clear()
         ak8jetSDsubjet1CSV.clear()    
-
-        if not passReco : # Need this for selection / unfolding, but only store if a good reco event
-            metPt.clear()
-            metPhi.clear()
-            ht.clear()
-            muPt.clear()
-            muEta.clear()
-            muPhi.clear()
-            muMiniIso.clear()
-            mu2Diso.clear()
-            muTight.clear()
-            muPassTrig.clear()
-            elPt.clear()
-            elEta.clear()
-            elPhi.clear()
-            elMiniIso.clear()
-            el2Diso.clear()
-            elTight.clear()
-            elPassTrig.clear()
-            ak4jetPt.clear()
-            ak4jetEta.clear()
-            ak4jetPhi.clear()
-            ak4jetMass.clear()
-            ak4jetCSV.clear()
-            ak4jetVtxMass.clear()
-            ak8jetPt.clear()
-            ak8jetEta.clear()
-            ak8jetPhi.clear()
-            ak8jetMass.clear()
-            ak8jetTau2.clear()
-            ak8jetTau3.clear()
-            ak8jetCSV.clear()
-            ak8jetSDmass.clear()
     
-    myTree.Fill()
+    if filledEvent :
+        eventWeight.push_back(weight)
+        myTree.Fill()
     
 # -------------------------------------------------------------------------------------
 # END OF LOOPING OVER EVENTS!!!
