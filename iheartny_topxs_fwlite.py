@@ -185,7 +185,7 @@ f.cd()
 myTree = ROOT.TTree("myTree", "myTree")
 
 # parton level
-if options.isMC :
+if options.isMC and options.semilep is not None:
     genTopPt        = ROOT.vector('float')()
     genTopEta       = ROOT.vector('float')()
     genTopPhi       = ROOT.vector('float')()
@@ -221,16 +221,40 @@ muPt                   = ROOT.vector('float')()
 muEta                  = ROOT.vector('float')()
 muPhi                  = ROOT.vector('float')()
 muMiniIso              = ROOT.vector('float')()
-mu2Diso                = ROOT.vector('int')()
+muPtRelPt15            = ROOT.vector('float')()
+muPtRelPt20            = ROOT.vector('float')()
+muPtRelPt25            = ROOT.vector('float')()
+muPtRelPt30            = ROOT.vector('float')()
+muPtRelPt35            = ROOT.vector('float')()
+muPtRelPt40            = ROOT.vector('float')()
+muPtRelPt45            = ROOT.vector('float')()
+mudRPt15               = ROOT.vector('float')()
+mudRPt20               = ROOT.vector('float')()
+mudRPt25               = ROOT.vector('float')()
+mudRPt30               = ROOT.vector('float')()
+mudRPt35               = ROOT.vector('float')()
+mudRPt40               = ROOT.vector('float')()
+mudRPt45               = ROOT.vector('float')()
 muTight                = ROOT.vector('int')()
-muPassTrig             = ROOT.vector('int')()
 elPt                   = ROOT.vector('float')()
 elEta                  = ROOT.vector('float')()
 elPhi                  = ROOT.vector('float')()
 elMiniIso              = ROOT.vector('float')()
-el2Diso                = ROOT.vector('int')()
+elPtRelPt15            = ROOT.vector('float')()
+elPtRelPt20            = ROOT.vector('float')()
+elPtRelPt25            = ROOT.vector('float')()
+elPtRelPt30            = ROOT.vector('float')()
+elPtRelPt35            = ROOT.vector('float')()
+elPtRelPt40            = ROOT.vector('float')()
+elPtRelPt45            = ROOT.vector('float')()
+eldRPt15               = ROOT.vector('float')()
+eldRPt20               = ROOT.vector('float')()
+eldRPt25               = ROOT.vector('float')()
+eldRPt30               = ROOT.vector('float')()
+eldRPt35               = ROOT.vector('float')()
+eldRPt40               = ROOT.vector('float')()
+eldRPt45               = ROOT.vector('float')()
 elTight                = ROOT.vector('int')()
-elPassTrig             = ROOT.vector('int')()
 ak4jetPt               = ROOT.vector('float')()
 ak4jetEta              = ROOT.vector('float')()
 ak4jetPhi              = ROOT.vector('float')()
@@ -261,8 +285,13 @@ ak8jetSDsubjet1mass    = ROOT.vector('float')()
 ak8jetSDsubjet1CSV     = ROOT.vector('float')()
 
 eventWeight            = ROOT.vector('float')()
-
 if options.isMC :
+    muTrigPass             = ROOT.vector('int')()
+    elTrigPass             = ROOT.vector('int')()
+    if options.semilep == 1:
+        truthChannel       = ROOT.vector('int')()
+
+if options.isMC and options.semilep is not None:
     myTree.Branch('genTopPt'               , genTopPt               )
     myTree.Branch('genTopEta'              , genTopEta              )
     myTree.Branch('genTopPhi'              , genTopPhi              )
@@ -296,16 +325,40 @@ myTree.Branch('muPt'                   , muPt                   )
 myTree.Branch('muEta'                  , muEta                  )
 myTree.Branch('muPhi'                  , muPhi                  )
 myTree.Branch('muMiniIso'              , muMiniIso              )
-myTree.Branch('mu2Diso'                , mu2Diso                )
+myTree.Branch('muPtRelPt15'            , muPtRelPt15            )
+myTree.Branch('muPtRelPt20'            , muPtRelPt20            )
+myTree.Branch('muPtRelPt25'            , muPtRelPt25            )
+myTree.Branch('muPtRelPt30'            , muPtRelPt30            )
+myTree.Branch('muPtRelPt35'            , muPtRelPt35            )
+myTree.Branch('muPtRelPt40'            , muPtRelPt40            )
+myTree.Branch('muPtRelPt45'            , muPtRelPt45            )
+myTree.Branch('mudRPt15'               , mudRPt15               )
+myTree.Branch('mudRPt20'               , mudRPt20               )
+myTree.Branch('mudRPt25'               , mudRPt25               )
+myTree.Branch('mudRPt30'               , mudRPt30               )
+myTree.Branch('mudRPt35'               , mudRPt35               )
+myTree.Branch('mudRPt40'               , mudRPt40               )
+myTree.Branch('mudRPt45'               , mudRPt45               )
 myTree.Branch('muTight'                , muTight                )
-myTree.Branch('muPassTrig'             , muPassTrig             )
 myTree.Branch('elPt'                   , elPt                   )
 myTree.Branch('elEta'                  , elEta                  )
 myTree.Branch('elPhi'                  , elPhi                  )
 myTree.Branch('elMiniIso'              , elMiniIso              )
-myTree.Branch('el2Diso'                , el2Diso                )
+myTree.Branch('elPtRelPt15'            , elPtRelPt15            )
+myTree.Branch('elPtRelPt20'            , elPtRelPt20            )
+myTree.Branch('elPtRelPt25'            , elPtRelPt25            )
+myTree.Branch('elPtRelPt30'            , elPtRelPt30            )
+myTree.Branch('elPtRelPt35'            , elPtRelPt35            )
+myTree.Branch('elPtRelPt40'            , elPtRelPt40            )
+myTree.Branch('elPtRelPt45'            , elPtRelPt45            )
+myTree.Branch('eldRPt15'               , eldRPt15               )
+myTree.Branch('eldRPt20'               , eldRPt20               )
+myTree.Branch('eldRPt25'               , eldRPt25               )
+myTree.Branch('eldRPt30'               , eldRPt30               )
+myTree.Branch('eldRPt35'               , eldRPt35               )
+myTree.Branch('eldRPt40'               , eldRPt40               )
+myTree.Branch('eldRPt45'               , eldRPt45               )
 myTree.Branch('elTight'                , elTight                )
-myTree.Branch('elPassTrig'             , elPassTrig             )
 myTree.Branch('ak4jetPt'               , ak4jetPt               )
 myTree.Branch('ak4jetEta'              , ak4jetEta              )
 myTree.Branch('ak4jetPhi'              , ak4jetPhi              )
@@ -336,6 +389,11 @@ myTree.Branch('ak8jetSDsubjet1mass'    , ak8jetSDsubjet1mass    )
 myTree.Branch('ak8jetSDsubjet1CSV'     , ak8jetSDsubjet1CSV     )
 
 myTree.Branch('eventWeight'            , eventWeight            )
+if options.isMC:
+    myTree.Branch('muTrigPass'             , muTrigPass             )
+    myTree.Branch('elTrigPass'             , elTrigPass             )
+    if options.semilep == 1:
+        myTree.Branch('truthChannel'            , truthChannel           )
 
 # -------------------------------------------------------------------------------------
 # define all variables to be read from input files
@@ -371,7 +429,7 @@ HBHEfilterHandle    = Handle("bool")
 HBHEfilterLabel     = ("HBHENoiseFilterResultProducer", "HBHENoiseFilterResult")
 
 # genParticles
-if options.isMC :
+if options.isMC and options.semilep is not None:
     genParticlesPtHandle     = Handle("std::vector<float>")
     genParticlesPtLabel      = ("genPart", "genPartPt")
     genParticlesEtaHandle    = Handle("std::vector<float>")
@@ -638,7 +696,7 @@ print "Start looping over events!"
 
 for event in events :
 
-    if options.isMC :
+    if options.isMC and options.semilep is not None:
         genTopPt.clear()
         genTopEta.clear()
         genTopPhi.clear()
@@ -670,16 +728,40 @@ for event in events :
     muEta.clear()
     muPhi.clear()
     muMiniIso.clear()
-    mu2Diso.clear()
+    muPtRelPt15.clear()
+    muPtRelPt20.clear()
+    muPtRelPt25.clear()
+    muPtRelPt30.clear()
+    muPtRelPt35.clear()
+    muPtRelPt40.clear()
+    muPtRelPt45.clear()
+    mudRPt15.clear()
+    mudRPt20.clear()
+    mudRPt25.clear()
+    mudRPt30.clear()
+    mudRPt35.clear()
+    mudRPt40.clear()
+    mudRPt45.clear()
     muTight.clear()
-    muPassTrig.clear()
     elPt.clear()
     elEta.clear()
     elPhi.clear()
     elMiniIso.clear()
-    el2Diso.clear()
+    elPtRelPt15.clear()
+    elPtRelPt20.clear()
+    elPtRelPt25.clear()
+    elPtRelPt30.clear()
+    elPtRelPt35.clear()
+    elPtRelPt40.clear()
+    elPtRelPt45.clear()
+    eldRPt15.clear()
+    eldRPt20.clear()
+    eldRPt25.clear()
+    eldRPt30.clear()
+    eldRPt35.clear()
+    eldRPt40.clear()
+    eldRPt45.clear()
     elTight.clear()
-    elPassTrig.clear()
     ak4jetPt.clear()
     ak4jetEta.clear()
     ak4jetPhi.clear()
@@ -709,6 +791,11 @@ for event in events :
     ak8jetSDsubjet1mass.clear()
     ak8jetSDsubjet1CSV.clear()
     eventWeight.clear()
+    if options.isMC:
+        muTrigPass.clear()
+        elTrigPass.clear()
+        if options.semilep == 1:
+            truthChannel.clear()
     
     weight = 1.0 #event weight
 
@@ -834,7 +921,7 @@ for event in events :
                 prescale = prescale * triggerPrescales[itrig]
                 h_muPrescale.Fill(triggerPrescales[itrig])
             
-        weight = weight * prescale #Currently prescale has both mu and el prescales if both triggers fire
+        weight = weight * prescale #Currently prescale has both mu and el prescales if both triggers fired
 
     # -------------------------------------------------------------------------------------
     # read event rho value
@@ -957,6 +1044,15 @@ for event in events :
             continue
         if options.semilep < 0 and isSemiLeptonicGen == True:
             continue
+
+        # Store channel for semileptonic events
+        if options.semilep == 1:
+            if isMuon:
+                truthChannel.Fill(0)
+            elif isElectron:
+                truthChannel.Fill(1)
+            else:
+                truthChannel.Fill(2)
         
         if topDecay == 0 :
             hadTop = topQuarks[0]
@@ -1230,11 +1326,6 @@ for event in events :
                 elTight.push_back(1)
             else :
                 elTight.push_back(0)
-
-            if passElTrig :
-                elPassTrig.push_back(1)
-            else :
-                elPassTrig.push_back(0)
                 
     # --------------------------
     # get muons
@@ -1328,11 +1419,6 @@ for event in events :
                 muTight.push_back(1)
             else :
                 muTight.push_back(0)
-
-            if passMuTrig :
-                muPassTrig.push_back(1)
-            else :
-                muPassTrig.push_back(0)
                 
     # -------------------------------------------------------------------------------------
     # check that we have at least one lepton candidate
@@ -1344,6 +1430,18 @@ for event in events :
             continue
     else :
         nPassLep += 1
+
+    #Store which trigger passes for later use
+    if options.isMC:
+        if passMuTrig :
+            muTrigPass.push_back(1)
+        else :
+            muTrigPass.push_back(0)
+
+        if passElTrig :
+            elTrigPass.push_back(1)
+        else :
+            elTrigPass.push_back(0)
     
     # -------------------------------------------------------------------------------------
     # read AK4 jet information
@@ -1388,7 +1486,14 @@ for event in events :
         event.getByLabel( ak4JetKeysLabel, ak4JetKeysHandle )
         ak4JetKeys = ak4JetKeysHandle.product()
         
-        jetsFor2D = []
+        jetsFor2DPt15 = []
+        jetsFor2DPt20 = []
+        jetsFor2DPt25 = []
+        jetsFor2DPt30 = []
+        jetsFor2DPt35 = []
+        jetsFor2DPt40 = []
+        jetsFor2DPt45 = []
+
         HT = 0.0
 
         # -------------------------------------------------------------------------------------
@@ -1450,7 +1555,19 @@ for event in events :
             
             
             if jetP4.Perp() > 15. and abs(jetP4.Eta()) < 3.0:
-                jetsFor2D.append(jetP4)
+                jetsFor2DPt15.append(jetP4)
+            if jetP4.Perp() > 20. and abs(jetP4.Eta()) < 3.0:
+                jetsFor2DPt20.append(jetP4)
+            if jetP4.Perp() > 25. and abs(jetP4.Eta()) < 3.0:
+                jetsFor2DPt25.append(jetP4)
+            if jetP4.Perp() > 30. and abs(jetP4.Eta()) < 3.0:
+                jetsFor2DPt30.append(jetP4)
+            if jetP4.Perp() > 35. and abs(jetP4.Eta()) < 3.0:
+                jetsFor2DPt35.append(jetP4)
+            if jetP4.Perp() > 40. and abs(jetP4.Eta()) < 3.0:
+                jetsFor2DPt40.append(jetP4)
+            if jetP4.Perp() > 45. and abs(jetP4.Eta()) < 3.0:
+                jetsFor2DPt45.append(jetP4)
 
             if jetP4.Perp() < MIN_JET_PT or abs(jetP4.Eta()) > MAX_JET_ETA:
                 continue
@@ -1486,36 +1603,78 @@ for event in events :
     if len(elCand) > 0:
         for electron in elCand :
 
-            if len(jetsFor2D) < 1: 
-                el2Diso.push_back(1)
-                continue
-            
-            eleJet = findClosestInList(electron, jetsFor2D)
+            if len(jetsFor2DPt15) >= 1:             
+                eleJetPt15 = findClosestInList(electron, jetsFor2DPt15)
+                elPtRelPt15.push_back(electron.Perp(eleJetPt15.Vect()))
+                eldRPt15.push_back(electron.DeltaR(eleJetPt15))
 
-            if options.debug:
-                "dR(electron, closest jet) = " + str(electron.DeltaR(eleJet)) + " ptrel = " + str(electron.Perp(eleJet.Vect()))
-            
-            if electron.DeltaR(eleJet) > 0.4 or electron.Perp(eleJet.Vect()) > 20. :
-                el2Diso.push_back(1)
-            else :
-                el2Diso.push_back(0)
-                
+            if len(jetsFor2DPt20) >= 1:             
+                eleJetPt20 = findClosestInList(electron, jetsFor2DPt20)
+                elPtRelPt20.push_back(electron.Perp(eleJetPt20.Vect()))
+                eldRPt20.push_back(electron.DeltaR(eleJetPt20))
+                    
+            if len(jetsFor2DPt25) >= 1:             
+                eleJetPt25 = findClosestInList(electron, jetsFor2DPt25)
+                elPtRelPt25.push_back(electron.Perp(eleJetPt25.Vect()))
+                eldRPt25.push_back(electron.DeltaR(eleJetPt25))
+
+            if len(jetsFor2DPt30) >= 1:             
+                eleJetPt30 = findClosestInList(electron, jetsFor2DPt30)
+                elPtRelPt30.push_back(electron.Perp(eleJetPt30.Vect()))
+                eldRPt30.push_back(electron.DeltaR(eleJetPt30))
+
+            if len(jetsFor2DPt35) >= 1:             
+                eleJetPt35 = findClosestInList(electron, jetsFor2DPt35)
+                elPtRelPt35.push_back(electron.Perp(eleJetPt35.Vect()))
+                eldRPt35.push_back(electron.DeltaR(eleJetPt35))
+
+            if len(jetsFor2DPt40) >= 1:             
+                eleJetPt40 = findClosestInList(electron, jetsFor2DPt40)
+                elPtRelPt40.push_back(electron.Perp(eleJetPt40.Vect()))
+                eldRPt40.push_back(electron.DeltaR(eleJetPt40))
+
+            if len(jetsFor2DPt45) >= 1:             
+                eleJetPt45 = findClosestInList(electron, jetsFor2DPt45)
+                elPtRelPt45.push_back(electron.Perp(eleJetPt45.Vect()))
+                eldRPt45.push_back(electron.DeltaR(eleJetPt45))
+
     if len(muCand) > 0:
         for muon in muCand :
 
-            if len(jetsFor2D) < 1: 
-                mu2Diso.push_back(1)
-                continue
+            if len(jetsFor2DPt15) >= 1: 
+                muJetPt15 = findClosestInList(muon, jetsFor2DPt15)
+                muPtRelPt15.push_back(muon.Perp(muJetPt15.Vect()))
+                mudRPt15.push_back(muon.DeltaR(muJetPt15))
 
-            muJet = findClosestInList(muon, jetsFor2D)
-            
-            if options.debug:
-                "dR(muon, closest jet) = " + str(muon.DeltaR(muJet)) + " ptrel = " + str(muon.Perp(muJet.Vect()))
+            if len(jetsFor2DPt20) >= 1: 
+                muJetPt20 = findClosestInList(muon, jetsFor2DPt20)
+                muPtRelPt20.push_back(muon.Perp(muJetPt20.Vect()))
+                mudRPt20.push_back(muon.DeltaR(muJetPt20))
 
-            if muon.DeltaR(muJet) > 0.4 or muon.Perp(muJet.Vect()) > 20 :
-                mu2Diso.push_back(1)
-            else :
-                mu2Diso.push_back(0)
+            if len(jetsFor2DPt25) >= 1: 
+                muJetPt25 = findClosestInList(muon, jetsFor2DPt25)
+                muPtRelPt25.push_back(muon.Perp(muJetPt25.Vect()))
+                mudRPt25.push_back(muon.DeltaR(muJetPt25))
+
+            if len(jetsFor2DPt30) >= 1: 
+                muJetPt30 = findClosestInList(muon, jetsFor2DPt30)
+                muPtRelPt30.push_back(muon.Perp(muJetPt30.Vect()))
+                mudRPt30.push_back(muon.DeltaR(muJetPt30))
+
+            if len(jetsFor2DPt35) >= 1: 
+                muJetPt35 = findClosestInList(muon, jetsFor2DPt35)
+                muPtRelPt35.push_back(muon.Perp(muJetPt35.Vect()))
+                mudRPt35.push_back(muon.DeltaR(muJetPt35))
+
+            if len(jetsFor2DPt40) >= 1: 
+                muJetPt40 = findClosestInList(muon, jetsFor2DPt40)
+                muPtRelPt40.push_back(muon.Perp(muJetPt40.Vect()))
+                mudRPt40.push_back(muon.DeltaR(muJetPt40))
+
+            if len(jetsFor2DPt45) >= 1: 
+                muJetPt45 = findClosestInList(muon, jetsFor2DPt45)
+                muPtRelPt45.push_back(muon.Perp(muJetPt45.Vect()))
+                mudRPt45.push_back(muon.DeltaR(muJetPt45))
 
 
     # -------------------------------------------------------------------------------------
