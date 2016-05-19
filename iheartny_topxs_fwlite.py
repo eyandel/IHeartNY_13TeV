@@ -688,6 +688,17 @@ nTightNotManualMu = 0.0
 nManualNotTightMu = 0.0
 nMuRaw = 0.0
 
+nTrueMu = 0
+nTrueMuPassBoth = 0
+nTrueMuPassMu = 0
+nTrueMuPassEl = 0
+nTrueMuPassNone = 0
+nTrueEl = 0
+nTrueElPassBoth = 0
+nTrueElPassMu = 0
+nTrueElPassEl = 0
+nTrueElPassNone = 0
+
 # -------------------------------------------------------------------------------------
 # start looping over events
 # -------------------------------------------------------------------------------------
@@ -1048,11 +1059,13 @@ for event in events :
         # Store channel for semileptonic events
         if options.semilep == 1:
             if isMuon:
-                truthChannel.Fill(0)
+                truthChannel.push_back(0)
+                nTrueMu += 1
             elif isElectron:
-                truthChannel.Fill(1)
+                truthChannel.push_back(1)
+                nTrueEl += 1
             else:
-                truthChannel.Fill(2)
+                truthChannel.push_back(2)
         
         if topDecay == 0 :
             hadTop = topQuarks[0]
@@ -1423,7 +1436,30 @@ for event in events :
     # -------------------------------------------------------------------------------------
     # check that we have at least one lepton candidate
     # -------------------------------------------------------------------------------------
+ 
+    #Store which trigger passes for later use                                                                                                                              
+    if options.isMC and options.semilep == 1:
+        if truthChannel[0] == 0:
+            if passMuTrig and passElTrig :
+                nTrueMuPassBoth += 1
+            elif passMuTrig :
+                nTrueMuPassMu += 1
+            elif passElTrig :
+                nTrueMuPassEl += 1
+            else :
+                nTrueMuPassNone += 1
 
+        if truthChannel[0] == 1:
+            if passMuTrig and passElTrig :
+                nTrueElPassBoth += 1
+            elif passMuTrig :
+                nTrueElPassMu += 1
+            elif passElTrig :
+                nTrueElPassEl += 1
+            else :
+                nTrueElPassNone += 1
+
+    # Do selection
     if not ((passMuTrig and len(muCand) > 0) or (passElTrig and len(elCand) > 0)):
         passReco = False
         if not options.fullTruth :
@@ -1442,7 +1478,7 @@ for event in events :
             elTrigPass.push_back(1)
         else :
             elTrigPass.push_back(0)
-    
+
     # -------------------------------------------------------------------------------------
     # read AK4 jet information
     # -------------------------------------------------------------------------------------
@@ -1880,6 +1916,17 @@ print 'Fraction of all tight electrons not passing twiki cuts:  ' + str(nTightNo
 print 'Fraction of all electrons passing twiki cuts not tight:  ' + str(nManualNotTightEl / nEleRaw)
 print 'Fraction of all tight muons not passing twiki cuts:      ' + str(nTightNotManualMu / nMuRaw)
 print 'Fraction of all muons passing twiki cuts not tight:      ' + str(nManualNotTightMu / nMuRaw)
+print '-------------------------------'
+print 'True muon: ' + str(nTrueMu)
+print '   passes mu and el triggers' + str(nTrueMuPassBoth)
+print '   passes mu trigger only'    + str(nTrueMuPassMu)
+print '   passes el trigger only'    + str(nTrueMuPassEl)
+print '   passes neither trigger'    + str(nTrueMuPassNone)
+print 'True electron: ' + str(nTrueEl)
+print '   passes mu and el triggers' + str(nTrueElPassBoth)
+print '   passes mu trigger only'    + str(nTrueElPassMu)
+print '   passes el trigger only'    + str(nTrueElPassEl)
+print '   passes neither trigger'    + str(nTrueElPassNone)
 
 f.cd()
 f.Write()
