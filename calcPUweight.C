@@ -24,16 +24,24 @@ using namespace std;
 
 void calcPUweight(){
   TFile * F_data_PUnom       = new TFile( "MyDataPileupHistogram.root"                      );
+  TFile * F_data_PUup        = new TFile( "MyDataPileupHistogram_up.root"                      );
+  TFile * F_data_PUdown      = new TFile( "MyDataPileupHistogram_down.root"                      );
   TFile * F_MC               = new TFile( "pu.root" );
 
   TH1D * NPU_data_true       = (TH1D*) F_data_PUnom->Get("pileup");
+  TH1D * NPU_data_up         = (TH1D*) F_data_PUup->Get("pileup");
+  TH1D * NPU_data_down       = (TH1D*) F_data_PUdown->Get("pileup"); 
   TH1D * NPU_MC_true         = (TH1D*) F_MC->Get("h_NtrueIntPU");
 
   NPU_data_true       ->Sumw2();
+  NPU_data_up       ->Sumw2();
+  NPU_data_down       ->Sumw2();
   NPU_MC_true         ->Sumw2();
 
   // scale to have area 1
   NPU_data_true       ->Scale( 1.0 / NPU_data_true       ->Integral() );
+  NPU_data_up         ->Scale( 1.0 / NPU_data_up         ->Integral() );
+  NPU_data_down       ->Scale( 1.0 / NPU_data_down       ->Integral() );
   NPU_MC_true         ->Scale( 1.0 / NPU_MC_true         ->Integral() );
 
   // Draw NPU data and MC
@@ -72,12 +80,22 @@ void calcPUweight(){
   NPU_data_true      ->SetName( "PUweight_true"      ) ;
   NPU_data_true      ->SetTitle( ";N_{PU} true; Weight"      ) ;
 
+  NPU_data_up       ->Divide( NPU_MC_true );
+  NPU_data_up       ->SetName( "PUweight_up"      ) ;
+  NPU_data_up       ->SetTitle( ";N_{PU} up; Weight"      ) ;
+
+  NPU_data_down       ->Divide( NPU_MC_true );
+  NPU_data_down      ->SetName( "PUweight_down"      ) ;
+  NPU_data_down      ->SetTitle( ";N_{PU} down; Weight"      ) ;
+
   // Save weight in output file
   TFile *Out;
   Out = new TFile("pileup_reweight.root","RECREATE");
   Out->cd();
 
   NPU_data_true       ->Write();
+  NPU_data_up         ->Write();
+  NPU_data_down       ->Write();  
 
   Out->ls();
   Out->Write();
