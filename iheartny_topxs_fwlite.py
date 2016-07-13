@@ -99,43 +99,43 @@ if options.usePuppi:
 
 if options.isMC : 
     L3JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L3Absolute_AK4PF'+jetname+'.txt')
-    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4);
+    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
     L2JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L2Relative_AK4PF'+jetname+'.txt')
-    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4);
+    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
     L1JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L1FastJet_AK4PF'+jetname+'.txt')
-    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4);
+    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
     UncJecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_Uncertainty_AK4PF'+jetname+'.txt')
-    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4);
+    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
     L3JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L3Absolute_AK8PF'+jetname+'.txt')
-    L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8);
+    L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
     L2JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L2Relative_AK8PF'+jetname+'.txt')
-    L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8);
+    L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
     L1JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L1FastJet_AK8PF'+jetname+'.txt')
-    L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8);
+    L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
     UncJecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_Uncertainty_AK8PF'+jetname+'.txt')
-    UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8);
+    UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
     
 else :
     L3JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L3Absolute_AK4PF'+jetname+'.txt')
-    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4);
+    L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
     L2JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2Relative_AK4PF'+jetname+'.txt')
-    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4);
+    L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
     L1JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L1FastJet_AK4PF'+jetname+'.txt')
-    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4);
+    L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
     ResJecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
-    ResJetParAK4 = ROOT.JetCorrectorParameters(ResJecStrAK4);
+    ResJetParAK4 = ROOT.JetCorrectorParameters(ResJecStrAK4)
     UncJecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_Uncertainty_AK4PF'+jetname+'.txt')
-    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4);
+    UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
     L3JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L3Absolute_AK8PF'+jetname+'.txt')
-    L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8);
+    L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
     L2JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2Relative_AK8PF'+jetname+'.txt')
-    L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8);
+    L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
     L1JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L1FastJet_AK8PF'+jetname+'.txt')
-    L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8);
+    L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
     ResJecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2L3Residual_AK8PF'+jetname+'.txt')
-    ResJetParAK8 = ROOT.JetCorrectorParameters(ResJecStrAK8);
+    ResJetParAK8 = ROOT.JetCorrectorParameters(ResJecStrAK8)
     UncJecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_Uncertainty_AK8PF'+jetname+'.txt')
-    UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8);
+    UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
 
     
 #  load JetCorrectorParameter objects into vector (order matters!)
@@ -291,6 +291,12 @@ ak4jetVtxMass          = ROOT.vector('float')()
 ak4jetJECunc           = ROOT.vector('float')()
 ak4jetPtJERup          = ROOT.vector('float')()
 ak4jetPtJERdown        = ROOT.vector('float')()
+ak4jetEtaJERup         = ROOT.vector('float')()
+ak4jetEtaJERdown       = ROOT.vector('float')()
+ak4jetPhiJERup         = ROOT.vector('float')()
+ak4jetPhiJERdown       = ROOT.vector('float')()
+ak4jetMassJERup        = ROOT.vector('float')()
+ak4jetMassJERdown      = ROOT.vector('float')()
 ak4jetHadronFlavour    = ROOT.vector('float')()
 ak8jetPt               = ROOT.vector('float')()
 ak8jetEta              = ROOT.vector('float')()
@@ -317,6 +323,12 @@ ak8jetSDsubjet1CSV     = ROOT.vector('float')()
 ak8jetJECunc           = ROOT.vector('float')()
 ak8jetPtJERup          = ROOT.vector('float')()
 ak8jetPtJERdown        = ROOT.vector('float')()
+ak8jetEtaJERup         = ROOT.vector('float')()
+ak8jetEtaJERdown       = ROOT.vector('float')()
+ak8jetPhiJERup         = ROOT.vector('float')()
+ak8jetPhiJERdown       = ROOT.vector('float')()
+ak8jetMassJERup        = ROOT.vector('float')()
+ak8jetMassJERdown      = ROOT.vector('float')()
 eventWeight_nom        = ROOT.vector('float')()
 eventWeight_puUp       = ROOT.vector('float')()
 eventWeight_puDown     = ROOT.vector('float')()
@@ -406,6 +418,12 @@ if options.isMC:
     myTree.Branch('ak4jetHadronFlavour'    , ak4jetHadronFlavour    )
     myTree.Branch('ak4jetPtJERup'          , ak4jetPtJERup          )
     myTree.Branch('ak4jetPtJERdown'        , ak4jetPtJERdown        )
+    myTree.Branch('ak4jetEtaJERup'         , ak4jetEtaJERup         )
+    myTree.Branch('ak4jetEtaJERdown'       , ak4jetEtaJERdown       )
+    myTree.Branch('ak4jetPhiJERup'         , ak4jetPhiJERup         )
+    myTree.Branch('ak4jetPhiJERdown'       , ak4jetPhiJERdown       )
+    myTree.Branch('ak4jetMassJERup'        , ak4jetMassJERup        )
+    myTree.Branch('ak4jetMassJERdown'      , ak4jetMassJERdown      )
 myTree.Branch('ak8jetPt'               , ak8jetPt               )
 myTree.Branch('ak8jetEta'              , ak8jetEta              )
 myTree.Branch('ak8jetPhi'              , ak8jetPhi              )
@@ -432,6 +450,12 @@ myTree.Branch('ak8jetJECunc'           , ak8jetJECunc           )
 if options.isMC:
     myTree.Branch('ak8jetPtJERup'          , ak8jetPtJERup          )
     myTree.Branch('ak8jetPtJERdown'        , ak8jetPtJERdown        )
+    myTree.Branch('ak8jetEtaJERup'         , ak8jetEtaJERup         )
+    myTree.Branch('ak8jetEtaJERdown'       , ak8jetEtaJERdown       )
+    myTree.Branch('ak8jetPhiJERup'         , ak8jetPhiJERup         )
+    myTree.Branch('ak8jetPhiJERdown'       , ak8jetPhiJERdown       )
+    myTree.Branch('ak8jetMassJERup'        , ak8jetMassJERup        )
+    myTree.Branch('ak8jetMassJERdown'      , ak8jetMassJERdown      )
 
 myTree.Branch('eventWeight_nom'           , eventWeight_nom           )
 
@@ -687,8 +711,6 @@ sjSoftDropCSVHandle           = Handle( "std::vector<float>")
 sjSoftDropCSVLabel            = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"CSVv2")
 
 # JETID variables
-ak8JetAreaHandle = Handle( "std::vector<float>" )
-ak8JetAreaLabel  = ("jetsAK8"+jetname, "jetAK8"+jetname+"jetArea")
 ak8JetNeuHadEnergyHandle = Handle("std::vector<float>")
 ak8JetNeuHadEnergyLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"neutralHadronEnergy")
 ak8JetNeuEmEnergyHandle = Handle("std::vector<float>")
@@ -705,6 +727,8 @@ ak8JetChMultiLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"chargedMultiplicity"
 #JEC
 ak8JetJECHandle = Handle("std::vector<float>")
 ak8JetJECLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"jecFactor0")
+ak8JetAreaHandle = Handle( "std::vector<float>" )
+ak8JetAreaLabel  = ("jetsAK8"+jetname, "jetAK8"+jetname+"jetArea")
 
 #JER
 ak8MatchedGenJetPtHandle   = Handle("std::vector<float>")
@@ -743,6 +767,16 @@ h_NPV            = ROOT.TH1F("h_NPV"           , "", 50,0,50 )
 h_muPrescale     = ROOT.TH1F("h_muPrescale"    , "", 50,0,50 )
 h_elPrescale     = ROOT.TH1F("h_elPrescale"    , "", 50,0,50 )
 
+h_JEC_AK4        = ROOT.TH1F("h_JEC_AK4"       , "", 50,0.0,2.0)
+h_JEC_AK8        = ROOT.TH1F("h_JEC_AK8"       , "", 50,0.0,2.0)
+h_METcorr_AK4clean_jet  = ROOT.TH1F("h_METcorr_AK4clean_jet" , "", 30, -5.0, 10.0) 
+h_METcorr_AK8clean_jet  = ROOT.TH1F("h_METcorr_AK8clean_jet" , "", 30, -5.0, 10.0) 
+h_METcorr_AK4smear_jet  = ROOT.TH1F("h_METcorr_AK4smear_jet" , "", 30, -5.0, 10.0) 
+h_METcorr_AK8smear_jet  = ROOT.TH1F("h_METcorr_AK8smear_jet" , "", 30, -5.0, 10.0) 
+h_METcorr_AK4clean_evt  = ROOT.TH1F("h_METcorr_AK4clean_evt" , "", 60, -10.0, 20.0) 
+h_METcorr_AK8clean_evt  = ROOT.TH1F("h_METcorr_AK8clean_evt" , "", 60, -10.0, 20.0) 
+h_METcorr_AK4smear_evt  = ROOT.TH1F("h_METcorr_AK4smear_evt" , "", 60, -10.0, 20.0) 
+h_METcorr_AK8smear_evt  = ROOT.TH1F("h_METcorr_AK8smear_evt" , "", 60, -10.0, 20.0) 
 # -------------------------------------------------------------------------------------
 # Get pileup weights
 # -------------------------------------------------------------------------------------
@@ -875,6 +909,12 @@ for event in events :
         ak4jetHadronFlavour.clear()
         ak4jetPtJERup.clear()
         ak4jetPtJERdown.clear()
+        ak4jetEtaJERup.clear()
+        ak4jetEtaJERdown.clear()
+        ak4jetPhiJERup.clear()
+        ak4jetPhiJERdown.clear()
+        ak4jetMassJERup.clear()
+        ak4jetMassJERdown.clear()
     ak8jetPt.clear()
     ak8jetEta.clear()
     ak8jetPhi.clear()
@@ -902,6 +942,12 @@ for event in events :
     if options.isMC:
         ak8jetPtJERup.clear()
         ak8jetPtJERdown.clear()
+        ak8jetEtaJERup.clear()
+        ak8jetEtaJERdown.clear()
+        ak8jetPhiJERup.clear()
+        ak8jetPhiJERdown.clear()
+        ak8jetMassJERup.clear()
+        ak8jetMassJERdown.clear()
         eventWeight_puUp.clear()
         eventWeight_puDown.clear()
         muTrigPass.clear()
@@ -1657,11 +1703,11 @@ for event in events :
         for ijet in xrange( len(ak4JetPts) ) :
 
             # jet IDs must be calculated prior to JECs, so remove them 
-            jetP4Raw = ROOT.TLorentzVector()
-            jetP4Raw.SetPtEtaPhiM( ak4JetPts[ijet], ak4JetEtas[ijet], ak4JetPhis[ijet], ak4JetMasss[ijet] )
+            jetP4Pre = ROOT.TLorentzVector()
+            jetP4Pre.SetPtEtaPhiM( ak4JetPts[ijet], ak4JetEtas[ijet], ak4JetPhis[ijet], ak4JetMasss[ijet] )
 
             # get the raw jet energy
-            jetP4Raw *= ak4JetJECs[ijet]
+            jetP4Raw = jetP4Pre * ak4JetJECs[ijet]
 
             # calculate the neutral/charged hadron/em energy fractions
             nhf = ak4JetNeuHadEnergys[ijet] / jetP4Raw.E()
@@ -1678,8 +1724,7 @@ for event in events :
             # clean leptons from jets 
             zeroedEnergy = False
 
-            metv += jetP4Raw; # Correct MET
-            
+            cleanedLepton = 0
             for ilep in xrange( len(lepCand) ) :
                 if lepCand[ilep].DeltaR(jetP4Raw) < 0.4 :
                     # check jet daughters close to the lepton
@@ -1688,14 +1733,15 @@ for event in events :
                         # if jet daughter matches lepton, remove lepton p4 from (raw) jet p4
                         if ak4JetKeys[ijet][ipf] in lepCandKey[ilep]: 
                             if options.debug:
-                                print 'removing lepton, pt/eta/phi = {0:6.2f},{1:6.2f},{2:6.2f}'.format(lepCand[ilep].Perp(), lepCand[ilep].Eta(), lepCand[ilep].Phi())
+                                print 'Event {0:d}, removing lepton with pt/eta/phi = {1:6.2f},{2:6.2f},{3:6.2f} from AK4 jet with pt/eta/phi = {4:6.2f},{5:6.2f},{6:6.2f}'.format(ntotal,lepCand[ilep].Perp(),lepCand[ilep].Eta(),lepCand[ilep].Phi(),jetP4Raw.Perp(), jetP4Raw.Eta(), jetP4Raw.Phi())
                             if lepCand[ilep].E() > jetP4Raw.E() :
                                 zeroedEnergy = True
+                            cleanedLepton = lepCand[ilep]
                             jetP4Raw -= lepCand[ilep]
                             break
 
             if zeroedEnergy: 
-                continue
+                continue                
 
             # apply back jet energy corrections
             ak4JetCorrector.setJetEta( jetP4Raw.Eta() )
@@ -1708,54 +1754,48 @@ for event in events :
             newJEC = ak4JetCorrector.getCorrection()
             jetP4 = jetP4Raw*newJEC
 
-            UncertJetAK4.setJetEta(jetP4Raw.Eta());
-            UncertJetAK4.setJetPhi(jetP4Raw.Phi());
-            UncertJetAK4.setJetPt(jetP4.Perp());
-            unc = UncertJetAK4.getUncertainty(True);
+            if cleanedLepton != 0: #Correct MET if JEC changed due to cleaning
+                metv += jetP4Pre
+                metv -= cleanedLepton
+                metv -= jetP4
+
+            UncertJetAK4.setJetEta(jetP4Raw.Eta())
+            UncertJetAK4.setJetPhi(jetP4Raw.Phi())
+            UncertJetAK4.setJetPt(jetP4.Perp())
+            unc = UncertJetAK4.getUncertainty(True)
 
             # JER
-            # Since we directly modify jet pt, and there are variations, we store these separately
+            jetP4_JERup = ROOT.TLorentzVector
+            jetP4_JERdown = ROOT.TLorentzVector
+
+            metv += jetP4 #Now correct MET for JER
             
             # Scale jet pt if there is a matched gen jet
-            pt_JERnom = -1.0
-            pt_JERup = -1.0
-            pt_JERdown = -1.0
             if options.isMC:
                 if ak4MatchedGenJetPts[ijet] > 0:
-                    nMatchAK4Jet += 1
                     genJetP4 = ROOT.TLorentzVector()
                     genJetP4.SetPtEtaPhiE(ak4MatchedGenJetPts[ijet],ak4MatchedGenJetEtas[ijet],ak4MatchedGenJetPhis[ijet],ak4MatchedGenJetEnergys[ijet])
                     if jetP4.DeltaR(genJetP4) < 0.2 and abs(jetP4.Perp() - genJetP4.Perp()) < (3 * ak4JERs[ijet] * jetP4.Perp()) : # Do matching requirement
-                        nGoodMatchAK4Jet += 1
-                        pt_JERnom = jetP4.Perp() - ak4MatchedGenJetPts[ijet]
-                        pt_JERnom *= ak4JERSFnoms[ijet];
-                        pt_JERnom += ak4MatchedGenJetPts[ijet]
-                        if pt_JERnom < 0.0:
-                            pt_JERnom = 0.0
-                        pt_JERup = jetP4.Perp() - ak4MatchedGenJetPts[ijet]
-                        pt_JERup *= ak4JERSFups[ijet];
-                        pt_JERup += ak4MatchedGenJetPts[ijet]
-                        if pt_JERup < 0.0:
-                            pt_JERup = 0.0
-                        pt_JERdown = jetP4.Perp() - ak4MatchedGenJetPts[ijet]
-                        pt_JERdown *= ak4JERSFdowns[ijet];
-                        pt_JERdown += ak4MatchedGenJetPts[ijet]
-                        if pt_JERdown < 0.0:
-                            pt_JERdown = 0.0
+                        jetP4 -= genJetP4
+                        jetP4 *= ak4JERSFnoms[ijet]
+                        jetP4 += genJetP4
+                        jetP4_JERup = jetP4 - genJetP4
+                        jetP4_JERup *= ak4JERSFups[ijet]
+                        jetP4_JERup += genJetP4
+                        jetP4_JERdown = jetP4 - genJetP4
+                        jetP4_JERdown *= ak4JERSFdowns[ijet]
+                        jetP4_JERdown += genJetP4
                     else:
-                        pt_JERnom  = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
-                        pt_JERup   = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
-                        pt_JERdown = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)*ak4JERs[ijet]))
-
+                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
+                        jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
+                        jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)*ak4JERs[ijet]))
                 else:
-                    pt_JERnom  = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
-                    pt_JERup   = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
-                    pt_JERdown = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)*ak4JERs[ijet]))
+                    jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
+                    jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
+                    jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)*ak4JERs[ijet]))
 
-                jetP4.SetPtEtaPhiE(pt_JERnom,jetP4.Eta(),jetP4.Phi(),jetP4.E())
+            metv -= jetP4
 
-            metv -= jetP4 # Correct MET
-            
             if jetP4.Perp() > 15. and abs(jetP4.Eta()) < 3.0:
                 jetsFor2DPt15.append(jetP4)
             if jetP4.Perp() > 20. and abs(jetP4.Eta()) < 3.0:
@@ -1789,8 +1829,14 @@ for event in events :
             ak4jetJECunc.push_back(unc)
             if options.isMC:
                 ak4jetHadronFlavour.push_back(ak4jetHadronFlavours[ijet])
-                ak4jetPtJERup.push_back(pt_JERup)
-                ak4jetPtJERdown.push_back(pt_JERdown)
+                ak4jetPtJERup.push_back(jetP4_JERup.Perp())
+                ak4jetPtJERdown.push_back(jetP4_JERdown.Perp())
+                ak4jetEtaJERup.push_back(jetP4_JERup.Eta())
+                ak4jetEtaJERdown.push_back(jetP4_JERdown.Eta())
+                ak4jetPhiJERup.push_back(jetP4_JERup.Phi())
+                ak4jetPhiJERdown.push_back(jetP4_JERdown.Phi())
+                ak4jetMassJERup.push_back(jetP4_JERup.M())
+                ak4jetMassJERdown.push_back(jetP4_JERdown.M())
 
     # -------------------------------------------------------
     # If not storing full truth information, require AK4 jet
@@ -1937,6 +1983,8 @@ for event in events :
 
         event.getByLabel (ak8JetAreaLabel, ak8JetAreaHandle)
         ak8JetAreas = ak8JetAreaHandle.product()
+        event.getByLabel( ak8JetJECLabel, ak8JetJECHandle )
+        ak8JetJECs = ak8JetJECHandle.product()
 
         event.getByLabel( ak8JetNeuHadEnergyLabel, ak8JetNeuHadEnergyHandle )
         event.getByLabel( ak8JetNeuEmEnergyLabel, ak8JetNeuEmEnergyHandle )
@@ -1951,9 +1999,6 @@ for event in events :
         ak8JetChEmEnergys = ak8JetChEmEnergyHandle.product()
         ak8JetNumDaughters = ak8JetNumDaughterHandle.product()
         ak8JetChMultis = ak8JetChMultiHandle.product()
-
-        event.getByLabel( ak8JetJECLabel, ak8JetJECHandle )
-        ak8JetJECs = ak8JetJECHandle.product()
 
         event.getByLabel(ak8MatchedGenJetPtLabel, ak8MatchedGenJetPtHandle)
         ak8MatchedGenJetPts = ak8MatchedGenJetPtHandle.product()
@@ -1978,117 +2023,112 @@ for event in events :
         # -------------------------------------------------------------------------------------
         # loop over AK8 jets
         # -------------------------------------------------------------------------------------
-    
+
         # loop over jets
         for ijet in xrange( len(ak8JetPt) ) :
             
             # jet IDs must be calculated prior to JECs, so remove them 
-            jetP4Raw = ROOT.TLorentzVector()
-            jetP4Raw.SetPtEtaPhiM( ak8JetPt[ijet], ak8JetEta[ijet], ak8JetPhi[ijet], ak8JetMass[ijet] )
+            AK8jetP4Pre = ROOT.TLorentzVector()
+            AK8jetP4Pre.SetPtEtaPhiM( ak8JetPt[ijet], ak8JetEta[ijet], ak8JetPhi[ijet], ak8JetMass[ijet] )
 
             # get the raw jet energy
-            jetP4Raw *= ak8JetJECs[ijet]
+            AK8jetP4Raw = AK8jetP4Pre * ak8JetJECs[ijet]
 
             # calculate the neutral/charged hadron/em energy fractions
-            nhf = ak8JetNeuHadEnergys[ijet] / jetP4Raw.E()
-            nef = ak8JetNeuEmEnergys[ijet] / jetP4Raw.E()
-            chf = ak8JetChHadEnergys[ijet] / jetP4Raw.E()
-            cef = ak8JetChEmEnergys[ijet] / jetP4Raw.E()
-            nconstituents = ak8JetNumDaughters[ijet]
-            nchmult = ak8JetChMultis[ijet] 
+            AK8nhf = ak8JetNeuHadEnergys[ijet] / AK8jetP4Raw.E()
+            AK8nef = ak8JetNeuEmEnergys[ijet] / AK8jetP4Raw.E()
+            AK8chf = ak8JetChHadEnergys[ijet] / AK8jetP4Raw.E()
+            AK8cef = ak8JetChEmEnergys[ijet] / AK8jetP4Raw.E()
+            AK8nconstituents = ak8JetNumDaughters[ijet]
+            AK8nchmult = ak8JetChMultis[ijet] 
 
             # require loose jet ID
-            if (nhf >= 0.99 or nef >= 0.99 or chf <= 0.00 or cef >= 0.99 or nconstituents <= 1 or nchmult <= 0) :
+            if (AK8nhf >= 0.99 or AK8nef >= 0.99 or AK8chf <= 0.00 or AK8cef >= 0.99 or AK8nconstituents <= 1 or AK8nchmult <= 0) :
                 continue
 
             # clean leptons from jets 
             zeroedEnergy = False
 
-            metv += jetP4Raw; # Correct MET
-            
+            AK8cleanedLepton = 0
             for ilep in xrange( len(lepCand) ) :
-                if lepCand[ilep].DeltaR(jetP4Raw) < 0.4 :
+                if lepCand[ilep].DeltaR(AK8jetP4Raw) < 0.4 :
                     # check jet daughters close to the lepton
                     pfcands = int(ak8JetNumDaughters[ijet])
                     for ipf in range(0, pfcands) :
                         # if jet daughter matches lepton, remove lepton p4 from (raw) jet p4
-                        if ak8JetKeys[ijet][ipf] in lepCandKey[ilep]: 
+                        if ak8JetKeys[ijet][ipf] in lepCandKey[ilep]:
                             if options.debug:
-                                print 'removing lepton, pt/eta/phi = {0:6.2f},{1:6.2f},{2:6.2f}'.format(lepCand[ilep].Perp(), lepCand[ilep].Eta(), lepCand[ilep].Phi())
-                            if lepCand[ilep].E() > jetP4Raw.E() :
+                                print 'Event {0:d}, removing lepton with pt/eta/phi = {1:6.2f},{2:6.2f},{3:6.2f} from AK8 jet with pt/eta/phi = {4:6.2f},{5:6.2f},{6:6.2f}'.format(ntotal,lepCand[ilep].Perp(),lepCand[ilep].Eta(),lepCand[ilep].Phi(),AK8jetP4Raw.Perp(), AK8jetP4Raw.Eta(), AK8jetP4Raw.Phi())
+                            if lepCand[ilep].E() > AK8jetP4Raw.E() :
                                 zeroedEnergy = True
-                            jetP4Raw -= lepCand[ilep]
+                            AK8cleanedLepton = lepCand[ilep]
+                            AK8jetP4Raw -= lepCand[ilep]
                             break
 
             if zeroedEnergy: 
                 continue
 
             # apply back jet energy corrections
-            ak8JetCorrector.setJetEta( jetP4Raw.Eta() )
-            ak8JetCorrector.setJetPt( jetP4Raw.Perp() )
-            ak8JetCorrector.setJetE( jetP4Raw.E() )
+            ak8JetCorrector.setJetEta( AK8jetP4Raw.Eta() )
+            ak8JetCorrector.setJetPt( AK8jetP4Raw.Perp() )
+            ak8JetCorrector.setJetE( AK8jetP4Raw.E() )
             ak8JetCorrector.setJetA( ak8JetAreas[ijet] )
             ak8JetCorrector.setRho( rho )
             ak8JetCorrector.setNPV( NPV )
 
-            newJEC = ak8JetCorrector.getCorrection()
-            jetP4 = jetP4Raw*newJEC
+            AK8newJEC = ak8JetCorrector.getCorrection()
+            AK8jetP4 = AK8jetP4Raw*AK8newJEC
 
-            UncertJetAK8.setJetEta(jetP4Raw.Eta());
-            UncertJetAK8.setJetPhi(jetP4Raw.Phi());
-            UncertJetAK8.setJetPt(jetP4.Perp());
-            unc = UncertJetAK8.getUncertainty(True);
+            if AK8cleanedLepton != 0: #Correct MET if JEC changed due to cleaning
+                metv += AK8jetP4Pre
+                metv -= AK8cleanedLepton
+                metv -= AK8jetP4
+
+            UncertJetAK8.setJetEta(AK8jetP4Raw.Eta())
+            UncertJetAK8.setJetPhi(AK8jetP4Raw.Phi())
+            UncertJetAK8.setJetPt(AK8jetP4.Perp())
+            unc = UncertJetAK8.getUncertainty(True)
 
             # JER
-            # Since we directly modify jet pt, and there are variations, we store these separately
+            AK8jetP4_JERup = ROOT.TLorentzVector
+            AK8jetP4_JERdown = ROOT.TLorentzVector
+
+            metv += AK8jetP4 #Now correct MET for JER
             
             # Scale jet pt if there is a matched gen jet
-            pt_JERnom = -1.0
-            pt_JERup = -1.0
-            pt_JERdown = -1.0
             if options.isMC:
                 if ak8MatchedGenJetPts[ijet] > 0:
-                    genJetP4 = ROOT.TLorentzVector()
-                    genJetP4.SetPtEtaPhiE(ak8MatchedGenJetPts[ijet],ak8MatchedGenJetEtas[ijet],ak8MatchedGenJetPhis[ijet],ak8MatchedGenJetEnergys[ijet])
-                    nMatchAK8Jet += 1
-                    if jetP4.DeltaR(genJetP4) < 0.2 and abs(jetP4.Perp() - genJetP4.Perp()) < (3 * ak8JERs[ijet] * jetP4.Perp()) : # Do matching requirement
-                        nGoodMatchAK8Jet += 1
-                        pt_JERnom = jetP4.Perp() - ak8MatchedGenJetPts[ijet]
-                        pt_JERnom *= ak8JERSFnoms[ijet];
-                        pt_JERnom += ak8MatchedGenJetPts[ijet]
-                        if pt_JERnom < 0.0:
-                            pt_JERnom = 0.0
-                        pt_JERup = jetP4.Perp() - ak8MatchedGenJetPts[ijet]
-                        pt_JERup *= ak8JERSFups[ijet];
-                        pt_JERup += ak8MatchedGenJetPts[ijet]
-                        if pt_JERup < 0.0:
-                            pt_JERup = 0.0
-                        pt_JERdown = jetP4.Perp() - ak8MatchedGenJetPts[ijet]
-                        pt_JERdown *= ak8JERSFdowns[ijet];
-                        pt_JERdown += ak8MatchedGenJetPts[ijet]
-                        if pt_JERdown < 0.0:
-                            pt_JERdown = 0.0
+                    AK8genJetP4 = ROOT.TLorentzVector()
+                    AK8genJetP4.SetPtEtaPhiE(ak8MatchedGenJetPts[ijet],ak8MatchedGenJetEtas[ijet],ak8MatchedGenJetPhis[ijet],ak8MatchedGenJetEnergys[ijet])
+                    if AK8jetP4.DeltaR(AK8genJetP4) < 0.2 and abs(AK8jetP4.Perp() - AK8genJetP4.Perp()) < (3 * ak8JERs[ijet] * AK8jetP4.Perp()) : # Do matching requirement
+                        AK8jetP4 -= AK8genJetP4
+                        AK8jetP4 *= ak8JERSFnoms[ijet]
+                        AK8jetP4 += AK8genJetP4
+                        AK8jetP4_JERup = AK8jetP4 - AK8genJetP4
+                        AK8jetP4_JERup *= ak8JERSFups[ijet]
+                        AK8jetP4_JERup += AK8genJetP4
+                        AK8jetP4_JERdown = AK8jetP4 - AK8genJetP4
+                        AK8jetP4_JERdown *= ak8JERSFdowns[ijet]
+                        AK8jetP4_JERdown += AK8genJetP4
 
                     else:
-                        pt_JERnom  = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)*ak8JERs[ijet]))
-                        pt_JERup   = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)*ak8JERs[ijet]))
-                        pt_JERdown = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)*ak8JERs[ijet]))
+                        AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)*ak8JERs[ijet]))
+                        AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)*ak8JERs[ijet]))
+                        AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)*ak8JERs[ijet]))
                 else:
-                    pt_JERnom  = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)*ak8JERs[ijet]))
-                    pt_JERup   = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)*ak8JERs[ijet]))
-                    pt_JERdown = jetP4.Perp() * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)*ak8JERs[ijet]))
+                    AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)*ak8JERs[ijet]))
+                    AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)*ak8JERs[ijet]))
+                    AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)*ak8JERs[ijet]))
 
-                jetP4.SetPtEtaPhiE(pt_JERnom,jetP4.Eta(),jetP4.Phi(),jetP4.E())
+            metv -= AK8jetP4
 
-            metv -= jetP4; # Correct MET
-
-            if (jetP4.Perp() < TOP_PT_CUT or abs(jetP4.Eta()) > MAX_JET_ETA):
+            if (AK8jetP4.Perp() < TOP_PT_CUT or abs(AK8jetP4.Eta()) > MAX_JET_ETA):
                 continue
 
-            ak8jetPt.push_back(jetP4.Perp())
-            ak8jetEta.push_back(jetP4.Eta())
-            ak8jetPhi.push_back(jetP4.Phi())
-            ak8jetMass.push_back(jetP4.M())
+            ak8jetPt.push_back(AK8jetP4.Perp())
+            ak8jetEta.push_back(AK8jetP4.Eta())
+            ak8jetPhi.push_back(AK8jetP4.Phi())
+            ak8jetMass.push_back(AK8jetP4.M())
             if ak8JetPrunMass[ijet] >= 0.0 :
                 ak8jetMassPruned.push_back(ak8JetPrunMass[ijet])
             else :
@@ -2135,8 +2175,14 @@ for event in events :
                 ak8jetSDsubjet1CSV.push_back(-10.0)
             ak8jetJECunc.push_back(unc)
             if options.isMC:
-                ak8jetPtJERup.push_back(pt_JERup)
-                ak8jetPtJERdown.push_back(pt_JERdown)
+                ak8jetPtJERup.push_back(AK8jetP4_JERup.Perp())
+                ak8jetPtJERdown.push_back(AK8jetP4_JERdown.Perp())
+                ak8jetEtaJERup.push_back(AK8jetP4_JERup.Eta())
+                ak8jetEtaJERdown.push_back(AK8jetP4_JERdown.Eta())
+                ak8jetPhiJERup.push_back(AK8jetP4_JERup.Phi())
+                ak8jetPhiJERdown.push_back(AK8jetP4_JERdown.Phi())
+                ak8jetMassJERup.push_back(AK8jetP4_JERup.M())
+                ak8jetMassJERdown.push_back(AK8jetP4_JERdown.M())
 
     if len(ak8jetPt) == 0 :
         passReco = False
@@ -2205,10 +2251,6 @@ print 'Fraction of all electrons passing twiki cuts not tight:  ' + str(nManualN
 print 'Fraction of all tight muons not passing twiki cuts:      ' + str(nTightNotManualMu / nMuRaw)
 print 'Fraction of all muons passing twiki cuts not tight:      ' + str(nManualNotTightMu / nMuRaw)
 print '-------------------------------'
-print 'Number of matched gen AK4 jets: '      + str(nMatchAK4Jet)
-print 'Number of good matched gen AK4 jets: ' + str(nGoodMatchAK4Jet)
-print 'Number of matched gen AK8 jets: '      + str(nMatchAK8Jet)
-print 'Number of good matched gen AK8 jets: ' + str(nGoodMatchAK8Jet)
 
 f.cd()
 f.Write()
