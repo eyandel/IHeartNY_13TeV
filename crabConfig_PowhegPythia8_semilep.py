@@ -14,7 +14,7 @@ config.JobType.outputFiles = ['test_iheartNY.root']
 config.JobType.scriptExe = 'execute_iheartNY_ttbar_semilep.sh'
 
 config.section_("Data")
-config.Data.inputDataset = '/TT_TuneCUETP8M1_13TeV-powheg-pythia8/vorobiev-B2GAnaFW_RunIIFall15MiniAODv2_25ns_v76x_v1p2-bf3ef703e3bdb5dcc5320cf3ff6ce74d/USER'
+config.Data.inputDataset = '/TT_TuneCUETP8M1_13TeV-powheg-pythia8/srappocc-RunIISpring16MiniAODv2_B2GAnaFW_80x_V1p0-4e74e3854bbd13b3866f4a57304f402f/USER'
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 2
