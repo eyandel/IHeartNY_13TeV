@@ -98,43 +98,43 @@ if options.usePuppi:
     jetname = "puppi"
 
 if options.isMC : 
-    L3JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L3Absolute_AK4PF'+jetname+'.txt')
     L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
-    L2JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L2Relative_AK4PF'+jetname+'.txt')
+    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L2Relative_AK4PF'+jetname+'.txt')
     L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
-    L1JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L1FastJet_AK4PF'+jetname+'.txt')
     L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
-    UncJecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_MC_Uncertainty_AK4PF'+jetname+'.txt')
+    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_Uncertainty_AK4PF'+jetname+'.txt')
     UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
-    L3JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L3Absolute_AK8PF'+jetname+'.txt')
+    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L3Absolute_AK8PF'+jetname+'.txt')
     L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
-    L2JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L2Relative_AK8PF'+jetname+'.txt')
+    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L2Relative_AK8PF'+jetname+'.txt')
     L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
-    L1JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_L1FastJet_AK8PF'+jetname+'.txt')
+    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L1FastJet_AK8PF'+jetname+'.txt')
     L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
-    UncJecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_MC_Uncertainty_AK8PF'+jetname+'.txt')
+    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_Uncertainty_AK8PF'+jetname+'.txt')
     UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
     
 else :
-    L3JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L3Absolute_AK4PF'+jetname+'.txt')
     L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
-    L2JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2Relative_AK4PF'+jetname+'.txt')
+    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2Relative_AK4PF'+jetname+'.txt')
     L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
-    L1JecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L1FastJet_AK4PF'+jetname+'.txt')
     L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
-    ResJecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
+    ResJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
     ResJetParAK4 = ROOT.JetCorrectorParameters(ResJecStrAK4)
-    UncJecStrAK4 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_Uncertainty_AK4PF'+jetname+'.txt')
+    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_Uncertainty_AK4PF'+jetname+'.txt')
     UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
-    L3JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L3Absolute_AK8PF'+jetname+'.txt')
+    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L3Absolute_AK8PF'+jetname+'.txt')
     L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
-    L2JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2Relative_AK8PF'+jetname+'.txt')
+    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2Relative_AK8PF'+jetname+'.txt')
     L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
-    L1JecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L1FastJet_AK8PF'+jetname+'.txt')
+    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L1FastJet_AK8PF'+jetname+'.txt')
     L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
-    ResJecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_L2L3Residual_AK8PF'+jetname+'.txt')
+    ResJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2L3Residual_AK8PF'+jetname+'.txt')
     ResJetParAK8 = ROOT.JetCorrectorParameters(ResJecStrAK8)
-    UncJecStrAK8 = ROOT.std.string('JECs/Fall15_25nsV2_DATA_Uncertainty_AK8PF'+jetname+'.txt')
+    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_Uncertainty_AK8PF'+jetname+'.txt')
     UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
 
     
@@ -766,17 +766,9 @@ h_NPV_noweight   = ROOT.TH1F("h_NPV_noweight"  , "", 50,0,50 )
 h_NPV            = ROOT.TH1F("h_NPV"           , "", 50,0,50 )
 h_muPrescale     = ROOT.TH1F("h_muPrescale"    , "", 50,0,50 )
 h_elPrescale     = ROOT.TH1F("h_elPrescale"    , "", 50,0,50 )
+h_JERSF_AK4      = ROOT.TH1F("h_JERSF_AK4"       , "", 122,0.99,1.60)
+h_JERSF_AK8      = ROOT.TH1F("h_JERSF_AK8"       , "", 122,0.99,1.60)
 
-h_JEC_AK4        = ROOT.TH1F("h_JEC_AK4"       , "", 50,0.0,2.0)
-h_JEC_AK8        = ROOT.TH1F("h_JEC_AK8"       , "", 50,0.0,2.0)
-h_METcorr_AK4clean_jet  = ROOT.TH1F("h_METcorr_AK4clean_jet" , "", 30, -5.0, 10.0) 
-h_METcorr_AK8clean_jet  = ROOT.TH1F("h_METcorr_AK8clean_jet" , "", 30, -5.0, 10.0) 
-h_METcorr_AK4smear_jet  = ROOT.TH1F("h_METcorr_AK4smear_jet" , "", 30, -5.0, 10.0) 
-h_METcorr_AK8smear_jet  = ROOT.TH1F("h_METcorr_AK8smear_jet" , "", 30, -5.0, 10.0) 
-h_METcorr_AK4clean_evt  = ROOT.TH1F("h_METcorr_AK4clean_evt" , "", 60, -10.0, 20.0) 
-h_METcorr_AK8clean_evt  = ROOT.TH1F("h_METcorr_AK8clean_evt" , "", 60, -10.0, 20.0) 
-h_METcorr_AK4smear_evt  = ROOT.TH1F("h_METcorr_AK4smear_evt" , "", 60, -10.0, 20.0) 
-h_METcorr_AK8smear_evt  = ROOT.TH1F("h_METcorr_AK8smear_evt" , "", 60, -10.0, 20.0) 
 # -------------------------------------------------------------------------------------
 # Get pileup weights
 # -------------------------------------------------------------------------------------
@@ -1035,7 +1027,7 @@ for event in events :
     hbheFilt = HBHEfilterHandle.product()[0]
 
     for itrig in xrange(0, len(filterNameStrings) ) :
-        if any(s in filterNameStrings[itrig] for s in ("CSC","goodVer","eeBadSc","EcalDeadCell")) and filterBits[itrig] == 1:
+        if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 1:
             if options.debug :
                 print 'MET filter: ' + filterNameStrings[itrig]
             metFilt = True
@@ -1148,13 +1140,9 @@ for event in events :
             
             # Find tops -- |pdgID| = 6, status 22
             if genParticlesPdgId[igen] == 6 and genParticlesStatus[igen] == 22 :
-                gen = ROOT.TLorentzVector()
-                gen.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )                    
-                p4Top = gen
+                p4Top.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )                    
             if genParticlesPdgId[igen] == -6 and genParticlesStatus[igen] == 22:
-                gen = ROOT.TLorentzVector()
-                gen.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
-                p4Antitop = gen
+                p4Antitop.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
             
             # If there is an antilepton (e+, mu+, tau+) in the W+ decay then the top is leptonic
             if ( genParticlesPdgId[igen] == -11 or genParticlesPdgId[igen] == -13 or genParticlesPdgId[igen] == -15) :
@@ -1758,6 +1746,9 @@ for event in events :
                 metv += jetP4Pre
                 metv -= cleanedLepton
                 metv -= jetP4
+            else :
+                if jetP4.Perp() != jetP4Pre.Perp() :
+                    print 'Error: AK4 jet pt changed after undoing / redoing JEC w/o cleaning!'
 
             UncertJetAK4.setJetEta(jetP4Raw.Eta())
             UncertJetAK4.setJetPhi(jetP4Raw.Phi())
@@ -1772,6 +1763,7 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
+                h_JERSF_AK4.Fill(ak4JERSFnoms[ijet])
                 if ak4MatchedGenJetPts[ijet] > 0:
                     genJetP4 = ROOT.TLorentzVector()
                     genJetP4.SetPtEtaPhiE(ak4MatchedGenJetPts[ijet],ak4MatchedGenJetEtas[ijet],ak4MatchedGenJetPhis[ijet],ak4MatchedGenJetEnergys[ijet])
@@ -2083,6 +2075,9 @@ for event in events :
                 metv += AK8jetP4Pre
                 metv -= AK8cleanedLepton
                 metv -= AK8jetP4
+            else :
+                if AK8jetP4.Perp() != AK8jetP4Pre.Perp() :
+                    print 'Error: AK8 jet pt changed after undoing / redoing JEC w/o cleaning!'
 
             UncertJetAK8.setJetEta(AK8jetP4Raw.Eta())
             UncertJetAK8.setJetPhi(AK8jetP4Raw.Phi())
@@ -2097,6 +2092,7 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
+                h_JERSF_AK8.Fill(ak8JERSFnoms[ijet])
                 if ak8MatchedGenJetPts[ijet] > 0:
                     AK8genJetP4 = ROOT.TLorentzVector()
                     AK8genJetP4.SetPtEtaPhiE(ak8MatchedGenJetPts[ijet],ak8MatchedGenJetEtas[ijet],ak8MatchedGenJetPhis[ijet],ak8MatchedGenJetEnergys[ijet])
