@@ -59,7 +59,7 @@ void calcPUweight(){
   NPU_MC_true   ->SetMarkerStyle(21);
 
   NPU_data_true->SetTitle(";N_{PU} true;Number of events");
-  NPU_data_true->GetXaxis()->SetRangeUser(0,30);
+  NPU_data_true->GetXaxis()->SetRangeUser(0,50);
 
   NPU_data_true ->Draw();
   NPU_MC_true   ->Draw("same");

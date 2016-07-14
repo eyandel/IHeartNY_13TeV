@@ -1747,9 +1747,9 @@ for event in events :
                 metv -= cleanedLepton
                 metv -= jetP4
             else :
-                if jetP4.Perp() != jetP4Pre.Perp() :
-                    print 'Error: AK4 jet pt changed after undoing / redoing JEC w/o cleaning!'
-
+                if abs(jetP4.Perp() - jetP4Pre.Perp()) > 0.001 :
+                    print 'Error: AK4 jet pt changed after undoing / redoing JEC w/o cleaning! Old pt ' + str(jetP4Pre.Perp()) + ' new pt ' + str(jetP4.Perp())
+                    
             UncertJetAK4.setJetEta(jetP4Raw.Eta())
             UncertJetAK4.setJetPhi(jetP4Raw.Phi())
             UncertJetAK4.setJetPt(jetP4.Perp())
@@ -2076,8 +2076,8 @@ for event in events :
                 metv -= AK8cleanedLepton
                 metv -= AK8jetP4
             else :
-                if AK8jetP4.Perp() != AK8jetP4Pre.Perp() :
-                    print 'Error: AK8 jet pt changed after undoing / redoing JEC w/o cleaning!'
+                if abs(AK8jetP4.Perp() - AK8jetP4Pre.Perp()) > 0.001 :
+                    print 'Error: AK8 jet pt changed after undoing / redoing JEC w/o cleaning! Old pt ' + str(jetP4Pre.Perp()) + ' new pt ' + str(jetP4.Perp())
 
             UncertJetAK8.setJetEta(AK8jetP4Raw.Eta())
             UncertJetAK8.setJetPhi(AK8jetP4Raw.Phi())
