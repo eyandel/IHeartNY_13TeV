@@ -1048,36 +1048,38 @@ for event in events :
     passMuTrig = True
     passElTrig = True
 
-    if options.isMC :
-        passMuTrig = False
-        passElTrig = False
-        prescale = 1.0
-            
-        event.getByLabel( trigNameLabel, trigNameHandle )
-        event.getByLabel( trigBitsLabel, trigBitsHandle )
-        event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
-
-        triggerNames = trigNameHandle.product()
-        triggerBits = trigBitsHandle.product()
-        triggerPrescales = trigPrescalesHandle.product()
-
-        trigToRun = None
-        for itrig in xrange(0, len(triggerBits) ) :
-            if triggerBits[itrig] != 1 :
-                continue
-            trigName = triggerNames[itrig]
-            if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
-                passElTrig = True
-                prescale = prescale * triggerPrescales[itrig]
-                h_elPrescale.Fill(triggerPrescales[itrig])
-            if "HLT_Mu45_eta2p1" in trigName :
-                passMuTrig = True
-                prescale = prescale * triggerPrescales[itrig]
-                h_muPrescale.Fill(triggerPrescales[itrig])
-            
-        weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
-        weight_puUp = weight_puUp * prescale 
-        weight_puDown = weight_puDown * prescale 
+    # 80X does not have trigger stored! Turn this off for now
+    #
+    #if options.isMC :
+    #    passMuTrig = False
+    #    passElTrig = False
+    #    prescale = 1.0
+    #        
+    #    event.getByLabel( trigNameLabel, trigNameHandle )
+    #    event.getByLabel( trigBitsLabel, trigBitsHandle )
+    #    event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
+    #
+    #    triggerNames = trigNameHandle.product()
+    #    triggerBits = trigBitsHandle.product()
+    #    triggerPrescales = trigPrescalesHandle.product()
+    #
+    #    trigToRun = None
+    #    for itrig in xrange(0, len(triggerBits) ) :
+    #        if triggerBits[itrig] != 1 :
+    #            continue
+    #        trigName = triggerNames[itrig]
+    #        if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
+    #            passElTrig = True
+    #            prescale = prescale * triggerPrescales[itrig]
+    #            h_elPrescale.Fill(triggerPrescales[itrig])
+    #        if "HLT_Mu45_eta2p1" in trigName :
+    #            passMuTrig = True
+    #            prescale = prescale * triggerPrescales[itrig]
+    #            h_muPrescale.Fill(triggerPrescales[itrig])
+    #        
+    #    weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
+    #    weight_puUp = weight_puUp * prescale 
+    #    weight_puDown = weight_puDown * prescale 
 
     # -------------------------------------------------------------------------------------
     # read event rho value
