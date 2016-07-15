@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'Data_2015C_el'
+config.General.requestName = 'Data_mu'
 config.General.workArea = 'test'
 config.General.transferLogs = True
 
@@ -14,7 +14,7 @@ config.JobType.outputFiles = ['test_iheartNY.root']
 config.JobType.scriptExe = 'execute_iheartNY_data.sh'
 
 config.section_("Data")
-config.Data.inputDataset = '/SingleElectron/jkarancs-B2GAnaFW_76X_V1p1_Run2015C_25ns-16Dec2015-v1-69b00753dd36562e8813bc06510c861e/USER'
+config.Data.inputDataset = '/SingleMuon/srappocc-RunIISpring16MiniAODv2_B2GAnaFW_80x_V1p0-c9ad27f972ae59d36cd924fb5f87408c/USER'
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
