@@ -98,46 +98,45 @@ if options.usePuppi:
     jetname = "puppi"
 
 if options.isMC : 
-    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_MC_L3Absolute_AK4PF'+jetname+'.txt')
     L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
-    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L2Relative_AK4PF'+jetname+'.txt')
+    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_MC_L2Relative_AK4PF'+jetname+'.txt')
     L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
-    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_MC_L1FastJet_AK4PF'+jetname+'.txt')
     L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
-    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_Uncertainty_AK4PF'+jetname+'.txt')
+    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_MC_Uncertainty_AK4PF'+jetname+'.txt')
     UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
-    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L3Absolute_AK8PF'+jetname+'.txt')
+    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_MC_L3Absolute_AK8PF'+jetname+'.txt')
     L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
-    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L2Relative_AK8PF'+jetname+'.txt')
+    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_MC_L2Relative_AK8PF'+jetname+'.txt')
     L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
-    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L1FastJet_AK8PF'+jetname+'.txt')
+    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_MC_L1FastJet_AK8PF'+jetname+'.txt')
     L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
-    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_Uncertainty_AK8PF'+jetname+'.txt')
+    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_MC_Uncertainty_AK8PF'+jetname+'.txt')
     UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
     
 else :
-    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L3Absolute_AK4PF'+jetname+'.txt')
     L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
-    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2Relative_AK4PF'+jetname+'.txt')
+    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L2Relative_AK4PF'+jetname+'.txt')
     L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
-    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L1FastJet_AK4PF'+jetname+'.txt')
     L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
-    ResJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
+    ResJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
     ResJetParAK4 = ROOT.JetCorrectorParameters(ResJecStrAK4)
-    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_Uncertainty_AK4PF'+jetname+'.txt')
+    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_Uncertainty_AK4PF'+jetname+'.txt')
     UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
-    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L3Absolute_AK8PF'+jetname+'.txt')
+    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L3Absolute_AK8PF'+jetname+'.txt')
     L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
-    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2Relative_AK8PF'+jetname+'.txt')
+    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L2Relative_AK8PF'+jetname+'.txt')
     L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
-    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L1FastJet_AK8PF'+jetname+'.txt')
+    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L1FastJet_AK8PF'+jetname+'.txt')
     L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
-    ResJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2L3Residual_AK8PF'+jetname+'.txt')
+    ResJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_L2L3Residual_AK8PF'+jetname+'.txt')
     ResJetParAK8 = ROOT.JetCorrectorParameters(ResJecStrAK8)
-    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_Uncertainty_AK8PF'+jetname+'.txt')
+    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV3_DATA_Uncertainty_AK8PF'+jetname+'.txt')
     UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
 
-    
 #  load JetCorrectorParameter objects into vector (order matters!)
 vParJecAK4 = ROOT.std.vector(ROOT.JetCorrectorParameters)()
 vParJecAK4.push_back(L1JetParAK4)
@@ -157,7 +156,6 @@ if not options.isMC :
 
 ak8JetCorrector = ROOT.FactorizedJetCorrector(vParJecAK8)
 
-    
 # -------------------------------------------------------------------------------------
 # define helper classes that use ROOT
 # -------------------------------------------------------------------------------------
