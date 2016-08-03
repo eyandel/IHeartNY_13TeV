@@ -1764,6 +1764,9 @@ for event in events :
                 metv += jetP4Pre
                 metv -= cleanedLepton
                 metv -= jetP4
+            else:                  #Correct MET due to adjusting JEC
+                metv += jetP4Pre
+                metv -= jetP4
 
             UncertJetAK4.setJetEta(jetP4Raw.Eta())
             UncertJetAK4.setJetPhi(jetP4Raw.Phi())
@@ -2089,6 +2092,9 @@ for event in events :
                 metv += AK8jetP4Pre
                 metv -= AK8cleanedLepton
                 metv -= AK8jetP4
+            else:                     #Correct MET due to adjusting JEC
+                metv += AK8jetP4Pre
+                metv -= AK8jetP4
 
             UncertJetAK8.setJetEta(AK8jetP4Raw.Eta())
             UncertJetAK8.setJetPhi(AK8jetP4Raw.Phi())
@@ -2205,23 +2211,6 @@ for event in events :
     if passReco :
         nEventsPass += 1
         filledEvent = True
-
-    if options.fullTruth : # Only store information relevant for unfolding -- differential quantities and things needed for selection
-
-        ak8jetTau1.clear() 
-        ak8jetMassPruned.clear()
-        ak8jetMassFiltered.clear()
-        ak8jetMassTrimmed.clear()   
-        ak8jetSDsubjet0pt.clear()
-        ak8jetSDsubjet0eta.clear()
-        ak8jetSDsubjet0phi.clear()
-        ak8jetSDsubjet0mass.clear()
-        ak8jetSDsubjet0CSV.clear()
-        ak8jetSDsubjet1pt.clear()
-        ak8jetSDsubjet1eta.clear()
-        ak8jetSDsubjet1phi.clear()
-        ak8jetSDsubjet1mass.clear()
-        ak8jetSDsubjet1CSV.clear()    
 
     if options.fullTruth and not passReco : # Only store reco information if passReco -- with no fullTruth this is done automatically
         metPt.clear()
