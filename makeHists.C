@@ -811,7 +811,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     if (i%10000 == 0) cout << "Event " << i << endl;
 
     if (oddOrEven != 0){
-      if (i % oddOrEven == 1) continue;
+      if (i % 2 == oddOrEven - 1) continue;
     }
     // ----------------------------------------------------------------------------------------------------------------
 
