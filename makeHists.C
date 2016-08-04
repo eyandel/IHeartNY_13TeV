@@ -21,6 +21,16 @@
 #include "TProfile2D.h"
 #include "TMath.h"
 #include "TLorentzVector.h"
+#include "TSystem.h"
+#include "RooUnfold/src/RooUnfold.h"
+#include "RooUnfold/src/RooUnfoldBayes.h"
+#include "RooUnfold/src/RooUnfoldDagostini.h"
+#include "RooUnfold/src/RooUnfoldErrors.h"
+#include "RooUnfold/src/RooUnfoldInvert.h"
+#include "RooUnfold/src/RooUnfoldParms.h"
+#include "RooUnfold/src/RooUnfoldResponse.h"
+#include "RooUnfold/src/RooUnfoldSvd.h"
+#include "RooUnfold/src/RooUnfoldTUnfold.h"
 #include "BTagCalibrationStandalone.h"
 
 #include <iostream>
@@ -90,7 +100,7 @@ double getElectronSFerr(double eta){
 // ----------------------------------------------------------------------------------------------------------------
 
 
-void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, bool isData = false, bool isSignal = false, TString lepID = "Medium", TString iso = "None", bool doHemiCuts = false, float metCut = 0.0, bool doTriangular = false, bool isQCD = false, TString regions = "fit", TString systematic = "nom") {
+void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, bool isData = false, bool isSignal = false, TString lepID = "Medium", TString iso = "None", bool doHemiCuts = false, float metCut = 0.0, bool doTriangular = false, bool isQCD = false, TString systematic = "nom", int oddOrEven = 0) {
    
   SetPlotStyle();
   TH1::AddDirectory(kFALSE);
@@ -202,14 +212,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   vector<float>* ak8jetEta             = 0;
   vector<float>* ak8jetPhi             = 0;
   vector<float>* ak8jetMass            = 0;
-  vector<float>* ak8jetMassPruned      = 0;
-  vector<float>* ak8jetMassFiltered    = 0;
-  vector<float>* ak8jetMassTrimmed     = 0;   
-  vector<float>* ak8jetTau1            = 0;
+  //vector<float>* ak8jetMassPruned      = 0;
+  //vector<float>* ak8jetMassFiltered    = 0;
+  //vector<float>* ak8jetMassTrimmed     = 0;   
+  //vector<float>* ak8jetTau1            = 0;
   vector<float>* ak8jetTau2            = 0;
   vector<float>* ak8jetTau3            = 0;
   vector<float>* ak8jetCSV             = 0;
   vector<float>* ak8jetSDmass          = 0;
+  /*
   vector<float>* ak8jetSDsubjet0pt     = 0;
   vector<float>* ak8jetSDsubjet0eta    = 0;
   vector<float>* ak8jetSDsubjet0phi    = 0;
@@ -220,6 +231,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   vector<float>* ak8jetSDsubjet1phi    = 0;
   vector<float>* ak8jetSDsubjet1mass   = 0;
   vector<float>* ak8jetSDsubjet1CSV    = 0;
+  */
   vector<float>* ak8jetJECunc          = 0;
   vector<float>* ak8jetPtJERup         = 0;
   vector<float>* ak8jetPtJERdown       = 0;
@@ -300,14 +312,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TBranch* b_ak8jetEta             ;
   TBranch* b_ak8jetPhi             ;
   TBranch* b_ak8jetMass            ;
-  TBranch* b_ak8jetMassPruned      ;
-  TBranch* b_ak8jetMassFiltered    ;
-  TBranch* b_ak8jetMassTrimmed     ;   
-  TBranch* b_ak8jetTau1            ;
+  //TBranch* b_ak8jetMassPruned      ;
+  //TBranch* b_ak8jetMassFiltered    ;
+  //TBranch* b_ak8jetMassTrimmed     ;   
+  //TBranch* b_ak8jetTau1            ;
   TBranch* b_ak8jetTau2            ;
   TBranch* b_ak8jetTau3            ;
   TBranch* b_ak8jetCSV             ;
   TBranch* b_ak8jetSDmass          ;
+  /*
   TBranch* b_ak8jetSDsubjet0pt     ;
   TBranch* b_ak8jetSDsubjet0eta    ;
   TBranch* b_ak8jetSDsubjet0phi    ;
@@ -318,6 +331,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TBranch* b_ak8jetSDsubjet1phi    ;
   TBranch* b_ak8jetSDsubjet1mass   ;
   TBranch* b_ak8jetSDsubjet1CSV    ;
+  */
   TBranch* b_ak8jetJECunc          ;
   TBranch* b_ak8jetPtJERup         ;
   TBranch* b_ak8jetPtJERdown       ;
@@ -387,14 +401,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   tree->SetBranchAddress("ak8jetEta"              , &ak8jetEta           , &b_ak8jetEta           );
   tree->SetBranchAddress("ak8jetPhi"              , &ak8jetPhi           , &b_ak8jetPhi           );
   tree->SetBranchAddress("ak8jetMass"             , &ak8jetMass          , &b_ak8jetMass          );
-  tree->SetBranchAddress("ak8jetMassPruned"       , &ak8jetMassPruned    , &b_ak8jetMassPruned    );
-  tree->SetBranchAddress("ak8jetMassFiltered"     , &ak8jetMassFiltered  , &b_ak8jetMassFiltered  );
-  tree->SetBranchAddress("ak8jetMassTrimmed"      , &ak8jetMassTrimmed   , &b_ak8jetMassTrimmed   );
-  tree->SetBranchAddress("ak8jetTau1"             , &ak8jetTau1          , &b_ak8jetTau1          );
+  //tree->SetBranchAddress("ak8jetMassPruned"       , &ak8jetMassPruned    , &b_ak8jetMassPruned    );
+  //tree->SetBranchAddress("ak8jetMassFiltered"     , &ak8jetMassFiltered  , &b_ak8jetMassFiltered  );
+  //tree->SetBranchAddress("ak8jetMassTrimmed"      , &ak8jetMassTrimmed   , &b_ak8jetMassTrimmed   );
+  //tree->SetBranchAddress("ak8jetTau1"             , &ak8jetTau1          , &b_ak8jetTau1          );
   tree->SetBranchAddress("ak8jetTau2"             , &ak8jetTau2          , &b_ak8jetTau2          );
   tree->SetBranchAddress("ak8jetTau3"             , &ak8jetTau3          , &b_ak8jetTau3          );
   tree->SetBranchAddress("ak8jetCSV"              , &ak8jetCSV           , &b_ak8jetCSV           );
   tree->SetBranchAddress("ak8jetSDmass"           , &ak8jetSDmass        , &b_ak8jetSDmass        );
+  /*
   tree->SetBranchAddress("ak8jetSDsubjet0pt"      , &ak8jetSDsubjet0pt   , &b_ak8jetSDsubjet0pt   );
   tree->SetBranchAddress("ak8jetSDsubjet0eta"     , &ak8jetSDsubjet0eta  , &b_ak8jetSDsubjet0eta  );
   tree->SetBranchAddress("ak8jetSDsubjet0phi"     , &ak8jetSDsubjet0phi  , &b_ak8jetSDsubjet0phi  );
@@ -405,6 +420,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   tree->SetBranchAddress("ak8jetSDsubjet1phi"     , &ak8jetSDsubjet1phi  , &b_ak8jetSDsubjet1phi  );
   tree->SetBranchAddress("ak8jetSDsubjet1mass"    , &ak8jetSDsubjet1mass , &b_ak8jetSDsubjet1mass );
   tree->SetBranchAddress("ak8jetSDsubjet1CSV"     , &ak8jetSDsubjet1CSV  , &b_ak8jetSDsubjet1CSV  );
+  */
   tree->SetBranchAddress("ak8jetJECunc"           , &ak8jetJECunc        , &b_ak8jetJECunc        );
 
   tree->SetBranchAddress("eventWeight_nom"            , &eventWeight_nom         , &b_eventWeight_nom         );
@@ -416,21 +432,21 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     tree->SetBranchAddress("elTrigPass"             , &elTrigPass          , &b_elTrigPass          );
     tree->SetBranchAddress("ak4jetPtJERup"          , &ak4jetPtJERup       , &b_ak4jetPtJERup       );
     tree->SetBranchAddress("ak4jetPtJERdown"        , &ak4jetPtJERdown     , &b_ak4jetPtJERdown     );
-    //tree->SetBranchAddress("ak4jetEtaJERup"         , &ak4jetEtaJERup      , &b_ak4jetEtaJERup      );
-    //tree->SetBranchAddress("ak4jetEtaJERdown"       , &ak4jetEtaJERdown    , &b_ak4jetEtaJERdown    );
-    //tree->SetBranchAddress("ak4jetPhiJERup"         , &ak4jetPhiJERup      , &b_ak4jetPhiJERup      );
-    //tree->SetBranchAddress("ak4jetPhiJERdown"       , &ak4jetPhiJERdown    , &b_ak4jetPhiJERdown    );
-    //tree->SetBranchAddress("ak4jetMassJERup"        , &ak4jetMassJERup     , &b_ak4jetMassJERup     );
-    //tree->SetBranchAddress("ak4jetMassJERdown"      , &ak4jetMassJERdown   , &b_ak4jetMassJERdown   );
+    tree->SetBranchAddress("ak4jetEtaJERup"         , &ak4jetEtaJERup      , &b_ak4jetEtaJERup      );
+    tree->SetBranchAddress("ak4jetEtaJERdown"       , &ak4jetEtaJERdown    , &b_ak4jetEtaJERdown    );
+    tree->SetBranchAddress("ak4jetPhiJERup"         , &ak4jetPhiJERup      , &b_ak4jetPhiJERup      );
+    tree->SetBranchAddress("ak4jetPhiJERdown"       , &ak4jetPhiJERdown    , &b_ak4jetPhiJERdown    );
+    tree->SetBranchAddress("ak4jetMassJERup"        , &ak4jetMassJERup     , &b_ak4jetMassJERup     );
+    tree->SetBranchAddress("ak4jetMassJERdown"      , &ak4jetMassJERdown   , &b_ak4jetMassJERdown   );
     tree->SetBranchAddress("ak4jetHadronFlavour"    , &ak4jetHadronFlavour , &b_ak4jetHadronFlavour );
     tree->SetBranchAddress("ak8jetPtJERup"          , &ak8jetPtJERup       , &b_ak8jetPtJERup       );
     tree->SetBranchAddress("ak8jetPtJERdown"        , &ak8jetPtJERdown     , &b_ak8jetPtJERdown     );
-    //tree->SetBranchAddress("ak8jetEtaJERup"         , &ak8jetEtaJERup      , &b_ak8jetEtaJERup      );
-    //tree->SetBranchAddress("ak8jetEtaJERdown"       , &ak8jetEtaJERdown    , &b_ak8jetEtaJERdown    );
-    //tree->SetBranchAddress("ak8jetPhiJERup"         , &ak8jetPhiJERup      , &b_ak8jetPhiJERup      );
-    //tree->SetBranchAddress("ak8jetPhiJERdown"       , &ak8jetPhiJERdown    , &b_ak8jetPhiJERdown    );
-    //tree->SetBranchAddress("ak8jetMassJERup"        , &ak8jetMassJERup     , &b_ak8jetMassJERup     );
-    //tree->SetBranchAddress("ak8jetMassJERdown"      , &ak8jetMassJERdown   , &b_ak8jetMassJERdown   );
+    tree->SetBranchAddress("ak8jetEtaJERup"         , &ak8jetEtaJERup      , &b_ak8jetEtaJERup      );
+    tree->SetBranchAddress("ak8jetEtaJERdown"       , &ak8jetEtaJERdown    , &b_ak8jetEtaJERdown    );
+    tree->SetBranchAddress("ak8jetPhiJERup"         , &ak8jetPhiJERup      , &b_ak8jetPhiJERup      );
+    tree->SetBranchAddress("ak8jetPhiJERdown"       , &ak8jetPhiJERdown    , &b_ak8jetPhiJERdown    );
+    tree->SetBranchAddress("ak8jetMassJERup"        , &ak8jetMassJERup     , &b_ak8jetMassJERup     );
+    tree->SetBranchAddress("ak8jetMassJERdown"      , &ak8jetMassJERdown   , &b_ak8jetMassJERdown   );
   }
   
   if (isSignal){
@@ -525,6 +541,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // ----------------------------------------------------------------------------------------------------------------
   // histograms
   // ----------------------------------------------------------------------------------------------------------------
+
+  TH1F* h_genTopPt                = new TH1F("genTopPt"     ,";top quark p_{T} (GeV);Events / 20 GeV"     ,60,0.0,1200.);
+  TH1F* h_genTopEta               = new TH1F("genTopEta"    ,";top quark #eta;Events / 0.1"               ,50,-2.5,2.5);
+  TH1F* h_genTopPhi               = new TH1F("genTopPhi"    ,";top quark #phi;Events / 0.1"               ,70,-3.5,3.5);
+  TH1F* h_genTTbarMass            = new TH1F("genTTbarMass" ,";top quark pair mass (GeV);Events / 10 GeV" ,50,0.0,500.);
+  TH1F* h_genLepPt                = new TH1F("genLepPt"     ,";truth lepton p_{T} (GeV);Events / 10 GeV"  ,50,0.0,500.);
+  TH1F* h_genLepEta               = new TH1F("genLepEta"    ,";truth lepton #eta;Events / 0.1"            ,50,-2.5,2.5);
+  TH1F* h_genLepPhi               = new TH1F("genLepPhi"    ,";truth lepton #phi;Events / 0.1"            ,70,-3.5,3.5);
   
   TH1F* h_metPtPre                = new TH1F("metPtPre"                ,";Missing E_{T} (GeV);Events / 5 GeV"                       ,50,  0.0, 250.);
   TH1F* h_htPre                   = new TH1F("htPre"                   ,";H_{T} (GeV);Events / 20 GeV"                              ,60,400.0, 1600.);
@@ -544,16 +568,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1F* h_ak8jetPhiPre            = new TH1F("ak8jetPhiPre"            ,";#phi of AK8 jets;Jets / 0.1"                              ,70, -3.5, 3.5);
   TH1F* h_ak8jetYPre              = new TH1F("ak8jetYPre"              ,";Rapidity of AK8 jets;Jets / 0.1"                          ,50, -2.5, 2.5);
   TH1F* h_ak8jetMassPre           = new TH1F("ak8jetMassPre"           ,";Mass of AK8 jets (GeV);Jets / 5 GeV"                      ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassPrunedPre     = new TH1F("ak8jetMassPrunedPre"     ,";Pruned mass of AK8 jets (GeV);Jets / 5 GeV"               ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassFilteredPre   = new TH1F("ak8jetMassFilteredPre"   ,";Filtered mass of AK8 jets (GeV);Jets / 5 GeV"             ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassTrimmedPre    = new TH1F("ak8jetMassTrimmedPre"    ,";Trimmed mass of AK8 jets (GeV);Jets / 5 Gev"              ,50,  0.0, 250.);
-  TH1F* h_ak8jetTau1Pre           = new TH1F("ak8jetTau1Pre"           ,";#tau_{1} of AK8 jets;Jets / 0.01"                         ,70,  0.0, 0.7);
+  //TH1F* h_ak8jetMassPrunedPre     = new TH1F("ak8jetMassPrunedPre"     ,";Pruned mass of AK8 jets (GeV);Jets / 5 GeV"               ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassFilteredPre   = new TH1F("ak8jetMassFilteredPre"   ,";Filtered mass of AK8 jets (GeV);Jets / 5 GeV"             ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassTrimmedPre    = new TH1F("ak8jetMassTrimmedPre"    ,";Trimmed mass of AK8 jets (GeV);Jets / 5 Gev"              ,50,  0.0, 250.);
+  //TH1F* h_ak8jetTau1Pre           = new TH1F("ak8jetTau1Pre"           ,";#tau_{1} of AK8 jets;Jets / 0.01"                         ,70,  0.0, 0.7);
   TH1F* h_ak8jetTau2Pre           = new TH1F("ak8jetTau2Pre"           ,";#tau_{2} of AK8 jets;Jets / 0.01"                         ,50,  0.0, 0.5);
   TH1F* h_ak8jetTau3Pre           = new TH1F("ak8jetTau3Pre"           ,";#tau_{3} of AK8 jets;Jets / 0.01"                         ,30,  0.0, 0.3);
   TH1F* h_ak8jetTau32Pre          = new TH1F("ak8jetTau32Pre"          ,";#tau_{3}/#tau_{2} of AK8 jets;Jets / 0.01"                ,100, 0.0, 1.0);
-  TH1F* h_ak8jetTau21Pre          = new TH1F("ak8jetTau21Pre"          ,";#tau_{2}/#tau_{1} of AK8 jets;Jets / 0.01"                ,100, 0.0, 1.0);
+  //TH1F* h_ak8jetTau21Pre          = new TH1F("ak8jetTau21Pre"          ,";#tau_{2}/#tau_{1} of AK8 jets;Jets / 0.01"                ,100, 0.0, 1.0);
   TH1F* h_ak8jetCSVPre            = new TH1F("ak8jetCSVPre"            ,";CSVv2 of AK8 jets;Jets / 0.02"                            ,50,  0.0, 1.0);
   TH1F* h_ak8jetSDmassPre         = new TH1F("ak8jetSDmassPre"         ,";Soft Drop mass of AK8 jets (GeV);Jets / 5 GeV"            ,50,  0.0, 250.);
+  /*
   TH1F* h_ak8jetSDsubjet0ptPre    = new TH1F("ak8jetSDsubjet0ptPre"    ,";p_{T} of leading Soft Drop subjet (GeV);Jets / 10 GeV"    ,80,  0.0, 800.);
   TH1F* h_ak8jetSDsubjet0massPre  = new TH1F("ak8jetSDsubjet0massPre"  ,";Mass of leading Soft Drop subjet (GeV);Jets / 5 GeV"      ,40,  0.0, 200.);
   TH1F* h_ak8jetSDsubjet0CSVPre   = new TH1F("ak8jetSDsubjet0CSVPre"   ,";CSVv2 of leading Soft Drop subjet;Jets / 0.02"            ,50,  0.0, 1.0);
@@ -562,6 +587,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1F* h_ak8jetSDsubjet1CSVPre   = new TH1F("ak8jetSDsubjet1CSVPre"   ,";CSVv2 of subleading Soft Drop subjet;Jets / 0.02"         ,50,  0.0, 1.0);
   TH1F* h_ak8jetSDsubjetMaxCSVPre = new TH1F("ak8jetSDsubjetMaxCSVPre" ,";Max CSV of Soft Drop subjets;Jets / 0.02"                 ,50,  0.0, 1.0);
   TH1F* h_ak8jetSDm01Pre          = new TH1F("ak8jetSDm01Pre"          ,";Mass of two hardest Soft Drop subjets (GeV);Jets / 5 GeV" ,50,  0.0, 250.);
+  */
   TH1F* h_lepPtPre                = new TH1F("lepPtPre"                ,";Lepton p_{T} (GeV);Leptons / 10 GeV"                      ,50,  0.0, 500.);
   TH1F* h_lepEtaPre               = new TH1F("lepEtaPre"               ,";Lepton #eta;Leptons / 0.1"                                ,50, -2.5, 2.5);
   TH1F* h_lepAbsEtaPre            = new TH1F("lepAbsEtaPre"            ,";Lepton |#eta|;Leptons / 0.1"                              ,25,  0.0, 2.5);
@@ -573,189 +599,101 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1F* h_lepMiniIsoPre           = new TH1F("lepMiniIsoPre"           ,";lepton miniIso;Leptons / 0.02"                            ,50,  0.0, 1.0);
   TH1F* h_leadLepPtPre            = new TH1F("leadLepPtPre"            ,";Leading lepton p_{T} (GeV);Events / 10 GeV"               ,50,  0.0, 500.);
 
-  TH1F* h_metPt0t0b                = new TH1F("metPt0t0b"                ,";Missing E_{T} (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
-  TH1F* h_ht0t0b                   = new TH1F("ht0t0b"                   ,";H_{T} (GeV);Events / 20 GeV"                                     ,60,400.0, 1600.);
-  TH1F* h_htLep0t0b                = new TH1F("htLep0t0b"                ,";H_{T}^{lep} (GeV);Events / 20 GeV"                               ,50,  0.0, 1000.);
-  TH1F* h_nAK4jet0t0b              = new TH1F("nAK4jet0t0b"              ,";# AK4 jets;Events"                                               ,10, -0.5, 9.5);
-  TH1F* h_nBjet0t0b                = new TH1F("nBjet0t0b"                ,";# b-jet cands;Events"                                            ,5,  -0.5, 4.5);
-  TH1F* h_ak4jetPt0t0b             = new TH1F("ak4jetPt0t0b"             ,";p_{T} of b-jet candidate (GeV);Events / 10 GeV"                  ,60,  0.0, 600.);
-  TH1F* h_ak4jetEta0t0b            = new TH1F("ak4jetEta0t0b"            ,";#eta of b-jet candidate;Events / 0.1"                            ,50, -2.5, 2.5);
-  TH1F* h_ak4jetPhi0t0b            = new TH1F("ak4jetPhi0t0b"            ,";#phi of b-jet candidate;Events / 0.1"                            ,70, -3.5, 3.5);
-  TH1F* h_ak4jetMass0t0b           = new TH1F("ak4jetMass0t0b"           ,";Mass of b-jet candidate (GeV);Events / 2 GeV"                    ,50,  0.0, 100.);
-  TH1F* h_ak4jetCSV0t0b            = new TH1F("ak4jetCSV0t0b"            ,";CSVv2 of b-jet candidate;Events / 0.02"                          ,50,  0.0, 1.0);
-  TH1F* h_ak4jetVtxMass0t0b        = new TH1F("ak4jetVtxMass0t0b"        ,";Secondary vertex mass of b-jet candidate (GeV);Events / 0.1 GeV" ,50,  0.0, 5.0);
-  TH1F* h_nAK8jet0t0b              = new TH1F("nAK8jet0t0b"              ,";# AK8 jets;Events"                                               ,10, -0.5, 9.5);
-  TH1F* h_nTjet0t0b                = new TH1F("nTjet0t0b"                ,";# t-jet cands;Events"                                            ,5,  -0.5, 4.5);
-  TH1F* h_ak8jetPt0t0b             = new TH1F("ak8jetPt0t0b"             ,";p_{T} of t-jet candidate (GeV);Events / 20 GeV"                  ,60,  0.0, 1200.);
-  TH1F* h_ak8jetEta0t0b            = new TH1F("ak8jetEta0t0b"            ,";#eta of t-jet candidate;Events / 0.1"                            ,50, -2.5, 2.5);
-  TH1F* h_ak8jetPhi0t0b            = new TH1F("ak8jetPhi0t0b"            ,";#phi of t-jet candidate;Events / 0.1"                            ,70, -3.5, 3.5);
-  TH1F* h_ak8jetY0t0b              = new TH1F("ak8jetY0t0b"              ,";Rapidity of t-jet candidate;Events / 0.1"                        ,50, -2.5, 2.5);
-  TH1F* h_ak8jetMass0t0b           = new TH1F("ak8jetMass0t0b"           ,";Mass of t-jet candidate (GeV);Events / 5 GeV"                    ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassPruned0t0b     = new TH1F("ak8jetMassPruned0t0b"     ,";Pruned mass of t-jet candidate (GeV);Events / 5 GeV"             ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassFiltered0t0b   = new TH1F("ak8jetMassFiltered0t0b"   ,";Filtered mass of t-jet candidate (GeV);Events / 5 GeV"           ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassTrimmed0t0b    = new TH1F("ak8jetMassTrimmed0t0b"    ,";Trimmed mass of t-jet candidate (GeV);Events / 5 Gev"            ,50,  0.0, 250.);
-  TH1F* h_ak8jetTau10t0b           = new TH1F("ak8jetTau10t0b"           ,";#tau_{1} of t-jet candidate;Events / 0.01"                       ,70,  0.0, 0.7);
-  TH1F* h_ak8jetTau20t0b           = new TH1F("ak8jetTau20t0b"           ,";#tau_{2} of t-jet candidate;Events / 0.01"                       ,50,  0.0, 0.5);
-  TH1F* h_ak8jetTau30t0b           = new TH1F("ak8jetTau30t0b"           ,";#tau_{3} of t-jet candidate;Events / 0.01"                       ,30,  0.0, 0.3);
-  TH1F* h_ak8jetTau320t0b          = new TH1F("ak8jetTau320t0b"          ,";#tau_{3}/#tau_{2} of t-jet candidate;Events / 0.01"              ,100, 0.0, 1.0);
-  TH1F* h_ak8jetTau210t0b          = new TH1F("ak8jetTau210t0b"          ,";#tau_{2}/#tau_{1} of t-jet candidate;Events / 0.01"              ,100, 0.0, 1.0);
-  TH1F* h_ak8jetCSV0t0b            = new TH1F("ak8jetCSV0t0b"            ,";CSVv2 of t-jet candidate;Events / 0.02"                          ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDmass0t0b         = new TH1F("ak8jetSDmass0t0b"         ,";Soft Drop mass of t-jet candidate (GeV);Events / 5 GeV"          ,50,  0.0, 250.);
-  TH1F* h_ak8jetSDsubjet0pt0t0b    = new TH1F("ak8jetSDsubjet0pt0t0b"    ,";p_{T} of leading Soft Drop subjet (GeV);Events / 10 GeV"         ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet0mass0t0b  = new TH1F("ak8jetSDsubjet0mass0t0b"  ,";Mass of leading Soft Drop subjet (GeV);Events / 5 GeV"           ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet0CSV0t0b   = new TH1F("ak8jetSDsubjet0CSV0t0b"   ,";CSVv2 of leading Soft Drop subjet;Events / 0.02"                 ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjet1pt0t0b    = new TH1F("ak8jetSDsubjet1pt0t0b"    ,";p_{T} of subleading Soft Drop subjet (GeV);Events / 10 GeV"      ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet1mass0t0b  = new TH1F("ak8jetSDsubjet1mass0t0b"  ,";Mass of subleading Soft Drop subjet (GeV);Events / 5 GeV"        ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet1CSV0t0b   = new TH1F("ak8jetSDsubjet1CSV0t0b"   ,";CSVv2 of subleading Soft Drop subjet;Events / 0.02"              ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjetMaxCSV0t0b = new TH1F("ak8jetSDsubjetMaxCSV0t0b" ,";Max CSV of Soft Drop subjets;Events / 0.02"                      ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDm010t0b          = new TH1F("ak8jetSDm010t0b"          ,";Mass of two hardest Soft Drop subjets (GeV);Events / 5 GeV"      ,50,  0.0, 250.);  
-  TH1F* h_lepPt0t0b                = new TH1F("lepPt0t0b"                ,";Lepton p_{T} (GeV);Events / 10 GeV"                              ,50,  0.0, 500.);
-  TH1F* h_lepEta0t0b               = new TH1F("lepEta0t0b"               ,";Lepton #eta;Events / 0.1"                                        ,50, -2.5, 2.5);
-  TH1F* h_lepAbsEta0t0b            = new TH1F("lepAbsEta0t0b"            ,";Lepton |#eta|;Events / 0.1"                                      ,25,  0.0, 2.5);
-  TH1F* h_lepSignEta0t0b           = new TH1F("lepSignEta0t0b"           ,";Lepton #eta * Q;Events / 0.1"                                    ,50, -2.5, 2.5);
-  TH1F* h_lepPhi0t0b               = new TH1F("lepPhi0t0b"               ,";Lepton #phi;Events / 0.1"                                        ,70, -3.5, 3.5);
-  TH1F* h_lepBJetdR0t0b            = new TH1F("lepBJetdR0t0b"            ,";#Delta R(lepton, b-jet cand);Events / 0.1"                       ,35,  0.0, 3.5);
-  TH1F* h_lepTJetdR0t0b            = new TH1F("lepTJetdR0t0b"            ,";#Delta R(lepton, t-jet cand);Events / 0.1"                       ,35,  0.0, 3.5);
-  TH1F* h_lepBJetPtRel0t0b         = new TH1F("lepBJetPtRel0t0b"         ,";p_{T}^{rel}(lepton, b-jet cand) (GeV);Events / 2 GeV"            ,50,  0.0, 100.);
-  TH1F* h_lepMiniIso0t0b           = new TH1F("lepMiniIso0t0b"           ,";lepton miniIso;Events / 0.02"                                    ,50,  0.0, 1.0);
+  TH1F* h_metPt1b                = new TH1F("metPt1b"                ,";Missing E_{T} (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
+  TH1F* h_ht1b                   = new TH1F("ht1b"                   ,";H_{T} (GeV);Events / 20 GeV"                                     ,60,400.0, 1600.);
+  TH1F* h_htLep1b                = new TH1F("htLep1b"                ,";H_{T}^{lep} (GeV);Events / 20 GeV"                               ,50,  0.0, 1000.);
+  TH1F* h_nAK4jet1b              = new TH1F("nAK4jet1b"              ,";# AK4 jets;Events"                                               ,10, -0.5, 9.5);
+  TH1F* h_nBjet1b                = new TH1F("nBjet1b"                ,";# b-jet cands;Events"                                            ,5,  -0.5, 4.5);
+  TH1F* h_ak4jetPt1b             = new TH1F("ak4jetPt1b"             ,";p_{T} of b-jet candidate (GeV);Events / 10 GeV"                  ,60,  0.0, 600.);
+  TH1F* h_ak4jetEta1b            = new TH1F("ak4jetEta1b"            ,";#eta of b-jet candidate;Events / 0.1"                            ,50, -2.5, 2.5);
+  TH1F* h_ak4jetPhi1b            = new TH1F("ak4jetPhi1b"            ,";#phi of b-jet candidate;Events / 0.1"                            ,70, -3.5, 3.5);
+  TH1F* h_ak4jetMass1b           = new TH1F("ak4jetMass1b"           ,";Mass of b-jet candidate (GeV);Events / 2 GeV"                    ,50,  0.0, 100.);
+  TH1F* h_ak4jetCSV1b            = new TH1F("ak4jetCSV1b"            ,";CSVv2 of b-jet candidate;Events / 0.02"                          ,50,  0.0, 1.0);
+  TH1F* h_ak4jetVtxMass1b        = new TH1F("ak4jetVtxMass1b"        ,";Secondary vertex mass of b-jet candidate (GeV);Events / 0.1 GeV" ,50,  0.0, 5.0);
+  TH1F* h_nAK8jet1b              = new TH1F("nAK8jet1b"              ,";# AK8 jets;Events"                                               ,10, -0.5, 9.5);
+  TH1F* h_nTjet1b                = new TH1F("nTjet1b"                ,";# t-jet cands;Events"                                            ,5,  -0.5, 4.5);
+  TH1F* h_ak8jetPt1b             = new TH1F("ak8jetPt1b"             ,";p_{T} of t-jet candidate (GeV);Events / 20 GeV"                  ,60,  0.0, 1200.);
+  TH1F* h_ak8jetEta1b            = new TH1F("ak8jetEta1b"            ,";#eta of t-jet candidate;Events / 0.1"                            ,50, -2.5, 2.5);
+  TH1F* h_ak8jetPhi1b            = new TH1F("ak8jetPhi1b"            ,";#phi of t-jet candidate;Events / 0.1"                            ,70, -3.5, 3.5);
+  TH1F* h_ak8jetY1b              = new TH1F("ak8jetY1b"              ,";Rapidity of t-jet candidate;Events / 0.1"                        ,50, -2.5, 2.5);
+  TH1F* h_ak8jetMass1b           = new TH1F("ak8jetMass1b"           ,";Mass of t-jet candidate (GeV);Events / 5 GeV"                    ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassPruned1b     = new TH1F("ak8jetMassPruned1b"     ,";Pruned mass of t-jet candidate (GeV);Events / 5 GeV"             ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassFiltered1b   = new TH1F("ak8jetMassFiltered1b"   ,";Filtered mass of t-jet candidate (GeV);Events / 5 GeV"           ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassTrimmed1b    = new TH1F("ak8jetMassTrimmed1b"    ,";Trimmed mass of t-jet candidate (GeV);Events / 5 Gev"            ,50,  0.0, 250.);
+  //TH1F* h_ak8jetTau11b           = new TH1F("ak8jetTau11b"           ,";#tau_{1} of t-jet candidate;Events / 0.01"                       ,70,  0.0, 0.7);
+  TH1F* h_ak8jetTau21b           = new TH1F("ak8jetTau21b"           ,";#tau_{2} of t-jet candidate;Events / 0.01"                       ,50,  0.0, 0.5);
+  TH1F* h_ak8jetTau31b           = new TH1F("ak8jetTau31b"           ,";#tau_{3} of t-jet candidate;Events / 0.01"                       ,30,  0.0, 0.3);
+  TH1F* h_ak8jetTau321b          = new TH1F("ak8jetTau321b"          ,";#tau_{3}/#tau_{2} of t-jet candidate;Events / 0.01"              ,100, 0.0, 1.0);
+  //TH1F* h_ak8jetTau211b          = new TH1F("ak8jetTau211b"          ,";#tau_{2}/#tau_{1} of t-jet candidate;Events / 0.01"              ,100, 0.0, 1.0);
+  TH1F* h_ak8jetCSV1b            = new TH1F("ak8jetCSV1b"            ,";CSVv2 of t-jet candidate;Events / 0.02"                          ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDmass1b         = new TH1F("ak8jetSDmass1b"         ,";Soft Drop mass of t-jet candidate (GeV);Events / 5 GeV"          ,50,  0.0, 250.);
+  /*
+  TH1F* h_ak8jetSDsubjet0pt1b    = new TH1F("ak8jetSDsubjet0pt1b"    ,";p_{T} of leading Soft Drop subjet (GeV);Events / 10 GeV"         ,80,  0.0, 800.);
+  TH1F* h_ak8jetSDsubjet0mass1b  = new TH1F("ak8jetSDsubjet0mass1b"  ,";Mass of leading Soft Drop subjet (GeV);Events / 5 GeV"           ,40,  0.0, 200.);
+  TH1F* h_ak8jetSDsubjet0CSV1b   = new TH1F("ak8jetSDsubjet0CSV1b"   ,";CSVv2 of leading Soft Drop subjet;Events / 0.02"                 ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDsubjet1pt1b    = new TH1F("ak8jetSDsubjet1pt1b"    ,";p_{T} of subleading Soft Drop subjet (GeV);Events / 10 GeV"      ,80,  0.0, 800.);
+  TH1F* h_ak8jetSDsubjet1mass1b  = new TH1F("ak8jetSDsubjet1mass1b"  ,";Mass of subleading Soft Drop subjet (GeV);Events / 5 GeV"        ,40,  0.0, 200.);
+  TH1F* h_ak8jetSDsubjet1CSV1b   = new TH1F("ak8jetSDsubjet1CSV1b"   ,";CSVv2 of subleading Soft Drop subjet;Events / 0.02"              ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDsubjetMaxCSV1b = new TH1F("ak8jetSDsubjetMaxCSV1b" ,";Max CSV of Soft Drop subjets;Events / 0.02"                      ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDm011b          = new TH1F("ak8jetSDm011b"          ,";Mass of two hardest Soft Drop subjets (GeV);Events / 5 GeV"      ,50,  0.0, 250.);
+  */  
+  TH1F* h_lepPt1b                = new TH1F("lepPt1b"                ,";Lepton p_{T} (GeV);Events / 10 GeV"                              ,50,  0.0, 500.);
+  TH1F* h_lepEta1b               = new TH1F("lepEta1b"               ,";Lepton #eta;Events / 0.1"                                        ,50, -2.5, 2.5);
+  TH1F* h_lepAbsEta1b            = new TH1F("lepAbsEta1b"            ,";Lepton |#eta|;Events / 0.1"                                      ,25,  0.0, 2.5);
+  TH1F* h_lepSignEta1b           = new TH1F("lepSignEta1b"           ,";Lepton #eta * Q;Events / 0.1"                                    ,50, -2.5, 2.5);
+  TH1F* h_lepPhi1b               = new TH1F("lepPhi1b"               ,";Lepton #phi;Events / 0.1"                                        ,70, -3.5, 3.5);
+  TH1F* h_lepBJetdR1b            = new TH1F("lepBJetdR1b"            ,";#Delta R(lepton, b-jet cand);Events / 0.1"                       ,35,  0.0, 3.5);
+  TH1F* h_lepTJetdR1b            = new TH1F("lepTJetdR1b"            ,";#Delta R(lepton, t-jet cand);Events / 0.1"                       ,35,  0.0, 3.5);
+  TH1F* h_lepBJetPtRel1b         = new TH1F("lepBJetPtRel1b"         ,";p_{T}^{rel}(lepton, b-jet cand) (GeV);Events / 2 GeV"            ,50,  0.0, 100.);
+  TH1F* h_lepMiniIso1b           = new TH1F("lepMiniIso1b"           ,";lepton miniIso;Events / 0.02"                                    ,50,  0.0, 1.0);
 
-  TH1F* h_metPt0t1b                = new TH1F("metPt0t1b"                ,";Missing E_{T} (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
-  TH1F* h_ht0t1b                   = new TH1F("ht0t1b"                   ,";H_{T} (GeV);Events / 20 GeV"                                     ,50,400.0, 1600.);
-  TH1F* h_htLep0t1b                = new TH1F("htLep0t1b"                ,";H_{T}^{lep} (GeV);Events / 20 GeV"                               ,50,  0.0, 1000.);
-  TH1F* h_nAK4jet0t1b              = new TH1F("nAK4jet0t1b"              ,";# AK4 jets;Events"                                               ,10, -0.5, 9.5);
-  TH1F* h_nBjet0t1b                = new TH1F("nBjet0t1b"                ,";# b-jet cands;Events"                                            ,5,  -0.5, 4.5);
-  TH1F* h_ak4jetPt0t1b             = new TH1F("ak4jetPt0t1b"             ,";p_{T} of b-jet candidate (GeV);Events / 10 GeV"                  ,60,  0.0, 600.);
-  TH1F* h_ak4jetEta0t1b            = new TH1F("ak4jetEta0t1b"            ,";#eta of b-jet candidate;Events / 0.1"                            ,50, -2.5, 2.5);
-  TH1F* h_ak4jetPhi0t1b            = new TH1F("ak4jetPhi0t1b"            ,";#phi of b-jet candidate;Events / 0.1"                            ,70, -3.5, 3.5);
-  TH1F* h_ak4jetMass0t1b           = new TH1F("ak4jetMass0t1b"           ,";Mass of b-jet candidate (GeV);Events / 2 GeV"                    ,50,  0.0, 100.);
-  TH1F* h_ak4jetCSV0t1b            = new TH1F("ak4jetCSV0t1b"            ,";CSVv2 of b-jet candidate;Events / 0.02"                          ,50,  0.0, 1.0);
-  TH1F* h_ak4jetVtxMass0t1b        = new TH1F("ak4jetVtxMass0t1b"        ,";Secondary vertex mass of b-jet candidate (GeV);Events / 0.1 GeV" ,50,  0.0, 5.0);
-  TH1F* h_nAK8jet0t1b              = new TH1F("nAK8jet0t1b"              ,";# AK8 jets;Events"                                               ,10, -0.5, 9.5);
-  TH1F* h_nTjet0t1b                = new TH1F("nTjet0t1b"                ,";# t-jet cands;Events"                                            ,5,  -0.5, 4.5);
-  TH1F* h_ak8jetPt0t1b             = new TH1F("ak8jetPt0t1b"             ,";p_{T} of t-jet (GeV);Events / 20 GeV"                            ,60,  0.0, 1200.);
-  TH1F* h_ak8jetEta0t1b            = new TH1F("ak8jetEta0t1b"            ,";#eta of t-jet;Events / 0.1"                                      ,50, -2.5, 2.5);
-  TH1F* h_ak8jetPhi0t1b            = new TH1F("ak8jetPhi0t1b"            ,";#phi of t-jet;Events / 0.1"                                      ,70, -3.5, 3.5);
-  TH1F* h_ak8jetY0t1b              = new TH1F("ak8jetY0t1b"              ,";Rapidity of t-jet;Events / 0.1"                                  ,50, -2.5, 2.5);
-  TH1F* h_ak8jetMass0t1b           = new TH1F("ak8jetMass0t1b"           ,";Mass of t-jet (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassPruned0t1b     = new TH1F("ak8jetMassPruned0t1b"     ,";Pruned mass of t-jet (GeV);Events / 5 GeV"                       ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassFiltered0t1b   = new TH1F("ak8jetMassFiltered0t1b"   ,";Filtered mass of t-jet (GeV);Events / 5 GeV"                     ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassTrimmed0t1b    = new TH1F("ak8jetMassTrimmed0t1b"    ,";Trimmed mass of t-jet (GeV);Events / 5 Gev"                      ,50,  0.0, 250.);
-  TH1F* h_ak8jetTau10t1b           = new TH1F("ak8jetTau10t1b"           ,";#tau_{1} of t-jet;Events / 0.01"                                 ,70,  0.0, 0.7);
-  TH1F* h_ak8jetTau20t1b           = new TH1F("ak8jetTau20t1b"           ,";#tau_{2} of t-jet;Events / 0.01"                                 ,50,  0.0, 0.5);
-  TH1F* h_ak8jetTau30t1b           = new TH1F("ak8jetTau30t1b"           ,";#tau_{3} of t-jet;Events / 0.01"                                 ,30,  0.0, 0.3);
-  TH1F* h_ak8jetTau320t1b          = new TH1F("ak8jetTau320t1b"          ,";#tau_{3}/#tau_{2} of t-jet;Events / 0.01"                        ,100, 0.0, 1.0);
-  TH1F* h_ak8jetTau210t1b          = new TH1F("ak8jetTau210t1b"          ,";#tau_{2}/#tau_{1} of t-jet;Events / 0.01"                        ,100, 0.0, 1.0);
-  TH1F* h_ak8jetCSV0t1b            = new TH1F("ak8jetCSV0t1b"            ,";CSVv2 of t-jet;Events / 0.02"                                    ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDmass0t1b         = new TH1F("ak8jetSDmass0t1b"         ,";Soft Drop mass of t-jet (GeV);Events / 5 GeV"                    ,50,  0.0, 250.);
-  TH1F* h_ak8jetSDsubjet0pt0t1b    = new TH1F("ak8jetSDsubjet0pt0t1b"    ,";p_{T} of leading Soft Drop subjet (GeV);Events / 10 GeV"         ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet0mass0t1b  = new TH1F("ak8jetSDsubjet0mass0t1b"  ,";Mass of leading Soft Drop subjet (GeV);Events / 5 GeV"           ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet0CSV0t1b   = new TH1F("ak8jetSDsubjet0CSV0t1b"   ,";CSVv2 of leading Soft Drop subjet;Events / 0.02"                 ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjet1pt0t1b    = new TH1F("ak8jetSDsubjet1pt0t1b"    ,";p_{T} of subleading Soft Drop subjet (GeV);Events / 10 GeV"      ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet1mass0t1b  = new TH1F("ak8jetSDsubjet1mass0t1b"  ,";Mass of subleading Soft Drop subjet (GeV);Events / 5 GeV"        ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet1CSV0t1b   = new TH1F("ak8jetSDsubjet1CSV0t1b"   ,";CSVv2 of subleading Soft Drop subjet;Events / 0.02"              ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjetMaxCSV0t1b = new TH1F("ak8jetSDsubjetMaxCSV0t1b" ,";Max CSV of Soft Drop subjets;Events / 0.02"                      ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDm010t1b          = new TH1F("ak8jetSDm010t1b"          ,";Mass of two hardest Soft Drop subjets (GeV);Events / 5 GeV"      ,50,  0.0, 250.);  
-  TH1F* h_lepPt0t1b                = new TH1F("lepPt0t1b"                ,";Lepton p_{T} (GeV);Events / 10 GeV"                              ,50,  0.0, 500.);
-  TH1F* h_lepEta0t1b               = new TH1F("lepEta0t1b"               ,";Lepton #eta;Events / 0.1"                                        ,50, -2.5, 2.5);
-  TH1F* h_lepAbsEta0t1b            = new TH1F("lepAbsEta0t1b"            ,";Lepton |#eta|;Events / 0.1"                                      ,25,  0.0, 2.5);
-  TH1F* h_lepSignEta0t1b           = new TH1F("lepSignEta0t1b"           ,";Lepton #eta * Q;Events / 0.1"                                    ,50, -2.5, 2.5);
-  TH1F* h_lepPhi0t1b               = new TH1F("lepPhi0t1b"               ,";Lepton #phi;Events / 0.1"                                        ,70, -3.5, 3.5);
-  TH1F* h_lepBJetdR0t1b            = new TH1F("lepBJetdR0t1b"            ,";#Delta R(lepton, b-jet cand);Events / 0.1"                       ,35,  0.0, 3.5);
-  TH1F* h_lepTJetdR0t1b            = new TH1F("lepTJetdR0t1b"            ,";#Delta R(lepton, t-jet);Events / 0.1"                            ,35,  0.0, 3.5);
-  TH1F* h_lepBJetPtRel0t1b         = new TH1F("lepBJetPtRel0t1b"         ,";p_{T}^{rel}(lepton, b-jet cand) (GeV);Events / 2 GeV"            ,50,  0.0, 100.);
-  TH1F* h_lepMiniIso0t1b           = new TH1F("lepMiniIso0t1b"           ,";lepton miniIso;Events / 0.02"                                    ,50,  0.0, 1.0);
-
-  TH1F* h_metPt0t                = new TH1F("metPt0t"                ,";Missing E_{T} (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
-  TH1F* h_ht0t                   = new TH1F("ht0t"                   ,";H_{T} (GeV);Events / 20 GeV"                                     ,50,400.0, 1600.);
-  TH1F* h_htLep0t                = new TH1F("htLep0t"                ,";H_{T}^{lep} (GeV);Events / 20 GeV"                               ,50,  0.0, 1000.);
-  TH1F* h_nAK4jet0t              = new TH1F("nAK4jet0t"              ,";# AK4 jets;Events"                                               ,10, -0.5, 9.5);
-  TH1F* h_nBjet0t                = new TH1F("nBjet0t"                ,";# b-jet cands;Events"                                            ,5,  -0.5, 4.5);
-  TH1F* h_ak4jetPt0t             = new TH1F("ak4jetPt0t"             ,";p_{T} of b-jet candidate (GeV);Events / 10 GeV"                  ,60,  0.0, 600.);
-  TH1F* h_ak4jetEta0t            = new TH1F("ak4jetEta0t"            ,";#eta of b-jet candidate;Events / 0.1"                            ,50, -2.5, 2.5);
-  TH1F* h_ak4jetPhi0t            = new TH1F("ak4jetPhi0t"            ,";#phi of b-jet candidate;Events / 0.1"                            ,70, -3.5, 3.5);
-  TH1F* h_ak4jetMass0t           = new TH1F("ak4jetMass0t"           ,";Mass of b-jet candidate (GeV);Events / 2 GeV"                    ,50,  0.0, 100.);
-  TH1F* h_ak4jetCSV0t            = new TH1F("ak4jetCSV0t"            ,";CSVv2 of b-jet candidate;Events / 0.02"                          ,50,  0.0, 1.0);
-  TH1F* h_ak4jetVtxMass0t        = new TH1F("ak4jetVtxMass0t"        ,";Secondary vertex mass of b-jet candidate (GeV);Events / 0.1 GeV" ,50,  0.0, 5.0);
-  TH1F* h_nAK8jet0t              = new TH1F("nAK8jet0t"              ,";# AK8 jets;Events"                                               ,10, -0.5, 9.5);
-  TH1F* h_nTjet0t                = new TH1F("nTjet0t"                ,";# t-jet cands;Events"                                            ,5,  -0.5, 4.5);
-  TH1F* h_ak8jetPt0t             = new TH1F("ak8jetPt0t"             ,";p_{T} of t-jet (GeV);Events / 20 GeV"                            ,60,  0.0, 1200.);
-  TH1F* h_ak8jetEta0t            = new TH1F("ak8jetEta0t"            ,";#eta of t-jet;Events / 0.1"                                      ,50, -2.5, 2.5);
-  TH1F* h_ak8jetPhi0t            = new TH1F("ak8jetPhi0t"            ,";#phi of t-jet;Events / 0.1"                                      ,70, -3.5, 3.5);
-  TH1F* h_ak8jetY0t              = new TH1F("ak8jetY0t"              ,";Rapidity of t-jet;Events / 0.1"                                  ,50, -2.5, 2.5);
-  TH1F* h_ak8jetMass0t           = new TH1F("ak8jetMass0t"           ,";Mass of t-jet (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassPruned0t     = new TH1F("ak8jetMassPruned0t"     ,";Pruned mass of t-jet (GeV);Events / 5 GeV"                       ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassFiltered0t   = new TH1F("ak8jetMassFiltered0t"   ,";Filtered mass of t-jet (GeV);Events / 5 GeV"                     ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassTrimmed0t    = new TH1F("ak8jetMassTrimmed0t"    ,";Trimmed mass of t-jet (GeV);Events / 5 Gev"                      ,50,  0.0, 250.);
-  TH1F* h_ak8jetTau10t           = new TH1F("ak8jetTau10t"           ,";#tau_{1} of t-jet;Events / 0.01"                                 ,70,  0.0, 0.7);
-  TH1F* h_ak8jetTau20t           = new TH1F("ak8jetTau20t"           ,";#tau_{2} of t-jet;Events / 0.01"                                 ,50,  0.0, 0.5);
-  TH1F* h_ak8jetTau30t           = new TH1F("ak8jetTau30t"           ,";#tau_{3} of t-jet;Events / 0.01"                                 ,30,  0.0, 0.3);
-  TH1F* h_ak8jetTau320t          = new TH1F("ak8jetTau320t"          ,";#tau_{3}/#tau_{2} of t-jet;Events / 0.01"                        ,100, 0.0, 1.0);
-  TH1F* h_ak8jetTau210t          = new TH1F("ak8jetTau210t"          ,";#tau_{2}/#tau_{1} of t-jet;Events / 0.01"                        ,100, 0.0, 1.0);
-  TH1F* h_ak8jetCSV0t            = new TH1F("ak8jetCSV0t"            ,";CSVv2 of t-jet;Events / 0.02"                                    ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDmass0t         = new TH1F("ak8jetSDmass0t"         ,";Soft Drop mass of t-jet (GeV);Events / 5 GeV"                    ,50,  0.0, 250.);
-  TH1F* h_ak8jetSDsubjet0pt0t    = new TH1F("ak8jetSDsubjet0pt0t"    ,";p_{T} of leading Soft Drop subjet (GeV);Events / 10 GeV"         ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet0mass0t  = new TH1F("ak8jetSDsubjet0mass0t"  ,";Mass of leading Soft Drop subjet (GeV);Events / 5 GeV"           ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet0CSV0t   = new TH1F("ak8jetSDsubjet0CSV0t"   ,";CSVv2 of leading Soft Drop subjet;Events / 0.02"                 ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjet1pt0t    = new TH1F("ak8jetSDsubjet1pt0t"    ,";p_{T} of subleading Soft Drop subjet (GeV);Events / 10 GeV"      ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet1mass0t  = new TH1F("ak8jetSDsubjet1mass0t"  ,";Mass of subleading Soft Drop subjet (GeV);Events / 5 GeV"        ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet1CSV0t   = new TH1F("ak8jetSDsubjet1CSV0t"   ,";CSVv2 of subleading Soft Drop subjet;Events / 0.02"              ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjetMaxCSV0t = new TH1F("ak8jetSDsubjetMaxCSV0t" ,";Max CSV of Soft Drop subjets;Events / 0.02"                      ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDm010t          = new TH1F("ak8jetSDm010t"          ,";Mass of two hardest Soft Drop subjets (GeV);Events / 5 GeV"      ,50,  0.0, 250.);  
-  TH1F* h_lepPt0t                = new TH1F("lepPt0t"                ,";Lepton p_{T} (GeV);Events / 10 GeV"                              ,50,  0.0, 500.);
-  TH1F* h_lepEta0t               = new TH1F("lepEta0t"               ,";Lepton #eta;Events / 0.1"                                        ,50, -2.5, 2.5);
-  TH1F* h_lepAbsEta0t            = new TH1F("lepAbsEta0t"            ,";Lepton |#eta|;Events / 0.1"                                      ,25,  0.0, 2.5);
-  TH1F* h_lepSignEta0t           = new TH1F("lepSignEta0t"           ,";Lepton #eta * Q;Events / 0.1"                                    ,50, -2.5, 2.5);
-  TH1F* h_lepPhi0t               = new TH1F("lepPhi0t"               ,";Lepton #phi;Events / 0.1"                                        ,70, -3.5, 3.5);
-  TH1F* h_lepBJetdR0t            = new TH1F("lepBJetdR0t"            ,";#Delta R(lepton, b-jet cand);Events / 0.1"                       ,35,  0.0, 3.5);
-  TH1F* h_lepTJetdR0t            = new TH1F("lepTJetdR0t"            ,";#Delta R(lepton, t-jet);Events / 0.1"                            ,35,  0.0, 3.5);
-  TH1F* h_lepBJetPtRel0t         = new TH1F("lepBJetPtRel0t"         ,";p_{T}^{rel}(lepton, b-jet cand) (GeV);Events / 2 GeV"            ,50,  0.0, 100.);
-  TH1F* h_lepMiniIso0t           = new TH1F("lepMiniIso0t"           ,";lepton miniIso;Events / 0.02"                                    ,50,  0.0, 1.0);
-
-  TH1F* h_metPt1t0b                = new TH1F("metPt1t0b"                ,";Missing E_{T} (GeV);Events / 5 GeV"                         ,50,  0.0, 250.);
-  TH1F* h_ht1t0b                   = new TH1F("ht1t0b"                   ,";H_{T} (GeV);Events / 20 GeV"                                ,60,400.0, 1600.);
-  TH1F* h_htLep1t0b                = new TH1F("htLep1t0b"                ,";H_{T}^{lep} (GeV);Events / 20 GeV"                          ,50,  0.0, 1000.);
-  TH1F* h_nAK4jet1t0b              = new TH1F("nAK4jet1t0b"              ,";# AK4 jets;Events"                                          ,10, -0.5, 9.5);
-  TH1F* h_nBjet1t0b                = new TH1F("nBjet1t0b"                ,";# b-jet cands;Events"                                       ,5,  -0.5, 4.5);
-  TH1F* h_ak4jetPt1t0b             = new TH1F("ak4jetPt1t0b"             ,";p_{T} of b-jet (GeV);Events / 10 GeV"                       ,60,  0.0, 600.);
-  TH1F* h_ak4jetEta1t0b            = new TH1F("ak4jetEta1t0b"            ,";#eta of b-jet;Events / 0.1"                                 ,50, -2.5, 2.5);
-  TH1F* h_ak4jetPhi1t0b            = new TH1F("ak4jetPhi1t0b"            ,";#phi of b-jet;Events / 0.1"                                 ,70, -3.5, 3.5);
-  TH1F* h_ak4jetMass1t0b           = new TH1F("ak4jetMass1t0b"           ,";Mass of b-jet (GeV);Events / 2 GeV"                         ,50,  0.0, 100.);
-  TH1F* h_ak4jetCSV1t0b            = new TH1F("ak4jetCSV1t0b"            ,";CSVv2 of b-jet;Events / 0.02"                               ,50,  0.0, 1.0);
-  TH1F* h_ak4jetVtxMass1t0b        = new TH1F("ak4jetVtxMass1t0b"        ,";Secondary vertex mass of b-jet (GeV);Events / 0.1 GeV"      ,50,  0.0, 5.0);
-  TH1F* h_ak8jetPt1t0b             = new TH1F("ak8jetPt1t0b"             ,";p_{T} of t-jet (GeV);Events / 20 GeV"                       ,60,  0.0, 1200.);
-  TH1F* h_nAK8jet1t0b              = new TH1F("nAK8jet1t0b"              ,";# AK8 jets;Events"                                          ,10, -0.5, 9.5);
-  TH1F* h_nTjet1t0b                = new TH1F("nTjet1t0b"                ,";# t-jet cands;Events"                                       ,5,  -0.5, 4.5);
-  TH1F* h_ak8jetEta1t0b            = new TH1F("ak8jetEta1t0b"            ,";#eta of t-jet;Events / 0.1"                                 ,50, -2.5, 2.5);
-  TH1F* h_ak8jetPhi1t0b            = new TH1F("ak8jetPhi1t0b"            ,";#phi of t-jet;Events / 0.1"                                 ,70, -3.5, 3.5);
-  TH1F* h_ak8jetY1t0b              = new TH1F("ak8jetY1t0b"              ,";Rapidity of t-jet;Events / 0.1"                             ,50, -2.5, 2.5);
-  TH1F* h_ak8jetMass1t0b           = new TH1F("ak8jetMass1t0b"           ,";Mass of t-jet (GeV);Events / 5 GeV"                         ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassPruned1t0b     = new TH1F("ak8jetMassPruned1t0b"     ,";Pruned mass of t-jet (GeV);Events / 5 GeV"                  ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassFiltered1t0b   = new TH1F("ak8jetMassFiltered1t0b"   ,";Filtered mass of t-jet (GeV);Events / 5 GeV"                ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassTrimmed1t0b    = new TH1F("ak8jetMassTrimmed1t0b"    ,";Trimmed mass of t-jet (GeV);Events / 5 Gev"                 ,50,  0.0, 250.);
-  TH1F* h_ak8jetTau11t0b           = new TH1F("ak8jetTau11t0b"           ,";#tau_{1} of t-jet;Events / 0.01"                            ,70,  0.0, 0.7);
-  TH1F* h_ak8jetTau21t0b           = new TH1F("ak8jetTau21t0b"           ,";#tau_{2} of t-jet;Events / 0.01"                            ,50,  0.0, 0.5);
-  TH1F* h_ak8jetTau31t0b           = new TH1F("ak8jetTau31t0b"           ,";#tau_{3} of t-jet;Events / 0.01"                            ,30,  0.0, 0.3);
-  TH1F* h_ak8jetTau321t0b          = new TH1F("ak8jetTau321t0b"          ,";#tau_{3}/#tau_{2} of t-jet;Events / 0.01"                   ,100, 0.0, 1.0);
-  TH1F* h_ak8jetTau211t0b          = new TH1F("ak8jetTau211t0b"          ,";#tau_{2}/#tau_{1} of t-jet;Events / 0.01"                   ,100, 0.0, 1.0);
-  TH1F* h_ak8jetCSV1t0b            = new TH1F("ak8jetCSV1t0b"            ,";CSVv2 of t-jet;Events / 0.02"                               ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDmass1t0b         = new TH1F("ak8jetSDmass1t0b"         ,";Soft Drop mass of t-jet (GeV);Events / 5 GeV"               ,50,  0.0, 250.);
-  TH1F* h_ak8jetSDsubjet0pt1t0b    = new TH1F("ak8jetSDsubjet0pt1t0b"    ,";p_{T} of leading Soft Drop subjet (GeV);Events / 10 GeV"    ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet0mass1t0b  = new TH1F("ak8jetSDsubjet0mass1t0b"  ,";Mass of leading Soft Drop subjet (GeV);Events / 5 GeV"      ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet0CSV1t0b   = new TH1F("ak8jetSDsubjet0CSV1t0b"   ,";CSVv2 of leading Soft Drop subjet;Events / 0.02"            ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjet1pt1t0b    = new TH1F("ak8jetSDsubjet1pt1t0b"    ,";p_{T} of subleading Soft Drop subjet (GeV);Events / 10 GeV" ,80,  0.0, 800.);
-  TH1F* h_ak8jetSDsubjet1mass1t0b  = new TH1F("ak8jetSDsubjet1mass1t0b"  ,";Mass of subleading Soft Drop subjet (GeV);Events / 5 GeV"   ,40,  0.0, 200.);
-  TH1F* h_ak8jetSDsubjet1CSV1t0b   = new TH1F("ak8jetSDsubjet1CSV1t0b"   ,";CSVv2 of subleading Soft Drop subjet;Events / 0.02"         ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDsubjetMaxCSV1t0b = new TH1F("ak8jetSDsubjetMaxCSV1t0b" ,";Max CSV of Soft Drop subjets;Events / 0.02"                 ,50,  0.0, 1.0);
-  TH1F* h_ak8jetSDm011t0b          = new TH1F("ak8jetSDm011t0b"          ,";Mass of two hardest Soft Drop subjets (GeV);Events / 5 GeV" ,50,  0.0, 250.);  
-  TH1F* h_lepPt1t0b                = new TH1F("lepPt1t0b"                ,";Lepton p_{T} (GeV);Events / 10 GeV"                         ,50,  0.0, 500.);
-  TH1F* h_lepEta1t0b               = new TH1F("lepEta1t0b"               ,";Lepton #eta;Events / 0.1"                                   ,50, -2.5, 2.5);
-  TH1F* h_lepAbsEta1t0b            = new TH1F("lepAbsEta1t0b"            ,";Lepton |#eta|;Events / 0.1"                                 ,25,  0.0, 2.5);
-  TH1F* h_lepSignEta1t0b           = new TH1F("lepSignEta1t0b"           ,";Lepton #eta * Q;Events / 0.1"                               ,50, -2.5, 2.5);
-  TH1F* h_lepPhi1t0b               = new TH1F("lepPhi1t0b"               ,";Lepton #phi;Events / 0.1"                                   ,70, -3.5, 3.5);
-  TH1F* h_lepBJetdR1t0b            = new TH1F("lepBJetdR1t0b"            ,";#Delta R(lepton, b-jet);Events / 0.1"                       ,35,  0.0, 3.5);
-  TH1F* h_lepTJetdR1t0b            = new TH1F("lepTJetdR1t0b"            ,";#Delta R(lepton, t-jet);Events / 0.1"                       ,35,  0.0, 3.5);
-  TH1F* h_lepBJetPtRel1t0b         = new TH1F("lepBJetPtRel1t0b"         ,";p_{T}^{rel}(lepton, b-jet) (GeV);Events / 2 GeV"            ,50,  0.0, 100.);
-  TH1F* h_lepMiniIso1t0b           = new TH1F("lepMiniIso1t0b"           ,";lepton miniIso;Events / 0.02"                               ,50,  0.0, 1.0);
+  TH1F* h_metPt1t                = new TH1F("metPt1t"                ,";Missing E_{T} (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
+  TH1F* h_ht1t                   = new TH1F("ht1t"                   ,";H_{T} (GeV);Events / 20 GeV"                                     ,50,400.0, 1600.);
+  TH1F* h_htLep1t                = new TH1F("htLep1t"                ,";H_{T}^{lep} (GeV);Events / 20 GeV"                               ,50,  0.0, 1000.);
+  TH1F* h_nAK4jet1t              = new TH1F("nAK4jet1t"              ,";# AK4 jets;Events"                                               ,10, -0.5, 9.5);
+  TH1F* h_nBjet1t                = new TH1F("nBjet1t"                ,";# b-jet cands;Events"                                            ,5,  -0.5, 4.5);
+  TH1F* h_ak4jetPt1t             = new TH1F("ak4jetPt1t"             ,";p_{T} of b-jet candidate (GeV);Events / 10 GeV"                  ,60,  0.0, 600.);
+  TH1F* h_ak4jetEta1t            = new TH1F("ak4jetEta1t"            ,";#eta of b-jet candidate;Events / 0.1"                            ,50, -2.5, 2.5);
+  TH1F* h_ak4jetPhi1t            = new TH1F("ak4jetPhi1t"            ,";#phi of b-jet candidate;Events / 0.1"                            ,70, -3.5, 3.5);
+  TH1F* h_ak4jetMass1t           = new TH1F("ak4jetMass1t"           ,";Mass of b-jet candidate (GeV);Events / 2 GeV"                    ,50,  0.0, 100.);
+  TH1F* h_ak4jetCSV1t            = new TH1F("ak4jetCSV1t"            ,";CSVv2 of b-jet candidate;Events / 0.02"                          ,50,  0.0, 1.0);
+  TH1F* h_ak4jetVtxMass1t        = new TH1F("ak4jetVtxMass1t"        ,";Secondary vertex mass of b-jet candidate (GeV);Events / 0.1 GeV" ,50,  0.0, 5.0);
+  TH1F* h_nAK8jet1t              = new TH1F("nAK8jet1t"              ,";# AK8 jets;Events"                                               ,10, -0.5, 9.5);
+  TH1F* h_nTjet1t                = new TH1F("nTjet1t"                ,";# t-jet cands;Events"                                            ,5,  -0.5, 4.5);
+  TH1F* h_ak8jetPt1t             = new TH1F("ak8jetPt1t"             ,";p_{T} of t-jet (GeV);Events / 20 GeV"                            ,60,  0.0, 1200.);
+  TH1F* h_ak8jetEta1t            = new TH1F("ak8jetEta1t"            ,";#eta of t-jet;Events / 0.1"                                      ,50, -2.5, 2.5);
+  TH1F* h_ak8jetPhi1t            = new TH1F("ak8jetPhi1t"            ,";#phi of t-jet;Events / 0.1"                                      ,70, -3.5, 3.5);
+  TH1F* h_ak8jetY1t              = new TH1F("ak8jetY1t"              ,";Rapidity of t-jet;Events / 0.1"                                  ,50, -2.5, 2.5);
+  TH1F* h_ak8jetMass1t           = new TH1F("ak8jetMass1t"           ,";Mass of t-jet (GeV);Events / 5 GeV"                              ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassPruned1t     = new TH1F("ak8jetMassPruned1t"     ,";Pruned mass of t-jet (GeV);Events / 5 GeV"                       ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassFiltered1t   = new TH1F("ak8jetMassFiltered1t"   ,";Filtered mass of t-jet (GeV);Events / 5 GeV"                     ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassTrimmed1t    = new TH1F("ak8jetMassTrimmed1t"    ,";Trimmed mass of t-jet (GeV);Events / 5 Gev"                      ,50,  0.0, 250.);
+  //TH1F* h_ak8jetTau11t           = new TH1F("ak8jetTau11t"           ,";#tau_{1} of t-jet;Events / 0.01"                                 ,70,  0.0, 0.7);
+  TH1F* h_ak8jetTau21t           = new TH1F("ak8jetTau21t"           ,";#tau_{2} of t-jet;Events / 0.01"                                 ,50,  0.0, 0.5);
+  TH1F* h_ak8jetTau31t           = new TH1F("ak8jetTau31t"           ,";#tau_{3} of t-jet;Events / 0.01"                                 ,30,  0.0, 0.3);
+  TH1F* h_ak8jetTau321t          = new TH1F("ak8jetTau321t"          ,";#tau_{3}/#tau_{2} of t-jet;Events / 0.01"                        ,100, 0.0, 1.0);
+  //TH1F* h_ak8jetTau211t          = new TH1F("ak8jetTau211t"          ,";#tau_{2}/#tau_{1} of t-jet;Events / 0.01"                        ,100, 0.0, 1.0);
+  TH1F* h_ak8jetCSV1t            = new TH1F("ak8jetCSV1t"            ,";CSVv2 of t-jet;Events / 0.02"                                    ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDmass1t         = new TH1F("ak8jetSDmass1t"         ,";Soft Drop mass of t-jet (GeV);Events / 5 GeV"                    ,50,  0.0, 250.);
+  /*
+  TH1F* h_ak8jetSDsubjet0pt1t    = new TH1F("ak8jetSDsubjet0pt1t"    ,";p_{T} of leading Soft Drop subjet (GeV);Events / 10 GeV"         ,80,  0.0, 800.);
+  TH1F* h_ak8jetSDsubjet0mass1t  = new TH1F("ak8jetSDsubjet0mass1t"  ,";Mass of leading Soft Drop subjet (GeV);Events / 5 GeV"           ,40,  0.0, 200.);
+  TH1F* h_ak8jetSDsubjet0CSV1t   = new TH1F("ak8jetSDsubjet0CSV1t"   ,";CSVv2 of leading Soft Drop subjet;Events / 0.02"                 ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDsubjet1pt1t    = new TH1F("ak8jetSDsubjet1pt1t"    ,";p_{T} of subleading Soft Drop subjet (GeV);Events / 10 GeV"      ,80,  0.0, 800.);
+  TH1F* h_ak8jetSDsubjet1mass1t  = new TH1F("ak8jetSDsubjet1mass1t"  ,";Mass of subleading Soft Drop subjet (GeV);Events / 5 GeV"        ,40,  0.0, 200.);
+  TH1F* h_ak8jetSDsubjet1CSV1t   = new TH1F("ak8jetSDsubjet1CSV1t"   ,";CSVv2 of subleading Soft Drop subjet;Events / 0.02"              ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDsubjetMaxCSV1t = new TH1F("ak8jetSDsubjetMaxCSV1t" ,";Max CSV of Soft Drop subjets;Events / 0.02"                      ,50,  0.0, 1.0);
+  TH1F* h_ak8jetSDm011t          = new TH1F("ak8jetSDm011t"          ,";Mass of two hardest Soft Drop subjets (GeV);Events / 5 GeV"      ,50,  0.0, 250.);
+  */  
+  TH1F* h_lepPt1t                = new TH1F("lepPt1t"                ,";Lepton p_{T} (GeV);Events / 10 GeV"                              ,50,  0.0, 500.);
+  TH1F* h_lepEta1t               = new TH1F("lepEta1t"               ,";Lepton #eta;Events / 0.1"                                        ,50, -2.5, 2.5);
+  TH1F* h_lepAbsEta1t            = new TH1F("lepAbsEta1t"            ,";Lepton |#eta|;Events / 0.1"                                      ,25,  0.0, 2.5);
+  TH1F* h_lepSignEta1t           = new TH1F("lepSignEta1t"           ,";Lepton #eta * Q;Events / 0.1"                                    ,50, -2.5, 2.5);
+  TH1F* h_lepPhi1t               = new TH1F("lepPhi1t"               ,";Lepton #phi;Events / 0.1"                                        ,70, -3.5, 3.5);
+  TH1F* h_lepBJetdR1t            = new TH1F("lepBJetdR1t"            ,";#Delta R(lepton, b-jet cand);Events / 0.1"                       ,35,  0.0, 3.5);
+  TH1F* h_lepTJetdR1t            = new TH1F("lepTJetdR1t"            ,";#Delta R(lepton, t-jet);Events / 0.1"                            ,35,  0.0, 3.5);
+  TH1F* h_lepBJetPtRel1t         = new TH1F("lepBJetPtRel1t"         ,";p_{T}^{rel}(lepton, b-jet cand) (GeV);Events / 2 GeV"            ,50,  0.0, 100.);
+  TH1F* h_lepMiniIso1t           = new TH1F("lepMiniIso1t"           ,";lepton miniIso;Events / 0.02"                                    ,50,  0.0, 1.0);
 
   TH1F* h_metPt1t1b                = new TH1F("metPt1t1b"                ,";Missing E_{T} (GeV);Events / 5 GeV"                         ,50,  0.0, 250.);
   TH1F* h_ht1t1b                   = new TH1F("ht1t1b"                   ,";H_{T} (GeV);Events / 20 GeV"                                ,60,400.0, 1600.);
@@ -775,16 +713,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1F* h_ak8jetPhi1t1b            = new TH1F("ak8jetPhi1t1b"            ,";#phi of t-jet;Events / 0.1"                                 ,70, -3.5, 3.5);
   TH1F* h_ak8jetY1t1b              = new TH1F("ak8jetY1t1b"              ,";Rapidity of t-jet;Events / 0.1"                             ,50, -2.5, 2.5);
   TH1F* h_ak8jetMass1t1b           = new TH1F("ak8jetMass1t1b"           ,";Mass of t-jet (GeV);Events / 5 GeV"                         ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassPruned1t1b     = new TH1F("ak8jetMassPruned1t1b"     ,";Pruned mass of t-jet (GeV);Events / 5 GeV"                  ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassFiltered1t1b   = new TH1F("ak8jetMassFiltered1t1b"   ,";Filtered mass of t-jet (GeV);Events / 5 GeV"                ,50,  0.0, 250.);
-  TH1F* h_ak8jetMassTrimmed1t1b    = new TH1F("ak8jetMassTrimmed1t1b"    ,";Trimmed mass of t-jet (GeV);Events / 5 Gev"                 ,50,  0.0, 250.);
-  TH1F* h_ak8jetTau11t1b           = new TH1F("ak8jetTau11t1b"           ,";#tau_{1} of t-jet;Events / 0.01"                            ,70,  0.0, 0.7);
+  //TH1F* h_ak8jetMassPruned1t1b     = new TH1F("ak8jetMassPruned1t1b"     ,";Pruned mass of t-jet (GeV);Events / 5 GeV"                  ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassFiltered1t1b   = new TH1F("ak8jetMassFiltered1t1b"   ,";Filtered mass of t-jet (GeV);Events / 5 GeV"                ,50,  0.0, 250.);
+  //TH1F* h_ak8jetMassTrimmed1t1b    = new TH1F("ak8jetMassTrimmed1t1b"    ,";Trimmed mass of t-jet (GeV);Events / 5 Gev"                 ,50,  0.0, 250.);
+  //TH1F* h_ak8jetTau11t1b           = new TH1F("ak8jetTau11t1b"           ,";#tau_{1} of t-jet;Events / 0.01"                            ,70,  0.0, 0.7);
   TH1F* h_ak8jetTau21t1b           = new TH1F("ak8jetTau21t1b"           ,";#tau_{2} of t-jet;Events / 0.01"                            ,50,  0.0, 0.5);
   TH1F* h_ak8jetTau31t1b           = new TH1F("ak8jetTau31t1b"           ,";#tau_{3} of t-jet;Events / 0.01"                            ,30,  0.0, 0.3);
   TH1F* h_ak8jetTau321t1b          = new TH1F("ak8jetTau321t1b"          ,";#tau_{3}/#tau_{2} of t-jet;Events / 0.01"                   ,100, 0.0, 1.0);
-  TH1F* h_ak8jetTau211t1b          = new TH1F("ak8jetTau211t1b"          ,";#tau_{2}/#tau_{1} of t-jet;Events / 0.01"                   ,100, 0.0, 1.0);
+  //TH1F* h_ak8jetTau211t1b          = new TH1F("ak8jetTau211t1b"          ,";#tau_{2}/#tau_{1} of t-jet;Events / 0.01"                   ,100, 0.0, 1.0);
   TH1F* h_ak8jetCSV1t1b            = new TH1F("ak8jetCSV1t1b"            ,";CSVv2 of t-jet;Events / 0.02"                               ,50,  0.0, 1.0);
   TH1F* h_ak8jetSDmass1t1b         = new TH1F("ak8jetSDmass1t1b"         ,";Soft Drop mass of t-jet (GeV);Events / 5 GeV"               ,50,  0.0, 250.);
+  /*
   TH1F* h_ak8jetSDsubjet0pt1t1b    = new TH1F("ak8jetSDsubjet0pt1t1b"    ,";p_{T} of leading Soft Drop subjet (GeV);Events / 10 GeV"    ,80,  0.0, 800.);
   TH1F* h_ak8jetSDsubjet0mass1t1b  = new TH1F("ak8jetSDsubjet0mass1t1b"  ,";Mass of leading Soft Drop subjet (GeV);Events / 5 GeV"      ,40,  0.0, 200.);
   TH1F* h_ak8jetSDsubjet0CSV1t1b   = new TH1F("ak8jetSDsubjet0CSV1t1b"   ,";CSVv2 of leading Soft Drop subjet;Events / 0.02"            ,50,  0.0, 1.0);
@@ -793,6 +732,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1F* h_ak8jetSDsubjet1CSV1t1b   = new TH1F("ak8jetSDsubjet1CSV1t1b"   ,";CSVv2 of subleading Soft Drop subjet;Events / 0.02"         ,50,  0.0, 1.0);
   TH1F* h_ak8jetSDsubjetMaxCSV1t1b = new TH1F("ak8jetSDsubjetMaxCSV1t1b" ,";Max CSV of Soft Drop subjets;Events / 0.02"                 ,50,  0.0, 1.0);
   TH1F* h_ak8jetSDm011t1b          = new TH1F("ak8jetSDm011t1b"          ,";Mass of two hardest Soft Drop subjets (GeV);Events / 5 GeV" ,50,  0.0, 250.);  
+  */
   TH1F* h_lepPt1t1b                = new TH1F("lepPt1t1b"                ,";Lepton p_{T} (GeV);Events / 10 GeV"                         ,50,  0.0, 500.);
   TH1F* h_lepEta1t1b               = new TH1F("lepEta1t1b"               ,";Lepton #eta;Events / 0.1"                                   ,50, -2.5, 2.5);
   TH1F* h_lepAbsEta1t1b            = new TH1F("lepAbsEta1t1b"            ,";Lepton |#eta|;Events / 0.1"                                 ,25,  0.0, 2.5);
@@ -813,7 +753,21 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 
   TH1F* h_2DisoScanPoints          = new TH1F("2DisoScanPoints"          ,";Scan points;Nevents",169,-0.5,168.5);
   TH1F* h_MiniIsoScanPoints        = new TH1F("MiniIsoScanPoints"        ,";Scan points;Nevents",31,-0.5,30.5);
+
+  //--------------------------
+  // Setup for response matrix
+  //--------------------------
   
+  gSystem->Load("RooUnfold/libRooUnfold");
+  const int nptbins = 8;
+  float ptbins[nptbins+1] = {0.0,200.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
+  TH1F* h_bins = new TH1F("bins", ";;", nptbins, ptbins);
+  
+  RooUnfoldResponse response(h_bins, h_bins);
+  response.SetName("response_pt");
+  TH1F* h_ptGenTop = new TH1F("ptGenTop", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1F* h_ptRecoTop = new TH1F("ptRecoTop", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+
   // ----------------------------------------------------------------------------------------------------------------
   //        * * * * *     S T A R T   O F   A C T U A L   R U N N I N G   O N   E V E N T S     * * * * *
   // ----------------------------------------------------------------------------------------------------------------
@@ -821,9 +775,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   int nevt = tree->GetEntries();
   cout << "number of events = " << nevt << endl;
 
-  int passSemiLep = 0;
-  int passParton = 0;
-  int passParticle = 0;
+  int nPassSemiLep = 0;
+  int nPassParton = 0;
+  int nPassParticle = 0;
   
   int passStep1 = 0;
   int passStep2 = 0;
@@ -837,10 +791,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   int nPassTau32Cut = 0;
   int nPassTopTag = 0;
 
-  int n0t0b = 0;
-  int n0t1b = 0;
-  int n0t   = 0;
-  int n1t0b = 0;
+  int n1b = 0;
+  int n1t = 0;
   int n1t1b = 0;
 
   float noIsoCount = 0.;
@@ -851,9 +803,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // event loop
   for (int i=0; i<nevt; i++) {
 
+    bool passParton = false;
+    bool passReco = false;
+
     tree->GetEntry(i,0);
 
     if (i%10000 == 0) cout << "Event " << i << endl;
+
+    if (oddOrEven != 0){
+      if (i % oddOrEven == 1) continue;
+    }
     // ----------------------------------------------------------------------------------------------------------------
 
     float weight = eventWeight_nom->at(0);
@@ -862,7 +821,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     
     // Look at truth information (TTbar signal only)
     if (isSignal) {
-      
+   
       // Do channel selection at parton level
       if ((int)truthChannel->size() == 0){
 	cout << "Error: no truthChannel information!" << endl;
@@ -874,34 +833,41 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       if (truthChannel->at(0) == 0 && channel == "el") continue;
       if (truthChannel->at(0) == 1 && channel == "mu") continue;
-      passSemiLep += 1;
+      nPassSemiLep += 1;
       
       // Get parton-level info
       // Note: does not exist for all events -- only for those which have pt(top) > 400 GeV at parton level
       if ((int)genTopPt->size() != 0){
-	//h_genTopPt->Fill(genTopPt->at(0),weight);
-	//h_genTopEta->Fill(genTopEta->at(0),weight);
-	//h_genTopPhi->Fill(genTopPhi->at(0),weight);
-	//h_genTTbarMass->Fill(genTTbarMass->at(0),weight);
+	nPassParton += 1;
+	passParton = true;
+	h_genTopPt->Fill(genTopPt->at(0),weight);
+	h_genTopEta->Fill(genTopEta->at(0),weight);
+	h_genTopPhi->Fill(genTopPhi->at(0),weight);
+	h_genTTbarMass->Fill(genTTbarMass->at(0),weight);
+
+	h_ptGenTop->Fill(genTopPt->at(0),weight);
+
 	if (channel == "mu"){
 	  if ((int)genMuPt->size() == 0) {
 	    cout << "Error: no muon in mu channel!" << endl;
 	    continue;
 	  }
-	  //h_genLepPt->Fill(genMuPt->at(0),weight);
-	  //h_genLepEta->Fill(genMuEta->at(0),weight);
-	  //h_genLepPhi->Fill(genMuPhi->at(0),weight);
+	  h_genLepPt->Fill(genMuPt->at(0),weight);
+	  h_genLepEta->Fill(genMuEta->at(0),weight);
+	  h_genLepPhi->Fill(genMuPhi->at(0),weight);
 	}
+
 	if (channel == "el"){
 	  if ((int)genElPt->size() == 0){
 	    cout << "Error: no electron in el channel!" << endl;
 	    continue;
 	  }
-	  //h_genLepPt->Fill(genElPt->at(0),weight);
-	  //h_genLepEta->Fill(genElEta->at(0),weight);
-	  //h_genLepPhi->Fill(genElPhi->at(0),weight);
+	  h_genLepPt->Fill(genElPt->at(0),weight);
+	  h_genLepEta->Fill(genElEta->at(0),weight);
+	  h_genLepPhi->Fill(genElPhi->at(0),weight);
 	}
       }
+
       /*
       // TODO: implement further particle-level selection here
       //h_ngenAK4jet->Fill((int)genAK4jetPt->size(),weight);
@@ -952,20 +918,25 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 
     // Require appropriate trigger for channel if MC
     if (!isData){
-      if ((int)muTrigPass->size() == 0){
-	cout << "Error: no muon trigger information!" << endl;
+      if ((int)muTrigPass->size() == 0)	continue;
+      if ((int)elTrigPass->size() == 0)	continue;
+
+      if (channel == "mu" && !(muTrigPass->at(0))) {
+	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
 	continue;
       }
-      if ((int)elTrigPass->size() == 0){
-	cout << "Error: no electron trigger information!" << endl;
+      if (channel == "el" && !(elTrigPass->at(0))) {
+	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
 	continue;
       }
-      if (channel == "mu" && !(muTrigPass->at(0))) continue;
-      if (channel == "el" && !(elTrigPass->at(0))) continue;
     }
 
     //Construct AK4 and AK8 jet collections, with proper JEC / JER
     std::vector<TLorentzVector> ak4Jets;
+    if ((int)ak4jetPt->size() == 0) {
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+      continue;
+    }
     for (int iak4 = 0; iak4 < (int)ak4jetPt->size(); iak4++){
       TLorentzVector jetP4;
       if (systematic == "JECUp" && !isData){
@@ -977,10 +948,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	jetP4 *= (1.0 - ak4jetJECunc->at(iak4));
       }
       else if (systematic == "JERUp" && !isData){
-      	jetP4.SetPtEtaPhiM(ak4jetPtJERup->at(iak4),ak4jetEta->at(iak4),ak4jetPhi->at(iak4),ak4jetMass->at(iak4));
+      	jetP4.SetPtEtaPhiM(ak4jetPtJERup->at(iak4),ak4jetEtaJERup->at(iak4),ak4jetPhiJERup->at(iak4),ak4jetMassJERup->at(iak4));
       }
       else if (systematic == "JERDown" && !isData){
-      	jetP4.SetPtEtaPhiM(ak4jetPtJERdown->at(iak4),ak4jetEta->at(iak4),ak4jetPhi->at(iak4),ak4jetMass->at(iak4));
+      	jetP4.SetPtEtaPhiM(ak4jetPtJERdown->at(iak4),ak4jetEtaJERdown->at(iak4),ak4jetPhiJERdown->at(iak4),ak4jetMassJERdown->at(iak4));
       }
       else {
 	jetP4.SetPtEtaPhiM(ak4jetPt->at(iak4),ak4jetEta->at(iak4),ak4jetPhi->at(iak4),ak4jetMass->at(iak4));
@@ -989,6 +960,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     }
 
     std::vector<TLorentzVector> ak8Jets;
+    if ((int)ak8jetPt->size() == 0) {
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+      continue;
+    }
     for (int iak8 = 0; iak8 < (int)ak8jetPt->size(); iak8++){
       TLorentzVector jetP4;
       if (systematic == "JECUp" && !isData){
@@ -1000,17 +975,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	jetP4 *= (1.0 - ak8jetJECunc->at(iak8));
       }
       else if (systematic == "JERUp" && !isData){
-	jetP4.SetPtEtaPhiM(ak8jetPtJERup->at(iak8),ak8jetEta->at(iak8),ak8jetPhi->at(iak8),ak8jetMass->at(iak8));
+	jetP4.SetPtEtaPhiM(ak8jetPtJERup->at(iak8),ak8jetEtaJERup->at(iak8),ak8jetPhiJERup->at(iak8),ak8jetMassJERup->at(iak8));
       }
       else if (systematic == "JERDown" && !isData){
-	jetP4.SetPtEtaPhiM(ak8jetPtJERdown->at(iak8),ak8jetEta->at(iak8),ak8jetPhi->at(iak8),ak8jetMass->at(iak8));
+	jetP4.SetPtEtaPhiM(ak8jetPtJERdown->at(iak8),ak8jetEtaJERdown->at(iak8),ak8jetPhiJERdown->at(iak8),ak8jetMassJERdown->at(iak8));
       }
       else {
 	jetP4.SetPtEtaPhiM(ak8jetPt->at(iak8),ak8jetEta->at(iak8),ak8jetPhi->at(iak8),ak8jetMass->at(iak8));
       }
       ak8Jets.push_back(jetP4);
     }
-    
+
     // Get (and count / categorize) muons
     TLorentzVector goodMu;
     float goodMuMiniIso = 0.;
@@ -1190,10 +1165,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       if (channel == "el" && !(nElForVeto == 1 && nMuForVeto == 0)) continue;
     }    
     else {
-      if (channel == "mu" && !(nGoodMu == 1 && nMuForVeto == 1 && nElForVeto == 0)) continue; 
-      if (channel == "el" && !(nGoodEl == 1 && nElForVeto == 1 && nMuForVeto == 0)) continue;
-    }      
-    
+      if (channel == "mu" && !(nGoodMu == 1 && nMuForVeto == 1 && nElForVeto == 0)) {
+	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+	continue;
+      }
+      if (channel == "el" && !(nGoodEl == 1 && nElForVeto == 1 && nMuForVeto == 0)) {
+	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+	continue;
+      }
+    }
+
     TLorentzVector refLep;
     float refLepMiniIso;
     if (channel == "mu") {
@@ -1220,15 +1201,21 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       float dphi_jetmet = std::abs(metPhi->at(0) - ak4Jets.at(0).Phi());
       if (dphi_jetmet > 3.14159) dphi_jetmet = std::abs(2*3.14159 - dphi_jetmet);
 
-      if ( std::abs(dphi_emet-1.5) > 1.5 * metPt->at(0) / 75.0 || std::abs(dphi_jetmet-1.5) > 1.5 * metPt->at(0) / 75.0) continue;
+      if ( std::abs(dphi_emet-1.5) > 1.5 * metPt->at(0) / 75.0 || std::abs(dphi_jetmet-1.5) > 1.5 * metPt->at(0) / 75.0) {
+	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+	continue;
+      }
     } // End triangular cut
     
     passStep1 += 1;
 
     // Require at least two jets
-    if ((int)ak4Jets.size() < 2) continue;
+    if ((int)ak4Jets.size() < 2) {
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+      continue;
+    }
     passStep2 += 1;
-      
+
     // Define leptonic jets (AK4 jets with dR(jet,lep) < pi/2) and b jet candidate (leptonic jet closest to lepton)
     float bJetCandDR = 99.;
     int ibJetCand = -1;
@@ -1245,7 +1232,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     }
 
     // Require at least one leptonic jet
-    if (nLepJet < 1) continue;
+    if (nLepJet < 1) {
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+      continue;
+    }
     passStep3 += 1;
 
     // Define hadronic jets (AK8 jets with dR(jet,lep) > pi/2) and top jet candidate (hadronic jet with highest pt)
@@ -1264,15 +1254,79 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     }
 
     // Require at least one hadronic jet
-    if (nHadJet < 1) continue;
+    if (nHadJet < 1) {
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+      continue;
+    }
     passStep4 += 1;
 
     // Require MET > 35 GeV
-    if (metPt->at(0) < metCut) continue;
+    if (metPt->at(0) < metCut) {
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+      continue;
+    }
     passStep5 += 1;
 
+    // ----------------------------
+    // Fill preselection histograms
+    // ----------------------------
+    h_metPtPre->Fill(metPt->at(0),weight);
+    h_htPre->Fill(ht->at(0),weight);
+    h_htLepPre->Fill(metPt->at(0)+refLep.Perp(),weight);
+    h_nAK4jetPre->Fill((int)ak4Jets.size(),weight);
+    h_nBjetPre->Fill(nLepJet,weight);
+    h_ak4jetPtPre->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
+    h_ak4jetEtaPre->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
+    h_ak4jetPhiPre->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
+    h_ak4jetMassPre->Fill(ak4Jets.at(ibJetCand).M(),weight);
+    h_ak4jetCSVPre->Fill(ak4jetCSV->at(ibJetCand),weight);
+    h_ak4jetVtxMassPre->Fill(ak4jetVtxMass->at(ibJetCand),weight);
+    h_nAK8jetPre->Fill((int)ak8Jets.size(),weight);
+    h_nTjetPre->Fill(nHadJet,weight);
+    h_ak8jetPtPre->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
+    h_ak8jetEtaPre->Fill(ak8Jets.at(itopJetCand).Eta(),weight);
+    h_ak8jetPhiPre->Fill(ak8Jets.at(itopJetCand).Phi(),weight);
+    h_ak8jetYPre->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight);
+    h_ak8jetMassPre->Fill(ak8Jets.at(itopJetCand).M(),weight);
+    //h_ak8jetMassPrunedPre->Fill(ak8jetMassPruned->at(itopJetCand),weight);
+    //h_ak8jetMassFilteredPre->Fill(ak8jetMassFiltered->at(itopJetCand),weight);
+    //h_ak8jetMassTrimmedPre->Fill(ak8jetMassTrimmed->at(itopJetCand),weight);
+    //h_ak8jetTau1Pre->Fill(ak8jetTau1->at(itopJetCand),weight);
+    h_ak8jetTau2Pre->Fill(ak8jetTau2->at(itopJetCand),weight);
+    h_ak8jetTau3Pre->Fill(ak8jetTau3->at(itopJetCand),weight);
+    h_ak8jetTau32Pre->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight);
+    //h_ak8jetTau21Pre->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight);
+    h_ak8jetCSVPre->Fill(ak8jetCSV->at(itopJetCand),weight);
+    h_ak8jetSDmassPre->Fill(ak8jetSDmass->at(itopJetCand),weight);
+    /*
+      h_ak8jetSDsubjet0ptPre->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight);
+      h_ak8jetSDsubjet0massPre->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight);
+      h_ak8jetSDsubjet0CSVPre->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight);
+      h_ak8jetSDsubjet1ptPre->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight);
+      h_ak8jetSDsubjet1massPre->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight);
+      h_ak8jetSDsubjet1CSVPre->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight);
+      if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
+	TLorentzVector P40;
+	TLorentzVector P41;
+	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
+	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
+      h_ak8jetSDm01Pre->Fill((P40+P41).M(),weight);
+      h_ak8jetSDsubjetMaxCSVPre->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight);
+    */
+    h_lepPtPre->Fill(refLep.Perp(),weight);
+    h_lepEtaPre->Fill(refLep.Eta(),weight);
+    h_lepAbsEtaPre->Fill(abs(refLep.Eta()),weight);
+    h_lepPhiPre->Fill(refLep.Phi(),weight);
+    h_lepBJetdRPre->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
+    h_lepTJetdRPre->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
+    h_lepBJetPtRelPre->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
+    h_lepMiniIsoPre->Fill(refLepMiniIso,weight);
+    if (channel == "mu" && nGoodMu > 1) h_leadLepPtPre->Fill(muPt->at(0),weight);
+    else if (channel == "el" && nGoodEl > 1) h_leadLepPtPre->Fill(elPt->at(0),weight);
+    else h_leadLepPtPre->Fill(refLep.Perp(),weight);
+
     // ------------------------------------------------------
-    // Determine if b-jet and top-jet candidates pass tagging
+    // Determine if b-jet and t-jet candidates pass tagging
     // ------------------------------------------------------
 
     // Using top tagging 3% WP (Loose) as described in https://indico.cern.ch/event/540674/contributions/2196235/attachments/1287602/1915958/TopTagging_2016-06-08.pdf
@@ -1281,20 +1335,20 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     float lowmasscut = 105.;
     float highmasscut = 220.;
     bool passTopTag = false;
-    float toptagSF = 0.90;
+    float toptagSF = 1.0;
     if (ak8jetSDmass->at(itopJetCand) > lowmasscut && ak8jetSDmass->at(itopJetCand) < highmasscut){
       nPassMassCut += 1;
       if ((ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand)) < tau32cut) {
 	nPassTau32Cut += 1;
-	if (max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)) > btagcut){
-	  nPassTopTag += 1;
-	  passTopTag = true;
-	  if (!isData){
-	    if (systematic == "TopTagUp") weight *= 1.5*toptagSF; //Top-tagging SF
-	    else if (systematic == "TopTagDown") weight *= 0.5*toptagSF;
-	    else weight *= toptagSF;
-	  }
+	//if (max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)) > btagcut){
+	nPassTopTag += 1;
+	passTopTag = true;
+	if (!isData){
+	  toptagSF = 0.90;
+	  if (systematic == "TopTagUp") toptagSF *= 1.5;
+	  if (systematic == "TopTagDown") toptagSF *= 0.5;
 	}
+	//}
       }
     }
 
@@ -1352,353 +1406,210 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	      btagSF_down = btagSF - 2*(btagSF - btagSF_down);
 	    }
 	  }
-	  if (systematic == "BTagUp") weight *= btagSF_up;
-	  else if (systematic == "BTagDown") weight *= btagSF_down;
-	  else weight *= btagSF;
+	  if (systematic == "BTagUp") btagSF = btagSF_up;
+	  if (systematic == "BTagDown") btagSF= btagSF_down;
 	}
       }
     }
 
     // ----------------------------
-    // Fill preselection histograms
+    // Fill response
     // ----------------------------
-    h_metPtPre->Fill(metPt->at(0),weight);
-    h_htPre->Fill(ht->at(0),weight);
-    h_htLepPre->Fill(metPt->at(0)+refLep.Perp(),weight);
-    h_nAK4jetPre->Fill((int)ak4Jets.size(),weight);
-    h_nBjetPre->Fill(nLepJet,weight);
-    h_ak4jetPtPre->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
-    h_ak4jetEtaPre->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
-    h_ak4jetPhiPre->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
-    h_ak4jetMassPre->Fill(ak4Jets.at(ibJetCand).M(),weight);
-    h_ak4jetCSVPre->Fill(ak4jetCSV->at(ibJetCand),weight);
-    h_ak4jetVtxMassPre->Fill(ak4jetVtxMass->at(ibJetCand),weight);
-    h_nAK8jetPre->Fill((int)ak8Jets.size(),weight);
-    h_nTjetPre->Fill(nHadJet,weight);
-    h_ak8jetPtPre->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
-    h_ak8jetEtaPre->Fill(ak8Jets.at(itopJetCand).Eta(),weight);
-    h_ak8jetPhiPre->Fill(ak8Jets.at(itopJetCand).Phi(),weight);
-    h_ak8jetYPre->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight);
-    h_ak8jetMassPre->Fill(ak8Jets.at(itopJetCand).M(),weight);
-    h_ak8jetMassPrunedPre->Fill(ak8jetMassPruned->at(itopJetCand),weight);
-    h_ak8jetMassFilteredPre->Fill(ak8jetMassFiltered->at(itopJetCand),weight);
-    h_ak8jetMassTrimmedPre->Fill(ak8jetMassTrimmed->at(itopJetCand),weight);
-    h_ak8jetTau1Pre->Fill(ak8jetTau1->at(itopJetCand),weight);
-    h_ak8jetTau2Pre->Fill(ak8jetTau2->at(itopJetCand),weight);
-    h_ak8jetTau3Pre->Fill(ak8jetTau3->at(itopJetCand),weight);
-    h_ak8jetTau32Pre->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight);
-    h_ak8jetTau21Pre->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight);
-    h_ak8jetCSVPre->Fill(ak8jetCSV->at(itopJetCand),weight);
-    h_ak8jetSDmassPre->Fill(ak8jetSDmass->at(itopJetCand),weight);
-    h_ak8jetSDsubjet0ptPre->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight);
-    h_ak8jetSDsubjet0massPre->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight);
-    h_ak8jetSDsubjet0CSVPre->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight);
-    h_ak8jetSDsubjet1ptPre->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight);
-    h_ak8jetSDsubjet1massPre->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight);
-    h_ak8jetSDsubjet1CSVPre->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight);
-    if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
-      TLorentzVector P40;
-      TLorentzVector P41;
-      P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
-      P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
-      h_ak8jetSDm01Pre->Fill((P40+P41).M(),weight);
-      h_ak8jetSDsubjetMaxCSVPre->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight);
+
+    if (passTopTag && passBtag){
+      h_ptRecoTop->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      if (isSignal){
+	if (passParton) response.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF);
+	else response.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF);
+      }
     }
-    h_lepPtPre->Fill(refLep.Perp(),weight);
-    h_lepEtaPre->Fill(refLep.Eta(),weight);
-    h_lepAbsEtaPre->Fill(abs(refLep.Eta()),weight);
-    h_lepPhiPre->Fill(refLep.Phi(),weight);
-    h_lepBJetdRPre->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
-    h_lepTJetdRPre->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
-    h_lepBJetPtRelPre->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
-    h_lepMiniIsoPre->Fill(refLepMiniIso,weight);
-    if (channel == "mu" && nGoodMu > 1) h_leadLepPtPre->Fill(muPt->at(0),weight);
-    else if (channel == "el" && nGoodEl > 1) h_leadLepPtPre->Fill(elPt->at(0),weight);
-    else h_leadLepPtPre->Fill(refLep.Perp(),weight);
+    else if (passTopTag){
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*toptagSF);
+    }
+    else{
+      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight);
+    }
+
+    // ----------------------------
+    // Fill 1b histograms
+    // ----------------------------
+    
+    if (passBtag){
+      h_metPt1b->Fill(metPt->at(0),weight*btagSF);
+      h_ht1b->Fill(ht->at(0),weight*btagSF);
+      h_htLep1b->Fill(metPt->at(0)+refLep.Perp(),weight*btagSF);
+      h_nAK4jet1b->Fill((int)ak4Jets.size(),weight*btagSF);
+      h_nBjet1b->Fill(nLepJet,weight*btagSF);
+      h_ak4jetPt1b->Fill(ak4Jets.at(ibJetCand).Perp(),weight*btagSF);
+      h_ak4jetEta1b->Fill(ak4Jets.at(ibJetCand).Eta(),weight*btagSF);
+      h_ak4jetPhi1b->Fill(ak4Jets.at(ibJetCand).Phi(),weight*btagSF);
+      h_ak4jetMass1b->Fill(ak4Jets.at(ibJetCand).M(),weight*btagSF);
+      h_ak4jetCSV1b->Fill(ak4jetCSV->at(ibJetCand),weight*btagSF);
+      h_ak4jetVtxMass1b->Fill(ak4jetVtxMass->at(ibJetCand),weight*btagSF);
+      h_nAK8jet1b->Fill((int)ak8Jets.size(),weight*btagSF);
+      h_nTjet1b->Fill(nHadJet,weight*btagSF);
+      h_ak8jetPt1b->Fill(ak8Jets.at(itopJetCand).Perp(),weight*btagSF);
+      h_ak8jetEta1b->Fill(ak8Jets.at(itopJetCand).Eta(),weight*btagSF);
+      h_ak8jetPhi1b->Fill(ak8Jets.at(itopJetCand).Phi(),weight*btagSF);
+      h_ak8jetY1b->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight*btagSF);
+      h_ak8jetMass1b->Fill(ak8Jets.at(itopJetCand).M(),weight*btagSF);
+      //h_ak8jetMassPruned1b->Fill(ak8jetMassPruned->at(itopJetCand),weight*btagSF);
+      //h_ak8jetMassFiltered1b->Fill(ak8jetMassFiltered->at(itopJetCand),weight*btagSF);
+      //h_ak8jetMassTrimmed1b->Fill(ak8jetMassTrimmed->at(itopJetCand),weight*btagSF);
+      //h_ak8jetTau11b->Fill(ak8jetTau1->at(itopJetCand),weight*btagSF);
+      h_ak8jetTau21b->Fill(ak8jetTau2->at(itopJetCand),weight*btagSF);
+      h_ak8jetTau31b->Fill(ak8jetTau3->at(itopJetCand),weight*btagSF);
+      h_ak8jetTau321b->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight*btagSF);
+      //h_ak8jetTau211b->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight*btagSF);
+      h_ak8jetCSV1b->Fill(ak8jetCSV->at(itopJetCand),weight*btagSF);
+      h_ak8jetSDmass1b->Fill(ak8jetSDmass->at(itopJetCand),weight*btagSF);
+      /*
+	h_ak8jetSDsubjet0pt1b->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight*btagSF);
+      h_ak8jetSDsubjet0mass1b->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight*btagSF);
+      h_ak8jetSDsubjet0CSV1b->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight*btagSF);
+      h_ak8jetSDsubjet1pt1b->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight*btagSF);
+      h_ak8jetSDsubjet1mass1b->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight*btagSF);
+      h_ak8jetSDsubjet1CSV1b->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight*btagSF);
+      if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
+	TLorentzVector P40;
+	TLorentzVector P41;
+	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
+	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
+	h_ak8jetSDm011b->Fill((P40+P41).M(),weight*btagSF);
+	h_ak8jetSDsubjetMaxCSV1b->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight*btagSF);
+      }
+      */
+      h_lepPt1b->Fill(refLep.Perp(),weight*btagSF);
+      h_lepEta1b->Fill(refLep.Eta(),weight*btagSF);
+      h_lepAbsEta1b->Fill(abs(refLep.Eta()),weight*btagSF);
+      h_lepPhi1b->Fill(refLep.Phi(),weight*btagSF);
+      h_lepBJetdR1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*btagSF);
+      h_lepTJetdR1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*btagSF);
+      h_lepBJetPtRel1b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight*btagSF);
+      h_lepMiniIso1b->Fill(refLepMiniIso,weight*btagSF);
+      n1b += 1;
+    }
+
+    // ----------------------------
+    // Fill 1t histograms
+    // ----------------------------
+    
+    if (passTopTag){
+      h_metPt1t->Fill(metPt->at(0),weight*toptagSF);
+      h_ht1t->Fill(ht->at(0),weight*toptagSF);
+      h_htLep1t->Fill(metPt->at(0)+refLep.Perp(),weight*toptagSF);
+      h_nAK4jet1t->Fill((int)ak4Jets.size(),weight*toptagSF);
+      h_nBjet1t->Fill(nLepJet,weight*toptagSF);
+      h_ak4jetPt1t->Fill(ak4Jets.at(ibJetCand).Perp(),weight*toptagSF);
+      h_ak4jetEta1t->Fill(ak4Jets.at(ibJetCand).Eta(),weight*toptagSF);
+      h_ak4jetPhi1t->Fill(ak4Jets.at(ibJetCand).Phi(),weight*toptagSF);
+      h_ak4jetMass1t->Fill(ak4Jets.at(ibJetCand).M(),weight*toptagSF);
+      h_ak4jetCSV1t->Fill(ak4jetCSV->at(ibJetCand),weight*toptagSF);
+      h_ak4jetVtxMass1t->Fill(ak4jetVtxMass->at(ibJetCand),weight*toptagSF);
+      h_nAK8jet1t->Fill((int)ak8Jets.size(),weight*toptagSF);
+      h_nTjet1t->Fill(nHadJet,weight*toptagSF);
+      h_ak8jetPt1t->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF);
+      h_ak8jetEta1t->Fill(ak8Jets.at(itopJetCand).Eta(),weight*toptagSF);
+      h_ak8jetPhi1t->Fill(ak8Jets.at(itopJetCand).Phi(),weight*toptagSF);
+      h_ak8jetY1t->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight*toptagSF);
+      h_ak8jetMass1t->Fill(ak8Jets.at(itopJetCand).M(),weight*toptagSF);
+      //h_ak8jetMassPruned1t->Fill(ak8jetMassPruned->at(itopJetCand),weight*toptagSF);
+      //h_ak8jetMassFiltered1t->Fill(ak8jetMassFiltered->at(itopJetCand),weight*toptagSF);
+      //h_ak8jetMassTrimmed1t->Fill(ak8jetMassTrimmed->at(itopJetCand),weight*toptagSF);
+      //h_ak8jetTau11t->Fill(ak8jetTau1->at(itopJetCand),weight*toptagSF);
+      h_ak8jetTau21t->Fill(ak8jetTau2->at(itopJetCand),weight*toptagSF);
+      h_ak8jetTau31t->Fill(ak8jetTau3->at(itopJetCand),weight*toptagSF);
+      h_ak8jetTau321t->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight*toptagSF);
+      //h_ak8jetTau211t->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight*toptagSF);
+      h_ak8jetCSV1t->Fill(ak8jetCSV->at(itopJetCand),weight*toptagSF);
+      h_ak8jetSDmass1t->Fill(ak8jetSDmass->at(itopJetCand),weight*toptagSF);
+      /*
+	h_ak8jetSDsubjet0pt1t->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight*toptagSF);
+      h_ak8jetSDsubjet0mass1t->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight*toptagSF);
+      h_ak8jetSDsubjet0CSV1t->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight*toptagSF);
+      h_ak8jetSDsubjet1pt1t->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight*toptagSF);
+      h_ak8jetSDsubjet1mass1t->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight*toptagSF);
+      h_ak8jetSDsubjet1CSV1t->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight*toptagSF);
+      if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
+	TLorentzVector P40;
+	TLorentzVector P41;
+	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
+	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
+	h_ak8jetSDm011t->Fill((P40+P41).M(),weight*toptagSF);
+	h_ak8jetSDsubjetMaxCSV1t->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight*toptagSF);
+      }
+      */
+      h_lepPt1t->Fill(refLep.Perp(),weight*toptagSF);
+      h_lepEta1t->Fill(refLep.Eta(),weight*toptagSF);
+      h_lepAbsEta1t->Fill(abs(refLep.Eta()),weight*toptagSF);
+      h_lepPhi1t->Fill(refLep.Phi(),weight*toptagSF);
+      h_lepBJetdR1t->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*toptagSF);
+      h_lepTJetdR1t->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*toptagSF);
+      h_lepBJetPtRel1t->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight*toptagSF);
+      h_lepMiniIso1t->Fill(refLepMiniIso,weight*toptagSF);
+      n1t += 1;
+    }
 
     // ----------------------------
     // Fill 1t1b histograms
     // ----------------------------
     
     if (passTopTag && passBtag){
-      h_metPt1t1b->Fill(metPt->at(0),weight);
-      h_ht1t1b->Fill(ht->at(0),weight);
-      h_htLep1t1b->Fill(metPt->at(0)+refLep.Perp(),weight);
-      h_nAK4jet1t1b->Fill((int)ak4Jets.size(),weight);
-      h_nBjet1t1b->Fill(nLepJet,weight);
-      h_ak4jetPt1t1b->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
-      h_ak4jetEta1t1b->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
-      h_ak4jetPhi1t1b->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
-      h_ak4jetMass1t1b->Fill(ak4Jets.at(ibJetCand).M(),weight);
-      h_ak4jetCSV1t1b->Fill(ak4jetCSV->at(ibJetCand),weight);
-      h_ak4jetVtxMass1t1b->Fill(ak4jetVtxMass->at(ibJetCand),weight);
-      h_nAK8jet1t1b->Fill((int)ak8Jets.size(),weight);
-      h_nTjet1t1b->Fill(nHadJet,weight);
-      h_ak8jetPt1t1b->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
-      h_ak8jetEta1t1b->Fill(ak8Jets.at(itopJetCand).Eta(),weight);
-      h_ak8jetPhi1t1b->Fill(ak8Jets.at(itopJetCand).Phi(),weight);
-      h_ak8jetY1t1b->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight);
-      h_ak8jetMass1t1b->Fill(ak8Jets.at(itopJetCand).M(),weight);
-      h_ak8jetMassPruned1t1b->Fill(ak8jetMassPruned->at(itopJetCand),weight);
-      h_ak8jetMassFiltered1t1b->Fill(ak8jetMassFiltered->at(itopJetCand),weight);
-      h_ak8jetMassTrimmed1t1b->Fill(ak8jetMassTrimmed->at(itopJetCand),weight);
-      h_ak8jetTau11t1b->Fill(ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetTau21t1b->Fill(ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau31t1b->Fill(ak8jetTau3->at(itopJetCand),weight);
-      h_ak8jetTau321t1b->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau211t1b->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetCSV1t1b->Fill(ak8jetCSV->at(itopJetCand),weight);
-      h_ak8jetSDmass1t1b->Fill(ak8jetSDmass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0pt1t1b->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0mass1t1b->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0CSV1t1b->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1pt1t1b->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1mass1t1b->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1CSV1t1b->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight);
+      h_metPt1t1b->Fill(metPt->at(0),weight*btagSF*toptagSF);
+      h_ht1t1b->Fill(ht->at(0),weight*btagSF*toptagSF);
+      h_htLep1t1b->Fill(metPt->at(0)+refLep.Perp(),weight*btagSF*toptagSF);
+      h_nAK4jet1t1b->Fill((int)ak4Jets.size(),weight*btagSF*toptagSF);
+      h_nBjet1t1b->Fill(nLepJet,weight*btagSF*toptagSF);
+      h_ak4jetPt1t1b->Fill(ak4Jets.at(ibJetCand).Perp(),weight*btagSF*toptagSF);
+      h_ak4jetEta1t1b->Fill(ak4Jets.at(ibJetCand).Eta(),weight*btagSF*toptagSF);
+      h_ak4jetPhi1t1b->Fill(ak4Jets.at(ibJetCand).Phi(),weight*btagSF*toptagSF);
+      h_ak4jetMass1t1b->Fill(ak4Jets.at(ibJetCand).M(),weight*btagSF*toptagSF);
+      h_ak4jetCSV1t1b->Fill(ak4jetCSV->at(ibJetCand),weight*btagSF*toptagSF);
+      h_ak4jetVtxMass1t1b->Fill(ak4jetVtxMass->at(ibJetCand),weight*btagSF*toptagSF);
+      h_nAK8jet1t1b->Fill((int)ak8Jets.size(),weight*btagSF*toptagSF);
+      h_nTjet1t1b->Fill(nHadJet,weight*btagSF*toptagSF);
+      h_ak8jetPt1t1b->Fill(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF);
+      h_ak8jetEta1t1b->Fill(ak8Jets.at(itopJetCand).Eta(),weight*btagSF*toptagSF);
+      h_ak8jetPhi1t1b->Fill(ak8Jets.at(itopJetCand).Phi(),weight*btagSF*toptagSF);
+      h_ak8jetY1t1b->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight*btagSF*toptagSF);
+      h_ak8jetMass1t1b->Fill(ak8Jets.at(itopJetCand).M(),weight*btagSF*toptagSF);
+      //h_ak8jetMassPruned1t1b->Fill(ak8jetMassPruned->at(itopJetCand),weight*btagSF*toptagSF);
+      //h_ak8jetMassFiltered1t1b->Fill(ak8jetMassFiltered->at(itopJetCand),weight*btagSF*toptagSF);
+      //h_ak8jetMassTrimmed1t1b->Fill(ak8jetMassTrimmed->at(itopJetCand),weight*btagSF*toptagSF);
+      //h_ak8jetTau11t1b->Fill(ak8jetTau1->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetTau21t1b->Fill(ak8jetTau2->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetTau31t1b->Fill(ak8jetTau3->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetTau321t1b->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight*btagSF*toptagSF);
+      //h_ak8jetTau211t1b->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetCSV1t1b->Fill(ak8jetCSV->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetSDmass1t1b->Fill(ak8jetSDmass->at(itopJetCand),weight*btagSF*toptagSF);
+      /*
+      h_ak8jetSDsubjet0pt1t1b->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetSDsubjet0mass1t1b->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetSDsubjet0CSV1t1b->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetSDsubjet1pt1t1b->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetSDsubjet1mass1t1b->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight*btagSF*toptagSF);
+      h_ak8jetSDsubjet1CSV1t1b->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight*btagSF*toptagSF);
       if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
 	TLorentzVector P40;
 	TLorentzVector P41;
 	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
 	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
-	h_ak8jetSDm011t1b->Fill((P40+P41).M(),weight);
-	h_ak8jetSDsubjetMaxCSV1t1b->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight);
+	h_ak8jetSDm011t1b->Fill((P40+P41).M(),weight*btagSF*toptagSF);
+	h_ak8jetSDsubjetMaxCSV1t1b->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight*btagSF*toptagSF);
       }
-      h_lepPt1t1b->Fill(refLep.Perp(),weight);
-      h_lepEta1t1b->Fill(refLep.Eta(),weight);
-      h_lepAbsEta1t1b->Fill(abs(refLep.Eta()),weight);
-      h_lepPhi1t1b->Fill(refLep.Phi(),weight);
-      h_lepBJetdR1t1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
-      h_lepTJetdR1t1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
-      h_lepBJetPtRel1t1b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
-      h_lepMiniIso1t1b->Fill(refLepMiniIso,weight);
+      */
+      h_lepPt1t1b->Fill(refLep.Perp(),weight*btagSF*toptagSF);
+      h_lepEta1t1b->Fill(refLep.Eta(),weight*btagSF*toptagSF);
+      h_lepAbsEta1t1b->Fill(abs(refLep.Eta()),weight*btagSF*toptagSF);
+      h_lepPhi1t1b->Fill(refLep.Phi(),weight*btagSF*toptagSF);
+      h_lepBJetdR1t1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*btagSF*toptagSF);
+      h_lepTJetdR1t1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*btagSF*toptagSF);
+      h_lepBJetPtRel1t1b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight*btagSF*toptagSF);
+      h_lepMiniIso1t1b->Fill(refLepMiniIso,weight*btagSF*toptagSF);
       n1t1b += 1;
     }
 
-    // Fill 1t0b histograms
-    
-    else if (passTopTag) {
-      h_metPt1t0b->Fill(metPt->at(0),weight);
-      h_ht1t0b->Fill(ht->at(0),weight);
-      h_htLep1t0b->Fill(metPt->at(0)+refLep.Perp(),weight);
-      h_nAK4jet1t0b->Fill((int)ak4Jets.size(),weight);
-      h_nBjet1t0b->Fill(nLepJet,weight);
-      h_ak4jetPt1t0b->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
-      h_ak4jetEta1t0b->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
-      h_ak4jetPhi1t0b->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
-      h_ak4jetMass1t0b->Fill(ak4Jets.at(ibJetCand).M(),weight);
-      h_ak4jetCSV1t0b->Fill(ak4jetCSV->at(ibJetCand),weight);
-      h_ak4jetVtxMass1t0b->Fill(ak4jetVtxMass->at(ibJetCand),weight);
-      h_nAK8jet1t0b->Fill((int)ak8Jets.size(),weight);
-      h_nTjet1t0b->Fill(nHadJet,weight);
-      h_ak8jetPt1t0b->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
-      h_ak8jetEta1t0b->Fill(ak8Jets.at(itopJetCand).Eta(),weight);
-      h_ak8jetPhi1t0b->Fill(ak8Jets.at(itopJetCand).Phi(),weight);
-      h_ak8jetY1t0b->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight);
-      h_ak8jetMass1t0b->Fill(ak8Jets.at(itopJetCand).M(),weight);
-      h_ak8jetMassPruned1t0b->Fill(ak8jetMassPruned->at(itopJetCand),weight);
-      h_ak8jetMassFiltered1t0b->Fill(ak8jetMassFiltered->at(itopJetCand),weight);
-      h_ak8jetMassTrimmed1t0b->Fill(ak8jetMassTrimmed->at(itopJetCand),weight);
-      h_ak8jetTau11t0b->Fill(ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetTau21t0b->Fill(ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau31t0b->Fill(ak8jetTau3->at(itopJetCand),weight);
-      h_ak8jetTau321t0b->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau211t0b->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetCSV1t0b->Fill(ak8jetCSV->at(itopJetCand),weight);
-      h_ak8jetSDmass1t0b->Fill(ak8jetSDmass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0pt1t0b->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0mass1t0b->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0CSV1t0b->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1pt1t0b->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1mass1t0b->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1CSV1t0b->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight);
-      if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
-	TLorentzVector P40;
-	TLorentzVector P41;
-	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
-	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
-	h_ak8jetSDm011t0b->Fill((P40+P41).M(),weight);
-	h_ak8jetSDsubjetMaxCSV1t0b->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight);
-      }
-      h_lepPt1t0b->Fill(refLep.Perp(),weight);
-      h_lepEta1t0b->Fill(refLep.Eta(),weight);
-      h_lepAbsEta1t0b->Fill(abs(refLep.Eta()),weight);
-      h_lepPhi1t0b->Fill(refLep.Phi(),weight);
-      h_lepBJetdR1t0b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
-      h_lepTJetdR1t0b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
-      h_lepBJetPtRel1t0b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
-      h_lepMiniIso1t0b->Fill(refLepMiniIso,weight);
-      n1t0b += 1;
-    }
-
-    // ----------------------------
-    // Fill 0t1b histograms
-    // ----------------------------
-
-    else if (passBtag && regions == "count") {
-      h_metPt0t1b->Fill(metPt->at(0),weight);
-      h_ht0t1b->Fill(ht->at(0),weight);
-      h_htLep0t1b->Fill(metPt->at(0)+refLep.Perp(),weight);
-      h_nAK4jet0t1b->Fill((int)ak4Jets.size(),weight);
-      h_nBjet0t1b->Fill(nLepJet,weight);
-      h_ak4jetPt0t1b->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
-      h_ak4jetEta0t1b->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
-      h_ak4jetPhi0t1b->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
-      h_ak4jetMass0t1b->Fill(ak4Jets.at(ibJetCand).M(),weight);
-      h_ak4jetCSV0t1b->Fill(ak4jetCSV->at(ibJetCand),weight);
-      h_ak4jetVtxMass0t1b->Fill(ak4jetVtxMass->at(ibJetCand),weight);
-      h_nAK8jet0t1b->Fill((int)ak8Jets.size(),weight);
-      h_nTjet0t1b->Fill(nHadJet,weight);
-      h_ak8jetPt0t1b->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
-      h_ak8jetEta0t1b->Fill(ak8Jets.at(itopJetCand).Eta(),weight);
-      h_ak8jetPhi0t1b->Fill(ak8Jets.at(itopJetCand).Phi(),weight);
-      h_ak8jetY0t1b->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight);
-      h_ak8jetMass0t1b->Fill(ak8Jets.at(itopJetCand).M(),weight);
-      h_ak8jetMassPruned0t1b->Fill(ak8jetMassPruned->at(itopJetCand),weight);
-      h_ak8jetMassFiltered0t1b->Fill(ak8jetMassFiltered->at(itopJetCand),weight);
-      h_ak8jetMassTrimmed0t1b->Fill(ak8jetMassTrimmed->at(itopJetCand),weight);
-      h_ak8jetTau10t1b->Fill(ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetTau20t1b->Fill(ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau30t1b->Fill(ak8jetTau3->at(itopJetCand),weight);
-      h_ak8jetTau320t1b->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau210t1b->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetCSV0t1b->Fill(ak8jetCSV->at(itopJetCand),weight);
-      h_ak8jetSDmass0t1b->Fill(ak8jetSDmass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0pt0t1b->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0mass0t1b->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0CSV0t1b->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1pt0t1b->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1mass0t1b->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1CSV0t1b->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight);
-      if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
-	TLorentzVector P40;
-	TLorentzVector P41;
-	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
-	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
-	h_ak8jetSDm010t1b->Fill((P40+P41).M(),weight);
-	h_ak8jetSDsubjetMaxCSV0t1b->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight);
-      }
-      h_lepPt0t1b->Fill(refLep.Perp(),weight);
-      h_lepEta0t1b->Fill(refLep.Eta(),weight);
-      h_lepAbsEta0t1b->Fill(abs(refLep.Eta()),weight);
-      h_lepPhi0t1b->Fill(refLep.Phi(),weight);
-      h_lepBJetdR0t1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
-      h_lepTJetdR0t1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
-      h_lepBJetPtRel0t1b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
-      h_lepMiniIso0t1b->Fill(refLepMiniIso,weight);
-      n0t1b += 1;
-    }
-    
-    // ----------------------------
-    // Fill 0t0b histograms
-    // ----------------------------
-    
-    else if (regions == "count") {
-      h_metPt0t0b->Fill(metPt->at(0),weight);
-      h_ht0t0b->Fill(ht->at(0),weight);
-      h_htLep0t0b->Fill(metPt->at(0)+refLep.Perp(),weight);
-      h_nAK4jet0t0b->Fill((int)ak4Jets.size(),weight);
-      h_nBjet0t0b->Fill(nLepJet,weight);
-      h_ak4jetPt0t0b->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
-      h_ak4jetEta0t0b->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
-      h_ak4jetPhi0t0b->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
-      h_ak4jetMass0t0b->Fill(ak4Jets.at(ibJetCand).M(),weight);
-      h_ak4jetCSV0t0b->Fill(ak4jetCSV->at(ibJetCand),weight);
-      h_ak4jetVtxMass0t0b->Fill(ak4jetVtxMass->at(ibJetCand),weight);
-      h_nAK8jet0t0b->Fill((int)ak8Jets.size(),weight);
-      h_nTjet0t0b->Fill(nHadJet,weight);
-      h_ak8jetPt0t0b->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
-      h_ak8jetEta0t0b->Fill(ak8Jets.at(itopJetCand).Eta(),weight);
-      h_ak8jetPhi0t0b->Fill(ak8Jets.at(itopJetCand).Phi(),weight);
-      h_ak8jetY0t0b->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight);
-      h_ak8jetMass0t0b->Fill(ak8Jets.at(itopJetCand).M(),weight);
-      h_ak8jetMassPruned0t0b->Fill(ak8jetMassPruned->at(itopJetCand),weight);
-      h_ak8jetMassFiltered0t0b->Fill(ak8jetMassFiltered->at(itopJetCand),weight);
-      h_ak8jetMassTrimmed0t0b->Fill(ak8jetMassTrimmed->at(itopJetCand),weight);
-      h_ak8jetTau10t0b->Fill(ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetTau20t0b->Fill(ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau30t0b->Fill(ak8jetTau3->at(itopJetCand),weight);
-      h_ak8jetTau320t0b->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau210t0b->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetCSV0t0b->Fill(ak8jetCSV->at(itopJetCand),weight);
-      h_ak8jetSDmass0t0b->Fill(ak8jetSDmass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0pt0t0b->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0mass0t0b->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0CSV0t0b->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1pt0t0b->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1mass0t0b->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1CSV0t0b->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight);
-      if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
-	TLorentzVector P40;
-	TLorentzVector P41;
-	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
-	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
-	h_ak8jetSDm010t0b->Fill((P40+P41).M(),weight);
-	h_ak8jetSDsubjetMaxCSV0t0b->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight);
-      }
-      h_lepPt0t0b->Fill(refLep.Perp(),weight);
-      h_lepEta0t0b->Fill(refLep.Eta(),weight);
-      h_lepAbsEta0t0b->Fill(abs(refLep.Eta()),weight);
-      h_lepPhi0t0b->Fill(refLep.Phi(),weight);
-      h_lepBJetdR0t0b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
-      h_lepTJetdR0t0b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
-      h_lepBJetPtRel0t0b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
-      h_lepMiniIso0t0b->Fill(refLepMiniIso,weight);
-      n0t0b += 1;
-    }
-    
-    else {
-      h_metPt0t->Fill(metPt->at(0),weight);
-      h_ht0t->Fill(ht->at(0),weight);
-      h_htLep0t->Fill(metPt->at(0)+refLep.Perp(),weight);
-      h_nAK4jet0t->Fill((int)ak4Jets.size(),weight);
-      h_nBjet0t->Fill(nLepJet,weight);
-      h_ak4jetPt0t->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
-      h_ak4jetEta0t->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
-      h_ak4jetPhi0t->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
-      h_ak4jetMass0t->Fill(ak4Jets.at(ibJetCand).M(),weight);
-      h_ak4jetCSV0t->Fill(ak4jetCSV->at(ibJetCand),weight);
-      h_ak4jetVtxMass0t->Fill(ak4jetVtxMass->at(ibJetCand),weight);
-      h_nAK8jet0t->Fill((int)ak8Jets.size(),weight);
-      h_nTjet0t->Fill(nHadJet,weight);
-      h_ak8jetPt0t->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
-      h_ak8jetEta0t->Fill(ak8Jets.at(itopJetCand).Eta(),weight);
-      h_ak8jetPhi0t->Fill(ak8Jets.at(itopJetCand).Phi(),weight);
-      h_ak8jetY0t->Fill(ak8Jets.at(itopJetCand).Rapidity(),weight);
-      h_ak8jetMass0t->Fill(ak8Jets.at(itopJetCand).M(),weight);
-      h_ak8jetMassPruned0t->Fill(ak8jetMassPruned->at(itopJetCand),weight);
-      h_ak8jetMassFiltered0t->Fill(ak8jetMassFiltered->at(itopJetCand),weight);
-      h_ak8jetMassTrimmed0t->Fill(ak8jetMassTrimmed->at(itopJetCand),weight);
-      h_ak8jetTau10t->Fill(ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetTau20t->Fill(ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau30t->Fill(ak8jetTau3->at(itopJetCand),weight);
-      h_ak8jetTau320t->Fill(ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand),weight);
-      h_ak8jetTau210t->Fill(ak8jetTau2->at(itopJetCand) / ak8jetTau1->at(itopJetCand),weight);
-      h_ak8jetCSV0t->Fill(ak8jetCSV->at(itopJetCand),weight);
-      h_ak8jetSDmass0t->Fill(ak8jetSDmass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0pt0t->Fill(ak8jetSDsubjet0pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0mass0t->Fill(ak8jetSDsubjet0mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet0CSV0t->Fill(ak8jetSDsubjet0CSV->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1pt0t->Fill(ak8jetSDsubjet1pt->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1mass0t->Fill(ak8jetSDsubjet1mass->at(itopJetCand),weight);
-      h_ak8jetSDsubjet1CSV0t->Fill(ak8jetSDsubjet1CSV->at(itopJetCand),weight);
-      if (ak8jetSDsubjet0pt->at(itopJetCand) >= 0.0 && ak8jetSDsubjet1pt->at(itopJetCand) >= 0.0){ //two valid subjets
-	TLorentzVector P40;
-	TLorentzVector P41;
-	P40.SetPtEtaPhiM(ak8jetSDsubjet0pt->at(itopJetCand),ak8jetSDsubjet0eta->at(itopJetCand),ak8jetSDsubjet0phi->at(itopJetCand),ak8jetSDsubjet0mass->at(itopJetCand));
-	P41.SetPtEtaPhiM(ak8jetSDsubjet1pt->at(itopJetCand),ak8jetSDsubjet1eta->at(itopJetCand),ak8jetSDsubjet1phi->at(itopJetCand),ak8jetSDsubjet1mass->at(itopJetCand));
-	h_ak8jetSDm010t->Fill((P40+P41).M(),weight);
-	h_ak8jetSDsubjetMaxCSV0t->Fill(max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)),weight);
-      }
-      h_lepPt0t->Fill(refLep.Perp(),weight);
-      h_lepEta0t->Fill(refLep.Eta(),weight);
-      h_lepAbsEta0t->Fill(abs(refLep.Eta()),weight);
-      h_lepPhi0t->Fill(refLep.Phi(),weight);
-      h_lepBJetdR0t->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
-      h_lepTJetdR0t->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
-      h_lepBJetPtRel0t->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
-      h_lepMiniIso0t->Fill(refLepMiniIso,weight);
-      n0t += 1;
-    }
   } // end of event loop
   // ----------------------------------------------------------------------------------------------------------------
 
@@ -1722,22 +1633,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   cout << "Finished looping over events!" << endl;
   cout << "For sample " << sample << " : " << endl;
   cout << nevt      << " events in tree" << endl;
-  if (isSignal) cout << passSemiLep << " events in channel" << endl;
+  if (isSignal) cout << nPassSemiLep << " events in channel" << endl;
   cout << endl;
   cout << passStep1 << " events with ==1 lepton" << endl;
   cout << passStep2 << " events with >=2 jets" << endl;
   cout << passStep3 << " events with >=1 leptonic jet" << endl;
   cout << passStep4 << " events with >=1 hadronic jet" << endl;
   cout << passStep5 << " events pass MET cut" << endl;
-  if (!isData){
-    if (regions == "count"){
-      cout << n0t0b       << " events in 0t0b region" << endl;
-      cout << n0t1b     << " events in 0t1b region" << endl;
-    }
-    else cout << n0t       << " events in 0t region" << endl;
-    cout << n1t0b     << " events in 1t0b region" << endl;
-    cout << n1t1b     << " events in 1t1b region" << endl;
-  }
+  cout << endl;
+  cout << n1b       << " events in 1b region" << endl;
+  cout << n1t       << " events in 1t region" << endl;
+  cout << n1t1b     << " events in 1t1b region" << endl;
   cout << endl;
   cout << "B-tagging stats:" << endl;
   cout << passStep5 << " b-jet candidates" << endl;
@@ -1759,13 +1665,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   if (sample.Contains("Data")) outname = sample;
   if (!isData) outname = outname + "_" + systematic;
   if (isQCD) outname = outname + "_qcd";
+  if (oddOrEven == 1) outname = outname + "_odd";
+  if (oddOrEven == 2) outname = outname + "_even";
   TFile* fout = new TFile(OUTDIR + "/hists_"+outname+".root","recreate");
 
   // -------------------------------------------------------------------------------------------
   // * * * * * * D R A W   A N D   S A V E   P L O T S * * * * * * 
   // -------------------------------------------------------------------------------------------
 
-  /*
+
   if (isSignal){
     h_genTopPt->Write();
     h_genTopEta->Write();
@@ -1775,6 +1683,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_genLepEta->Write();
     h_genLepPhi->Write();
     
+    h_ptGenTop->Write();
+    response.Write();
+
+    /*
     h_genAK4jetPt->Write();
     h_genAK4jetEta->Write();
     h_genAK4jetPhi->Write();
@@ -1788,8 +1700,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_partLepPt->Write();
     h_partLepEta->Write();
     h_partLepPhi->Write();
+    */
   }
-  */
+
+  h_ptRecoTop->Write();
 
   h_metPtPre->Write();
   h_htPre->Write();
@@ -1809,16 +1723,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetPhiPre->Write();
   h_ak8jetYPre->Write();
   h_ak8jetMassPre->Write();
-  h_ak8jetMassPrunedPre->Write();
-  h_ak8jetMassFilteredPre->Write();
-  h_ak8jetMassTrimmedPre->Write();
-  h_ak8jetTau1Pre->Write();
+  //h_ak8jetMassPrunedPre->Write();
+  //h_ak8jetMassFilteredPre->Write();
+  //h_ak8jetMassTrimmedPre->Write();
+  //h_ak8jetTau1Pre->Write();
   h_ak8jetTau2Pre->Write();
   h_ak8jetTau3Pre->Write();
   h_ak8jetTau32Pre->Write();
-  h_ak8jetTau21Pre->Write();
+  //h_ak8jetTau21Pre->Write();
   h_ak8jetCSVPre->Write();
   h_ak8jetSDmassPre->Write();
+  /*
   h_ak8jetSDsubjet0ptPre->Write();
   h_ak8jetSDsubjet0massPre->Write();
   h_ak8jetSDsubjet0CSVPre->Write();
@@ -1827,6 +1742,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetSDsubjet1CSVPre->Write();
   h_ak8jetSDsubjetMaxCSVPre->Write();
   h_ak8jetSDm01Pre->Write();
+  */
   h_lepPtPre->Write();
   h_lepEtaPre->Write();
   h_lepAbsEtaPre->Write();
@@ -1838,201 +1754,106 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_leadLepPtPre->Write();
 
   // ------------
-  // 0t0b
+  // 1b
   // ------------
 
-  if (regions == "count"){
-    h_metPt0t0b->Write();
-    h_ht0t0b->Write();
-    h_htLep0t0b->Write();
-    h_nAK4jet0t0b->Write();
-    h_nBjet0t0b->Write();
-    h_ak4jetPt0t0b->Write();
-    h_ak4jetEta0t0b->Write();
-    h_ak4jetPhi0t0b->Write();
-    h_ak4jetMass0t0b->Write();
-    h_ak4jetCSV0t0b->Write();
-    h_ak4jetVtxMass0t0b->Write();
-    h_nAK8jet0t0b->Write();
-    h_nTjet0t0b->Write();
-    h_ak8jetPt0t0b->Write();
-    h_ak8jetEta0t0b->Write();
-    h_ak8jetPhi0t0b->Write();
-    h_ak8jetY0t0b->Write();
-    h_ak8jetMass0t0b->Write();
-    h_ak8jetMassPruned0t0b->Write();
-    h_ak8jetMassFiltered0t0b->Write();
-    h_ak8jetMassTrimmed0t0b->Write();
-    h_ak8jetTau10t0b->Write();
-    h_ak8jetTau20t0b->Write();
-    h_ak8jetTau30t0b->Write();
-    h_ak8jetTau320t0b->Write();
-    h_ak8jetTau210t0b->Write();
-    h_ak8jetCSV0t0b->Write();
-    h_ak8jetSDmass0t0b->Write();
-    h_ak8jetSDsubjet0pt0t0b->Write();
-    h_ak8jetSDsubjet0mass0t0b->Write();
-    h_ak8jetSDsubjet0CSV0t0b->Write();
-    h_ak8jetSDsubjet1pt0t0b->Write();
-    h_ak8jetSDsubjet1mass0t0b->Write();
-    h_ak8jetSDsubjet1CSV0t0b->Write();
-    h_ak8jetSDsubjetMaxCSV0t0b->Write();
-    h_ak8jetSDm010t0b->Write();
-    h_lepPt0t0b->Write();
-    h_lepEta0t0b->Write();
-    h_lepAbsEta0t0b->Write();
-    h_lepPhi0t0b->Write();
-    h_lepBJetdR0t0b->Write();
-    h_lepTJetdR0t0b->Write();
-    h_lepBJetPtRel0t0b->Write();
-    h_lepMiniIso0t0b->Write();
+  h_metPt1b->Write();
+  h_ht1b->Write();
+  h_htLep1b->Write();
+  h_nAK4jet1b->Write();
+  h_nBjet1b->Write();
+  h_ak4jetPt1b->Write();
+  h_ak4jetEta1b->Write();
+  h_ak4jetPhi1b->Write();
+  h_ak4jetMass1b->Write();
+  h_ak4jetCSV1b->Write();
+  h_ak4jetVtxMass1b->Write();
+  h_nAK8jet1b->Write();
+  h_nTjet1b->Write();
+  h_ak8jetPt1b->Write();
+  h_ak8jetEta1b->Write();
+  h_ak8jetPhi1b->Write();
+  h_ak8jetY1b->Write();
+  h_ak8jetMass1b->Write();
+  //h_ak8jetMassPruned1b->Write();
+  //h_ak8jetMassFiltered1b->Write();
+  //h_ak8jetMassTrimmed1b->Write();
+  //h_ak8jetTau11b->Write();
+  h_ak8jetTau21b->Write();
+  h_ak8jetTau31b->Write();
+  h_ak8jetTau321b->Write();
+  //h_ak8jetTau211b->Write();
+  h_ak8jetCSV1b->Write();
+  h_ak8jetSDmass1b->Write();
+  /*
+  h_ak8jetSDsubjet0pt1b->Write();
+  h_ak8jetSDsubjet0mass1b->Write();
+  h_ak8jetSDsubjet0CSV1b->Write();
+  h_ak8jetSDsubjet1pt1b->Write();
+  h_ak8jetSDsubjet1mass1b->Write();
+  h_ak8jetSDsubjet1CSV1b->Write();
+  h_ak8jetSDsubjetMaxCSV1b->Write();
+  h_ak8jetSDm011b->Write();
+  */
+  h_lepPt1b->Write();
+  h_lepEta1b->Write();
+  h_lepAbsEta1b->Write();
+  h_lepPhi1b->Write();
+  h_lepBJetdR1b->Write();
+  h_lepTJetdR1b->Write();
+  h_lepBJetPtRel1b->Write();
+  h_lepMiniIso1b->Write();
     
-    // ------------
-    // 0t1b
-    // ------------
-    
-    h_metPt0t1b->Write();
-    h_ht0t1b->Write();
-    h_htLep0t1b->Write();
-    h_nAK4jet0t1b->Write();
-    h_nBjet0t1b->Write();
-    h_ak4jetPt0t1b->Write();
-    h_ak4jetEta0t1b->Write();
-    h_ak4jetPhi0t1b->Write();
-    h_ak4jetMass0t1b->Write();
-    h_ak4jetCSV0t1b->Write();
-    h_ak4jetVtxMass0t1b->Write();
-    h_nAK8jet0t1b->Write();
-    h_nTjet0t1b->Write();
-    h_ak8jetPt0t1b->Write();
-    h_ak8jetEta0t1b->Write();
-    h_ak8jetPhi0t1b->Write();
-    h_ak8jetY0t1b->Write();
-    h_ak8jetMass0t1b->Write();
-    h_ak8jetMassPruned0t1b->Write();
-    h_ak8jetMassFiltered0t1b->Write();
-    h_ak8jetMassTrimmed0t1b->Write();
-    h_ak8jetTau10t1b->Write();
-    h_ak8jetTau20t1b->Write();
-    h_ak8jetTau30t1b->Write();
-    h_ak8jetTau320t1b->Write();
-    h_ak8jetTau210t1b->Write();
-    h_ak8jetCSV0t1b->Write();
-    h_ak8jetSDmass0t1b->Write();
-    h_ak8jetSDsubjet0pt0t1b->Write();
-    h_ak8jetSDsubjet0mass0t1b->Write();
-    h_ak8jetSDsubjet0CSV0t1b->Write();
-    h_ak8jetSDsubjet1pt0t1b->Write();
-    h_ak8jetSDsubjet1mass0t1b->Write();
-    h_ak8jetSDsubjet1CSV0t1b->Write();
-    h_ak8jetSDsubjetMaxCSV0t1b->Write();
-    h_ak8jetSDm010t1b->Write();
-    h_lepPt0t1b->Write();
-    h_lepEta0t1b->Write();
-    h_lepAbsEta0t1b->Write();
-    h_lepPhi0t1b->Write();
-    h_lepBJetdR0t1b->Write();
-    h_lepTJetdR0t1b->Write();
-    h_lepBJetPtRel0t1b->Write();
-    h_lepMiniIso0t1b->Write();
-  }
-
-  else {
-    // 0t
-    h_metPt0t->Write();
-    h_ht0t->Write();
-    h_htLep0t->Write();
-    h_nAK4jet0t->Write();
-    h_nBjet0t->Write();
-    h_ak4jetPt0t->Write();
-    h_ak4jetEta0t->Write();
-    h_ak4jetPhi0t->Write();
-    h_ak4jetMass0t->Write();
-    h_ak4jetCSV0t->Write();
-    h_ak4jetVtxMass0t->Write();
-    h_nAK8jet0t->Write();
-    h_nTjet0t->Write();
-    h_ak8jetPt0t->Write();
-    h_ak8jetEta0t->Write();
-    h_ak8jetPhi0t->Write();
-    h_ak8jetY0t->Write();
-    h_ak8jetMass0t->Write();
-    h_ak8jetMassPruned0t->Write();
-    h_ak8jetMassFiltered0t->Write();
-    h_ak8jetMassTrimmed0t->Write();
-    h_ak8jetTau10t->Write();
-    h_ak8jetTau20t->Write();
-    h_ak8jetTau30t->Write();
-    h_ak8jetTau320t->Write();
-    h_ak8jetTau210t->Write();
-    h_ak8jetCSV0t->Write();
-    h_ak8jetSDmass0t->Write();
-    h_ak8jetSDsubjet0pt0t->Write();
-    h_ak8jetSDsubjet0mass0t->Write();
-    h_ak8jetSDsubjet0CSV0t->Write();
-    h_ak8jetSDsubjet1pt0t->Write();
-    h_ak8jetSDsubjet1mass0t->Write();
-    h_ak8jetSDsubjet1CSV0t->Write();
-    h_ak8jetSDsubjetMaxCSV0t->Write();
-    h_ak8jetSDm010t->Write();
-    h_lepPt0t->Write();
-    h_lepEta0t->Write();
-    h_lepAbsEta0t->Write();
-    h_lepPhi0t->Write();
-    h_lepBJetdR0t->Write();
-    h_lepTJetdR0t->Write();
-    h_lepBJetPtRel0t->Write();
-    h_lepMiniIso0t->Write();
-  }
-  
   // ------------
-  // 1t0b
+  // 1t
   // ------------
   
-  h_metPt1t0b->Write();
-  h_ht1t0b->Write();
-  h_htLep1t0b->Write();
-  h_nAK4jet1t0b->Write();
-  h_nBjet1t0b->Write();
-  h_ak4jetPt1t0b->Write();
-  h_ak4jetEta1t0b->Write();
-  h_ak4jetPhi1t0b->Write();
-  h_ak4jetMass1t0b->Write();
-  h_ak4jetCSV1t0b->Write();
-  h_ak4jetVtxMass1t0b->Write();
-  h_nAK8jet1t0b->Write();
-  h_nTjet1t0b->Write();
-  h_ak8jetPt1t0b->Write();
-  h_ak8jetEta1t0b->Write();
-  h_ak8jetPhi1t0b->Write();
-  h_ak8jetY1t0b->Write();
-  h_ak8jetMass1t0b->Write();
-  h_ak8jetMassPruned1t0b->Write();
-  h_ak8jetMassFiltered1t0b->Write();
-  h_ak8jetMassTrimmed1t0b->Write();
-  h_ak8jetTau11t0b->Write();
-  h_ak8jetTau21t0b->Write();
-  h_ak8jetTau31t0b->Write();
-  h_ak8jetTau321t0b->Write();
-  h_ak8jetTau211t0b->Write();
-  h_ak8jetCSV1t0b->Write();
-  h_ak8jetSDmass1t0b->Write();
-  h_ak8jetSDsubjet0pt1t0b->Write();
-  h_ak8jetSDsubjet0mass1t0b->Write();
-  h_ak8jetSDsubjet0CSV1t0b->Write();
-  h_ak8jetSDsubjet1pt1t0b->Write();
-  h_ak8jetSDsubjet1mass1t0b->Write();
-  h_ak8jetSDsubjet1CSV1t0b->Write();
-  h_ak8jetSDsubjetMaxCSV1t0b->Write();
-  h_ak8jetSDm011t0b->Write();
-  h_lepPt1t0b->Write();
-  h_lepEta1t0b->Write();
-  h_lepAbsEta1t0b->Write();
-  h_lepPhi1t0b->Write();
-  h_lepBJetdR1t0b->Write();
-  h_lepTJetdR1t0b->Write();
-  h_lepBJetPtRel1t0b->Write();
-  h_lepMiniIso1t0b->Write();
+  h_metPt1t->Write();
+  h_ht1t->Write();
+  h_htLep1t->Write();
+  h_nAK4jet1t->Write();
+  h_nBjet1t->Write();
+  h_ak4jetPt1t->Write();
+  h_ak4jetEta1t->Write();
+  h_ak4jetPhi1t->Write();
+  h_ak4jetMass1t->Write();
+  h_ak4jetCSV1t->Write();
+  h_ak4jetVtxMass1t->Write();
+  h_nAK8jet1t->Write();
+  h_nTjet1t->Write();
+  h_ak8jetPt1t->Write();
+  h_ak8jetEta1t->Write();
+  h_ak8jetPhi1t->Write();
+  h_ak8jetY1t->Write();
+  h_ak8jetMass1t->Write();
+  //h_ak8jetMassPruned1t->Write();
+  //h_ak8jetMassFiltered1t->Write();
+  //h_ak8jetMassTrimmed1t->Write();
+  //h_ak8jetTau11t->Write();
+  h_ak8jetTau21t->Write();
+  h_ak8jetTau31t->Write();
+  h_ak8jetTau321t->Write();
+  //h_ak8jetTau211t->Write();
+  h_ak8jetCSV1t->Write();
+  h_ak8jetSDmass1t->Write();
+  /*
+  h_ak8jetSDsubjet0pt1t->Write();
+  h_ak8jetSDsubjet0mass1t->Write();
+  h_ak8jetSDsubjet0CSV1t->Write();
+  h_ak8jetSDsubjet1pt1t->Write();
+  h_ak8jetSDsubjet1mass1t->Write();
+  h_ak8jetSDsubjet1CSV1t->Write();
+  h_ak8jetSDsubjetMaxCSV1t->Write();
+  h_ak8jetSDm011t->Write();
+  */
+  h_lepPt1t->Write();
+  h_lepEta1t->Write();
+  h_lepAbsEta1t->Write();
+  h_lepPhi1t->Write();
+  h_lepBJetdR1t->Write();
+  h_lepTJetdR1t->Write();
+  h_lepBJetPtRel1t->Write();
+  h_lepMiniIso1t->Write();
 
   /////////////
   // 1t1b
@@ -2056,17 +1877,18 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetPhi1t1b->Write();
   h_ak8jetY1t1b->Write();
   h_ak8jetMass1t1b->Write();
-  h_ak8jetMassPruned1t1b->Write();
-  h_ak8jetMassFiltered1t1b->Write();
-  h_ak8jetMassTrimmed1t1b->Write();
-  h_ak8jetTau11t1b->Write();
+  //h_ak8jetMassPruned1t1b->Write();
+  //h_ak8jetMassFiltered1t1b->Write();
+  //h_ak8jetMassTrimmed1t1b->Write();
+  //h_ak8jetTau11t1b->Write();
   h_ak8jetTau21t1b->Write();
   h_ak8jetTau31t1b->Write();
   h_ak8jetTau321t1b->Write();
-  h_ak8jetTau211t1b->Write();
+  //h_ak8jetTau211t1b->Write();
   h_ak8jetCSV1t1b->Write();
   h_ak8jetSDmass1t1b->Write();
-  h_ak8jetSDsubjet0pt1t1b->Write();
+  /*
+    h_ak8jetSDsubjet0pt1t1b->Write();
   h_ak8jetSDsubjet0mass1t1b->Write();
   h_ak8jetSDsubjet0CSV1t1b->Write();
   h_ak8jetSDsubjet1pt1t1b->Write();
@@ -2074,6 +1896,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetSDsubjet1CSV1t1b->Write();
   h_ak8jetSDsubjetMaxCSV1t1b->Write();
   h_ak8jetSDm011t1b->Write();
+  */
   h_lepPt1t1b->Write();
   h_lepEta1t1b->Write();
   h_lepAbsEta1t1b->Write();
@@ -2093,12 +1916,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   
   h_2DisoScanPoints->Write();
   h_MiniIsoScanPoints->Write();
-  
+
   fout->Close();
   delete fout;
 
   // Do cleanup (messy, but can't see another option currently)
-  /*
+
   h_genTopPt->Delete();
   h_genTopEta->Delete();
   h_genTopPhi->Delete();
@@ -2106,7 +1929,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_genLepEta->Delete();
   h_genLepPhi->Delete();
   h_genTTbarMass->Delete();
-    
+
+  h_ptGenTop->Delete();
+  h_ptRecoTop->Delete();
+  response.Delete();
+
+  /*
   h_ngenAK4jet->Delete();
   h_genAK4jetPt->Delete();
   h_genAK4jetEta->Delete();
@@ -2120,7 +1948,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_partLepPt->Delete();
   h_partLepEta->Delete();
   h_partLepPhi->Delete();
-  */  
+  */
 
   h_metPtPre                ->Delete();
   h_htPre                   ->Delete();
@@ -2140,16 +1968,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetPhiPre            ->Delete();
   h_ak8jetYPre              ->Delete();
   h_ak8jetMassPre           ->Delete();
-  h_ak8jetMassPrunedPre     ->Delete();
-  h_ak8jetMassFilteredPre   ->Delete();
-  h_ak8jetMassTrimmedPre    ->Delete();
-  h_ak8jetTau1Pre           ->Delete();
+  //h_ak8jetMassPrunedPre     ->Delete();
+  //h_ak8jetMassFilteredPre   ->Delete();
+  //h_ak8jetMassTrimmedPre    ->Delete();
+  //h_ak8jetTau1Pre           ->Delete();
   h_ak8jetTau2Pre           ->Delete();
   h_ak8jetTau3Pre           ->Delete();
   h_ak8jetTau32Pre          ->Delete();
-  h_ak8jetTau21Pre          ->Delete();
+  //h_ak8jetTau21Pre          ->Delete();
   h_ak8jetCSVPre            ->Delete();
   h_ak8jetSDmassPre         ->Delete();
+  /*
   h_ak8jetSDsubjet0ptPre    ->Delete();
   h_ak8jetSDsubjet0massPre  ->Delete();
   h_ak8jetSDsubjet0CSVPre   ->Delete();
@@ -2158,6 +1987,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetSDsubjet1CSVPre   ->Delete();
   h_ak8jetSDsubjetMaxCSVPre ->Delete();
   h_ak8jetSDm01Pre          ->Delete();
+  */
   h_lepPtPre                ->Delete();
   h_lepEtaPre               ->Delete();
   h_lepAbsEtaPre            ->Delete();
@@ -2169,189 +1999,101 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_lepMiniIsoPre           ->Delete();
   h_leadLepPtPre            ->Delete();
 
-  h_metPt0t0b                ->Delete();
-  h_ht0t0b                   ->Delete();
-  h_htLep0t0b                ->Delete();
-  h_nAK4jet0t0b              ->Delete();
-  h_nBjet0t0b                ->Delete();
-  h_ak4jetPt0t0b             ->Delete();
-  h_ak4jetEta0t0b            ->Delete();
-  h_ak4jetPhi0t0b            ->Delete();
-  h_ak4jetMass0t0b           ->Delete();
-  h_ak4jetCSV0t0b            ->Delete();
-  h_ak4jetVtxMass0t0b        ->Delete();
-  h_nAK8jet0t0b              ->Delete();
-  h_nTjet0t0b                ->Delete();
-  h_ak8jetPt0t0b             ->Delete();
-  h_ak8jetEta0t0b            ->Delete();
-  h_ak8jetPhi0t0b            ->Delete();
-  h_ak8jetY0t0b              ->Delete();
-  h_ak8jetMass0t0b           ->Delete();
-  h_ak8jetMassPruned0t0b     ->Delete();
-  h_ak8jetMassFiltered0t0b   ->Delete();
-  h_ak8jetMassTrimmed0t0b    ->Delete();
-  h_ak8jetTau10t0b           ->Delete();
-  h_ak8jetTau20t0b           ->Delete();
-  h_ak8jetTau30t0b           ->Delete();
-  h_ak8jetTau320t0b          ->Delete();
-  h_ak8jetTau210t0b          ->Delete();
-  h_ak8jetCSV0t0b            ->Delete();
-  h_ak8jetSDmass0t0b         ->Delete();
-  h_ak8jetSDsubjet0pt0t0b    ->Delete();
-  h_ak8jetSDsubjet0mass0t0b  ->Delete();
-  h_ak8jetSDsubjet0CSV0t0b   ->Delete();
-  h_ak8jetSDsubjet1pt0t0b    ->Delete();
-  h_ak8jetSDsubjet1mass0t0b  ->Delete();
-  h_ak8jetSDsubjet1CSV0t0b   ->Delete();
-  h_ak8jetSDsubjetMaxCSV0t0b ->Delete();
-  h_ak8jetSDm010t0b          ->Delete();
-  h_lepPt0t0b                ->Delete();
-  h_lepEta0t0b               ->Delete();
-  h_lepAbsEta0t0b            ->Delete();
-  h_lepSignEta0t0b           ->Delete();
-  h_lepPhi0t0b               ->Delete();
-  h_lepBJetdR0t0b            ->Delete();
-  h_lepTJetdR0t0b            ->Delete();
-  h_lepBJetPtRel0t0b         ->Delete();
-  h_lepMiniIso0t0b           ->Delete();
+  h_metPt1b                ->Delete();
+  h_ht1b                   ->Delete();
+  h_htLep1b                ->Delete();
+  h_nAK4jet1b              ->Delete();
+  h_nBjet1b                ->Delete();
+  h_ak4jetPt1b             ->Delete();
+  h_ak4jetEta1b            ->Delete();
+  h_ak4jetPhi1b            ->Delete();
+  h_ak4jetMass1b           ->Delete();
+  h_ak4jetCSV1b            ->Delete();
+  h_ak4jetVtxMass1b        ->Delete();
+  h_nAK8jet1b              ->Delete();
+  h_nTjet1b                ->Delete();
+  h_ak8jetPt1b             ->Delete();
+  h_ak8jetEta1b            ->Delete();
+  h_ak8jetPhi1b            ->Delete();
+  h_ak8jetY1b              ->Delete();
+  h_ak8jetMass1b           ->Delete();
+  //h_ak8jetMassPruned1b     ->Delete();
+  //h_ak8jetMassFiltered1b   ->Delete();
+  //h_ak8jetMassTrimmed1b    ->Delete();
+  //h_ak8jetTau11b           ->Delete();
+  h_ak8jetTau21b           ->Delete();
+  h_ak8jetTau31b           ->Delete();
+  h_ak8jetTau321b          ->Delete();
+  //h_ak8jetTau211b          ->Delete();
+  h_ak8jetCSV1b            ->Delete();
+  h_ak8jetSDmass1b         ->Delete();
+  /*
+  h_ak8jetSDsubjet0pt1b    ->Delete();
+  h_ak8jetSDsubjet0mass1b  ->Delete();
+  h_ak8jetSDsubjet0CSV1b   ->Delete();
+  h_ak8jetSDsubjet1pt1b    ->Delete();
+  h_ak8jetSDsubjet1mass1b  ->Delete();
+  h_ak8jetSDsubjet1CSV1b   ->Delete();
+  h_ak8jetSDsubjetMaxCSV1b ->Delete();
+  h_ak8jetSDm011b          ->Delete();
+  */  
+  h_lepPt1b                ->Delete();
+  h_lepEta1b               ->Delete();
+  h_lepAbsEta1b            ->Delete();
+  h_lepSignEta1b           ->Delete();
+  h_lepPhi1b               ->Delete();
+  h_lepBJetdR1b            ->Delete();
+  h_lepTJetdR1b            ->Delete();
+  h_lepBJetPtRel1b         ->Delete();
+  h_lepMiniIso1b           ->Delete();
 
-  h_metPt0t1b                ->Delete();
-  h_ht0t1b                   ->Delete();
-  h_htLep0t1b                ->Delete();
-  h_nAK4jet0t1b              ->Delete();
-  h_nBjet0t1b                ->Delete();
-  h_ak4jetPt0t1b             ->Delete();
-  h_ak4jetEta0t1b            ->Delete();
-  h_ak4jetPhi0t1b            ->Delete();
-  h_ak4jetMass0t1b           ->Delete();
-  h_ak4jetCSV0t1b            ->Delete();
-  h_ak4jetVtxMass0t1b        ->Delete();
-  h_nAK8jet0t1b              ->Delete();
-  h_nTjet0t1b                ->Delete();
-  h_ak8jetPt0t1b             ->Delete();
-  h_ak8jetEta0t1b            ->Delete();
-  h_ak8jetPhi0t1b            ->Delete();
-  h_ak8jetY0t1b              ->Delete();
-  h_ak8jetMass0t1b           ->Delete();
-  h_ak8jetMassPruned0t1b     ->Delete();
-  h_ak8jetMassFiltered0t1b   ->Delete();
-  h_ak8jetMassTrimmed0t1b    ->Delete();
-  h_ak8jetTau10t1b           ->Delete();
-  h_ak8jetTau20t1b           ->Delete();
-  h_ak8jetTau30t1b           ->Delete();
-  h_ak8jetTau320t1b          ->Delete();
-  h_ak8jetTau210t1b          ->Delete();
-  h_ak8jetCSV0t1b            ->Delete();
-  h_ak8jetSDmass0t1b         ->Delete();
-  h_ak8jetSDsubjet0pt0t1b    ->Delete();
-  h_ak8jetSDsubjet0mass0t1b  ->Delete();
-  h_ak8jetSDsubjet0CSV0t1b   ->Delete();
-  h_ak8jetSDsubjet1pt0t1b    ->Delete();
-  h_ak8jetSDsubjet1mass0t1b  ->Delete();
-  h_ak8jetSDsubjet1CSV0t1b   ->Delete();
-  h_ak8jetSDsubjetMaxCSV0t1b ->Delete();
-  h_ak8jetSDm010t1b          ->Delete();
-  h_lepPt0t1b                ->Delete();
-  h_lepEta0t1b               ->Delete();
-  h_lepAbsEta0t1b            ->Delete();
-  h_lepSignEta0t1b           ->Delete();
-  h_lepPhi0t1b               ->Delete();
-  h_lepBJetdR0t1b            ->Delete();
-  h_lepTJetdR0t1b            ->Delete();
-  h_lepBJetPtRel0t1b         ->Delete();
-  h_lepMiniIso0t1b           ->Delete();
-
-  h_metPt0t                ->Delete();
-  h_ht0t                   ->Delete();
-  h_htLep0t                ->Delete();
-  h_nAK4jet0t              ->Delete();
-  h_nBjet0t                ->Delete();
-  h_ak4jetPt0t             ->Delete();
-  h_ak4jetEta0t            ->Delete();
-  h_ak4jetPhi0t            ->Delete();
-  h_ak4jetMass0t           ->Delete();
-  h_ak4jetCSV0t            ->Delete();
-  h_ak4jetVtxMass0t        ->Delete();
-  h_nAK8jet0t              ->Delete();
-  h_nTjet0t                ->Delete();
-  h_ak8jetPt0t             ->Delete();
-  h_ak8jetEta0t            ->Delete();
-  h_ak8jetPhi0t            ->Delete();
-  h_ak8jetY0t              ->Delete();
-  h_ak8jetMass0t           ->Delete();
-  h_ak8jetMassPruned0t     ->Delete();
-  h_ak8jetMassFiltered0t   ->Delete();
-  h_ak8jetMassTrimmed0t    ->Delete();
-  h_ak8jetTau10t           ->Delete();
-  h_ak8jetTau20t           ->Delete();
-  h_ak8jetTau30t           ->Delete();
-  h_ak8jetTau320t          ->Delete();
-  h_ak8jetTau210t          ->Delete();
-  h_ak8jetCSV0t            ->Delete();
-  h_ak8jetSDmass0t         ->Delete();
-  h_ak8jetSDsubjet0pt0t    ->Delete();
-  h_ak8jetSDsubjet0mass0t  ->Delete();
-  h_ak8jetSDsubjet0CSV0t   ->Delete();
-  h_ak8jetSDsubjet1pt0t    ->Delete();
-  h_ak8jetSDsubjet1mass0t  ->Delete();
-  h_ak8jetSDsubjet1CSV0t   ->Delete();
-  h_ak8jetSDsubjetMaxCSV0t ->Delete();
-  h_ak8jetSDm010t          ->Delete();
-  h_lepPt0t                ->Delete();
-  h_lepEta0t               ->Delete();
-  h_lepAbsEta0t            ->Delete();
-  h_lepSignEta0t           ->Delete();
-  h_lepPhi0t               ->Delete();
-  h_lepBJetdR0t            ->Delete();
-  h_lepTJetdR0t            ->Delete();
-  h_lepBJetPtRel0t         ->Delete();
-  h_lepMiniIso0t           ->Delete();
-
-  h_metPt1t0b                ->Delete();
-  h_ht1t0b                   ->Delete();
-  h_htLep1t0b                ->Delete();
-  h_nAK4jet1t0b              ->Delete();
-  h_nBjet1t0b                ->Delete();
-  h_ak4jetPt1t0b             ->Delete();
-  h_ak4jetEta1t0b            ->Delete();
-  h_ak4jetPhi1t0b            ->Delete();
-  h_ak4jetMass1t0b           ->Delete();
-  h_ak4jetCSV1t0b            ->Delete();
-  h_ak4jetVtxMass1t0b        ->Delete();
-  h_nAK8jet1t0b              ->Delete();
-  h_nTjet1t0b                ->Delete();
-  h_ak8jetPt1t0b             ->Delete();
-  h_ak8jetEta1t0b            ->Delete();
-  h_ak8jetPhi1t0b            ->Delete();
-  h_ak8jetY1t0b              ->Delete();
-  h_ak8jetMass1t0b           ->Delete();
-  h_ak8jetMassPruned1t0b     ->Delete();
-  h_ak8jetMassFiltered1t0b   ->Delete();
-  h_ak8jetMassTrimmed1t0b    ->Delete();
-  h_ak8jetTau11t0b           ->Delete();
-  h_ak8jetTau21t0b           ->Delete();
-  h_ak8jetTau31t0b           ->Delete();
-  h_ak8jetTau321t0b          ->Delete();
-  h_ak8jetTau211t0b          ->Delete();
-  h_ak8jetCSV1t0b            ->Delete();
-  h_ak8jetSDmass1t0b         ->Delete();
-  h_ak8jetSDsubjet0pt1t0b    ->Delete();
-  h_ak8jetSDsubjet0mass1t0b  ->Delete();
-  h_ak8jetSDsubjet0CSV1t0b   ->Delete();
-  h_ak8jetSDsubjet1pt1t0b    ->Delete();
-  h_ak8jetSDsubjet1mass1t0b  ->Delete();
-  h_ak8jetSDsubjet1CSV1t0b   ->Delete();
-  h_ak8jetSDsubjetMaxCSV1t0b ->Delete();
-  h_ak8jetSDm011t0b          ->Delete();
-  h_lepPt1t0b                ->Delete();
-  h_lepEta1t0b               ->Delete();
-  h_lepAbsEta1t0b            ->Delete();
-  h_lepSignEta1t0b           ->Delete();
-  h_lepPhi1t0b               ->Delete();
-  h_lepBJetdR1t0b            ->Delete();
-  h_lepTJetdR1t0b            ->Delete();
-  h_lepBJetPtRel1t0b         ->Delete();
-  h_lepMiniIso1t0b           ->Delete();
+  h_metPt1t                ->Delete();
+  h_ht1t                   ->Delete();
+  h_htLep1t                ->Delete();
+  h_nAK4jet1t              ->Delete();
+  h_nBjet1t                ->Delete();
+  h_ak4jetPt1t             ->Delete();
+  h_ak4jetEta1t            ->Delete();
+  h_ak4jetPhi1t            ->Delete();
+  h_ak4jetMass1t           ->Delete();
+  h_ak4jetCSV1t            ->Delete();
+  h_ak4jetVtxMass1t        ->Delete();
+  h_nAK8jet1t              ->Delete();
+  h_nTjet1t                ->Delete();
+  h_ak8jetPt1t             ->Delete();
+  h_ak8jetEta1t            ->Delete();
+  h_ak8jetPhi1t            ->Delete();
+  h_ak8jetY1t              ->Delete();
+  h_ak8jetMass1t           ->Delete();
+  //h_ak8jetMassPruned1t     ->Delete();
+  //h_ak8jetMassFiltered1t   ->Delete();
+  //h_ak8jetMassTrimmed1t    ->Delete();
+  //h_ak8jetTau11t           ->Delete();
+  h_ak8jetTau21t           ->Delete();
+  h_ak8jetTau31t           ->Delete();
+  h_ak8jetTau321t          ->Delete();
+  //h_ak8jetTau211t          ->Delete();
+  h_ak8jetCSV1t            ->Delete();
+  h_ak8jetSDmass1t         ->Delete();
+  /*
+  h_ak8jetSDsubjet0pt1t    ->Delete();
+  h_ak8jetSDsubjet0mass1t  ->Delete();
+  h_ak8jetSDsubjet0CSV1t   ->Delete();
+  h_ak8jetSDsubjet1pt1t    ->Delete();
+  h_ak8jetSDsubjet1mass1t  ->Delete();
+  h_ak8jetSDsubjet1CSV1t   ->Delete();
+  h_ak8jetSDsubjetMaxCSV1t ->Delete();
+  h_ak8jetSDm011t          ->Delete();
+  */
+  h_lepPt1t                ->Delete();
+  h_lepEta1t               ->Delete();
+  h_lepAbsEta1t            ->Delete();
+  h_lepSignEta1t           ->Delete();
+  h_lepPhi1t               ->Delete();
+  h_lepBJetdR1t            ->Delete();
+  h_lepTJetdR1t            ->Delete();
+  h_lepBJetPtRel1t         ->Delete();
+  h_lepMiniIso1t           ->Delete();
 
   h_metPt1t1b                ->Delete();
   h_ht1t1b                   ->Delete();
@@ -2371,16 +2113,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetPhi1t1b            ->Delete();
   h_ak8jetY1t1b              ->Delete();
   h_ak8jetMass1t1b           ->Delete();
-  h_ak8jetMassPruned1t1b     ->Delete();
-  h_ak8jetMassFiltered1t1b   ->Delete();
-  h_ak8jetMassTrimmed1t1b    ->Delete();
-  h_ak8jetTau11t1b           ->Delete();
+  //h_ak8jetMassPruned1t1b     ->Delete();
+  //h_ak8jetMassFiltered1t1b   ->Delete();
+  //h_ak8jetMassTrimmed1t1b    ->Delete();
+  //h_ak8jetTau11t1b           ->Delete();
   h_ak8jetTau21t1b           ->Delete();
   h_ak8jetTau31t1b           ->Delete();
   h_ak8jetTau321t1b          ->Delete();
-  h_ak8jetTau211t1b          ->Delete();
+  //h_ak8jetTau211t1b          ->Delete();
   h_ak8jetCSV1t1b            ->Delete();
   h_ak8jetSDmass1t1b         ->Delete();
+  /*
   h_ak8jetSDsubjet0pt1t1b    ->Delete();
   h_ak8jetSDsubjet0mass1t1b  ->Delete();
   h_ak8jetSDsubjet0CSV1t1b   ->Delete();
@@ -2389,6 +2132,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ak8jetSDsubjet1CSV1t1b   ->Delete();
   h_ak8jetSDsubjetMaxCSV1t1b ->Delete();
   h_ak8jetSDm011t1b          ->Delete();
+  */
   h_lepPt1t1b                ->Delete();
   h_lepEta1t1b               ->Delete();
   h_lepAbsEta1t1b            ->Delete();

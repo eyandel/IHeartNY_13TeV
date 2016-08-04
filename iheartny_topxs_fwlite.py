@@ -23,6 +23,9 @@ MAX_JET_ETA = 2.4
 
 TOP_PT_CUT = 350.0
 
+MIN_TOP_MASS = 105.0
+MAX_TOP_MASS = 220.0
+
 # -------------------------------------------------------------------------------------
 # define input options
 # -------------------------------------------------------------------------------------
@@ -1301,7 +1304,7 @@ for event in events :
             # loop over AK8 gen jets
             if len(ak8GenJetPt) != 0:
                 for iak8 in xrange( len(ak8GenJetPt) ) :
-                    if ak8GenJetPt[iak8] > TOP_PT_CUT and abs(ak8GenJetEta[iak8]) < MAX_JET_ETA and ak8GenJetMass[iak8] > 140. and ak8GenJetMass[iak8] < 250.:
+                    if ak8GenJetPt[iak8] > TOP_PT_CUT and abs(ak8GenJetEta[iak8]) < MAX_JET_ETA and ak8GenJetMass[iak8] > MIN_TOP_MASS and ak8GenJetMass[iak8] < MAX_TOP_MASS:
                         p4 = ROOT.TLorentzVector()
                         p4.SetPtEtaPhiM( ak8GenJetPt[iak8], ak8GenJetEta[iak8], ak8GenJetPhi[iak8], ak8GenJetMass[iak8] )
                         genTops.append(p4)
