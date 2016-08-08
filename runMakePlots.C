@@ -123,7 +123,7 @@ void runMakePlots(TString toPlot = "final"){
       }
     }
 
-    cout << endl << "Finished maing shape comparisons!" << endl << endl;
+    cout << endl << "Finished making shape comparisons!" << endl << endl;
     
     makeCombineInputs("histfiles/","histfiles/","mu");
     //makeCombineInputs("histfiles/","histfiles/","el");
