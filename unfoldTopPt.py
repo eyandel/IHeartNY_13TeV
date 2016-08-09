@@ -34,6 +34,7 @@ parser.add_option('--lepType', metavar='F', type='string', action='store',
                   dest='lepType',
                   help='Lepton type (ele or muon)')
 
+
 # -------------------------------------------------------------------------------------
 # load options & set plot style
 # -------------------------------------------------------------------------------------
@@ -69,33 +70,35 @@ from ROOT import RooUnfoldResponse
 from ROOT import RooUnfold
 from ROOT import RooUnfoldBayes
 from ROOT import RooUnfoldSvd
-  
+
+
 # -------------------------------------------------------------------------------------
 # cross sections, efficiencies, total number of events
 # -------------------------------------------------------------------------------------
 
 # luminosity
-lum = 2689 #pb-1
+lum = 2.689 #fb-1
 
-PowhegPythia8_norm      = 831.76         * lum / 187626200.
-SingleTop_t_s_norm      = 3.36           * lum / 998400.
-SingleTop_t_t_norm      = 136.02         * lum / 64925700.
-SingleTop_tbar_t_norm   = 80.95          * lum / 38932192.
-SingleTop_t_tW_norm     = 35.9           * lum / 1000000.
-SingleTop_tbar_tW_norm  = 35.9           * lum / 999400.
-WJets_HT100to200_norm   = 1345.0 * 1.21  * lum / 10205377.
-WJets_HT200to400_norm   = 359.7 * 1.21   * lum / 4949568.
-WJets_HT400to600_norm   = 48.91 * 1.21   * lum / 1943664.
-WJets_HT600to800_norm   = 12.05 * 1.21   * lum / 3767766.
-WJets_HT800to1200_norm  = 5.501 * 1.21   * lum / 1568277.
-WJets_HT1200to2500_norm = 1.329 * 1.21   * lum / 246239.
-WJets_HT2500toInf_norm  = 0.03216 * 1.21 * lum / 251982.
+PowhegPythia8_norm      = 831.76         * 1000. * lum / 187626200.
+SingleTop_t_s_norm      = 3.36           * 1000. * lum / 998400.
+SingleTop_t_t_norm      = 136.02         * 1000. * lum / 64925700.
+SingleTop_tbar_t_norm   = 80.95          * 1000. * lum / 38932192.
+SingleTop_t_tW_norm     = 35.9           * 1000. * lum / 1000000.
+SingleTop_tbar_tW_norm  = 35.9           * 1000. * lum / 999400.
+WJets_HT100to200_norm   = 1345.0 * 1.21  * 1000. * lum / 10205377.
+WJets_HT200to400_norm   = 359.7 * 1.21   * 1000. * lum / 4949568.
+WJets_HT400to600_norm   = 48.91 * 1.21   * 1000. * lum / 1943664.
+WJets_HT600to800_norm   = 12.05 * 1.21   * 1000. * lum / 3767766.
+WJets_HT800to1200_norm  = 5.501 * 1.21   * 1000. * lum / 1568277.
+WJets_HT1200to2500_norm = 1.329 * 1.21   * 1000. * lum / 246239.
+WJets_HT2500toInf_norm  = 0.03216 * 1.21 * 1000. * lum / 251982.
 
 ## hack to account for that when doing closure test (unfold 1/2 sample with other 1/2), the ttbar sample is split in two 
 eff_closure = 1.0
 if options.closureTest == True :
     eff_closure = 2.0
 
+    
 # -------------------------------------------------------------------------------------
 #  read histogram files
 # -------------------------------------------------------------------------------------
@@ -111,17 +114,18 @@ else:
     print "UNFOLDING FOR MUON CHANNEL !!!" 
     print ""
     
-if options.lepType=="ele":
+if options.lepType=="ele" and not options.closureTest:
     f_data1 = TFile("histfiles/hists_Data_2015C_el.root")
     f_data2 = TFile("histfiles/hists_Data_2015D_el.root")
     f_QCD1  = TFile("histfiles/hists_Data_2015C_el_qcd.root")
     f_QCD2  = TFile("histfiles/hists_Data_2015D_el_qcd.root")
-else:
-    f_data1 = TFile("histfiles/hists_Data_2015C_el.root")
-    f_data2 = TFile("histfiles/hists_Data_2015D_el.root")
-    f_QCD1  = TFile("histfiles/hists_Data_2015C_el_qcd.root")
-    f_QCD2  = TFile("histfiles/hists_Data_2015D_el_qcd.root")
+elif not options.closureTest:
+    f_data1 = TFile("histfiles/hists_Data_2015C_mu.root")
+    f_data2 = TFile("histfiles/hists_Data_2015D_mu.root")
+    f_QCD1  = TFile("histfiles/hists_Data_2015C_mu_qcd.root")
+    f_QCD2  = TFile("histfiles/hists_Data_2015D_mu_qcd.root")
 
+    
 # In the below, file named f_..._odd will be the one from which response matrix is extracted from (if closureTest == True) 
 if options.closureTest == True : 
     f_ttbar     = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_even.root")
@@ -129,50 +133,52 @@ if options.closureTest == True :
 else :
     f_ttbar     = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+".root")
 
-f_ttbar_nonsemilep = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+".root")
+if not options.closureTest:
+    f_ttbar_nonsemilep = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+".root")
 
-f_T_t     = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom.root")
-f_Tbar_t  = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom.root")
-f_T_s     = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom.root")
-f_T_tW    = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom.root")
-f_Tbar_tW = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom.root")
+    f_T_t     = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom.root")
+    f_Tbar_t  = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom.root")
+    f_T_s     = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom.root")
+    f_T_tW    = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom.root")
+    f_Tbar_tW = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom.root")
+    
+    f_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom.root")
+    f_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom.root")
+    f_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom.root")
+    f_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom.root")
+    f_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom.root")
+    f_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom.root")
+    f_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom.root")
+    
+    f_qcd_ttbar              = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_qcd.root")
+    f_qcd_ttbar_nonsemilep   = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+"_qcd.root")
+    f_qcd_T_t                = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom_qcd.root")
+    f_qcd_Tbar_t             = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom_qcd.root")
+    f_qcd_T_s                = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom_qcd.root")
+    f_qcd_T_tW               = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom_qcd.root")
+    f_qcd_Tbar_tW            = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom_qcd.root")
+    f_qcd_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom_qcd.root")
+    f_qcd_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom_qcd.root")
+    f_qcd_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom_qcd.root")
+    f_qcd_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom_qcd.root")
+    f_qcd_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom_qcd.root")
+    f_qcd_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom_qcd.root")
+    f_qcd_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom_qcd.root")
 
-f_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom.root")
-f_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom.root")
-f_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom.root")
-f_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom.root")
-f_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom.root")
-f_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom.root")
-f_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom.root")
-
-f_qcd_ttbar              = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_qcd.root")
-f_qcd_ttbar_nonsemilep   = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+"_qcd.root")
-f_qcd_T_t                = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom_qcd.root")
-f_qcd_Tbar_t             = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom_qcd.root")
-f_qcd_T_s                = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom_qcd.root")
-f_qcd_T_tW               = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom_qcd.root")
-f_qcd_Tbar_tW            = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom_qcd.root")
-f_qcd_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom_qcd.root")
-f_qcd_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom_qcd.root")
-f_qcd_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom_qcd.root")
-f_qcd_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom_qcd.root")
-f_qcd_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom_qcd.root")
-f_qcd_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom_qcd.root")
-f_qcd_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom_qcd.root")
-
-# --------------------------
+    
+# -------------------------------------------------------------------------------------
 # Get response matrix
-# --------------------------
+# -------------------------------------------------------------------------------------
 
 if options.closureTest == True:
     response = f_ttbar_odd.Get("response_pt")
     response.SetName("response_pt_"+options.syst)
-
 else :
     response = f_ttbar.Get("response_pt")
     response.SetName("response_pt_"+options.syst)
 
 TH1.AddDirectory(0)
+
 
 # -------------------------------------------------------------------------------------
 # output file for storing histograms to  
@@ -187,13 +193,14 @@ if options.normalize:
 
 fout = TFile("UnfoldingPlots/unfold_pt_PowhegPythia8_"+options.syst+closureout+norm_flag+".root","recreate");
 
+
 # -------------------------------------------------------------------------------------
 # read actual histograms
 # -------------------------------------------------------------------------------------
 
 hTrue = f_ttbar.Get("ptGenTop")
 
-if options.closureTest == False: 
+if not options.closureTest: 
     hMeas1 = f_data1.Get("ptRecoTop")
     hMeas2 = f_data2.Get("ptRecoTop")
     hMeas1.Sumw2()
@@ -203,134 +210,143 @@ if options.closureTest == False:
 else :
     hMeas = f_ttbar.Get("ptRecoTop")
 
-hMeas_tt_nonsemi         = f_ttbar_nonsemilep.Get("ptRecoTop").Clone()
-hMeas_T_t                = f_T_t.Get("ptRecoTop")
-hMeas_Tbar_t             = f_Tbar_t.Get("ptRecoTop")
-hMeas_T_s                = f_T_s.Get("ptRecoTop")
-hMeas_T_tW               = f_T_tW.Get("ptRecoTop")
-hMeas_Tbar_tW            = f_Tbar_tW.Get("ptRecoTop")
-hMeas_WJets_HT100to200   = f_WJets_HT100to200.Get("ptRecoTop")
-hMeas_WJets_HT200to400   = f_WJets_HT200to400.Get("ptRecoTop")
-hMeas_WJets_HT400to600   = f_WJets_HT400to600.Get("ptRecoTop")
-hMeas_WJets_HT600to800   = f_WJets_HT600to800.Get("ptRecoTop")
-hMeas_WJets_HT800to1200  = f_WJets_HT800to1200.Get("ptRecoTop")
-hMeas_WJets_HT1200to2500 = f_WJets_HT1200to2500.Get("ptRecoTop")
-hMeas_WJets_HT2500toInf  = f_WJets_HT2500toInf.Get("ptRecoTop")
 
-hMeas_tt_nonsemi.Sumw2()
-hMeas_T_t.Sumw2()
-hMeas_Tbar_t.Sumw2()
-hMeas_T_s.Sumw2()
-hMeas_T_tW.Sumw2()
-hMeas_Tbar_tW.Sumw2()
-hMeas_WJets_HT100to200.Sumw2()
-hMeas_WJets_HT200to400.Sumw2()
-hMeas_WJets_HT400to600.Sumw2()
-hMeas_WJets_HT600to800.Sumw2()
-hMeas_WJets_HT800to1200.Sumw2()
-hMeas_WJets_HT1200to2500.Sumw2()
-hMeas_WJets_HT2500toInf.Sumw2()
+if not options.closureTest: 
+    hMeas_tt_nonsemi         = f_ttbar_nonsemilep.Get("ptRecoTop").Clone()
+    hMeas_T_t                = f_T_t.Get("ptRecoTop")
+    hMeas_Tbar_t             = f_Tbar_t.Get("ptRecoTop")
+    hMeas_T_s                = f_T_s.Get("ptRecoTop")
+    hMeas_T_tW               = f_T_tW.Get("ptRecoTop")
+    hMeas_Tbar_tW            = f_Tbar_tW.Get("ptRecoTop")
+    hMeas_WJets_HT100to200   = f_WJets_HT100to200.Get("ptRecoTop")
+    hMeas_WJets_HT200to400   = f_WJets_HT200to400.Get("ptRecoTop")
+    hMeas_WJets_HT400to600   = f_WJets_HT400to600.Get("ptRecoTop")
+    hMeas_WJets_HT600to800   = f_WJets_HT600to800.Get("ptRecoTop")
+    hMeas_WJets_HT800to1200  = f_WJets_HT800to1200.Get("ptRecoTop")
+    hMeas_WJets_HT1200to2500 = f_WJets_HT1200to2500.Get("ptRecoTop")
+    hMeas_WJets_HT2500toInf  = f_WJets_HT2500toInf.Get("ptRecoTop")
+    
+    hMeas_tt_nonsemi.Sumw2()
+    hMeas_T_t.Sumw2()
+    hMeas_Tbar_t.Sumw2()
+    hMeas_T_s.Sumw2()
+    hMeas_T_tW.Sumw2()
+    hMeas_Tbar_tW.Sumw2()
+    hMeas_WJets_HT100to200.Sumw2()
+    hMeas_WJets_HT200to400.Sumw2()
+    hMeas_WJets_HT400to600.Sumw2()
+    hMeas_WJets_HT600to800.Sumw2()
+    hMeas_WJets_HT800to1200.Sumw2()
+    hMeas_WJets_HT1200to2500.Sumw2()
+    hMeas_WJets_HT2500toInf.Sumw2()
+    
+    hMeas1_qcd                   = f_QCD1.Get("ptRecoTop")
+    hMeas2_qcd                   = f_QCD2.Get("ptRecoTop")
+    hMeas_qcd_tt_nonsemi         = f_qcd_ttbar_nonsemilep.Get("ptRecoTop")
+    hMeas_qcd_T_t                = f_qcd_T_t.Get("ptRecoTop")
+    hMeas_qcd_Tbar_t             = f_qcd_Tbar_t.Get("ptRecoTop")
+    hMeas_qcd_T_s                = f_qcd_T_s.Get("ptRecoTop")
+    hMeas_qcd_T_tW               = f_qcd_T_tW.Get("ptRecoTop")
+    hMeas_qcd_Tbar_tW            = f_qcd_Tbar_tW.Get("ptRecoTop")
+    hMeas_qcd_WJets_HT100to200   = f_qcd_WJets_HT100to200.Get("ptRecoTop")
+    hMeas_qcd_WJets_HT200to400   = f_qcd_WJets_HT200to400.Get("ptRecoTop")
+    hMeas_qcd_WJets_HT400to600   = f_qcd_WJets_HT400to600.Get("ptRecoTop")
+    hMeas_qcd_WJets_HT600to800   = f_qcd_WJets_HT600to800.Get("ptRecoTop")
+    hMeas_qcd_WJets_HT800to1200  = f_qcd_WJets_HT800to1200.Get("ptRecoTop")
+    hMeas_qcd_WJets_HT1200to2500 = f_qcd_WJets_HT1200to2500.Get("ptRecoTop")
+    hMeas_qcd_WJets_HT2500toInf  = f_qcd_WJets_HT2500toInf.Get("ptRecoTop")
+    
+    hMeas1_qcd.Sumw2()
+    hMeas2_qcd.Sumw2()
+    hMeas_qcd_tt_nonsemi.Sumw2()
+    hMeas_qcd_T_t.Sumw2()
+    hMeas_qcd_Tbar_t.Sumw2()
+    hMeas_qcd_T_s.Sumw2()
+    hMeas_qcd_T_tW.Sumw2()
+    hMeas_qcd_Tbar_tW.Sumw2()
+    hMeas_qcd_WJets_HT100to200.Sumw2()
+    hMeas_qcd_WJets_HT200to400.Sumw2()
+    hMeas_qcd_WJets_HT400to600.Sumw2()
+    hMeas_qcd_WJets_HT600to800.Sumw2()
+    hMeas_qcd_WJets_HT800to1200.Sumw2()
+    hMeas_qcd_WJets_HT1200to2500.Sumw2()
+    hMeas_qcd_WJets_HT2500toInf.Sumw2()
 
-hMeas1_qcd                   = f_QCD1.Get("ptRecoTop")
-hMeas2_qcd                   = f_QCD2.Get("ptRecoTop")
-hMeas_qcd_tt_nonsemi         = f_qcd_ttbar_nonsemilep.Get("ptRecoTop")
-hMeas_qcd_T_t                = f_qcd_T_t.Get("ptRecoTop")
-hMeas_qcd_Tbar_t             = f_qcd_Tbar_t.Get("ptRecoTop")
-hMeas_qcd_T_s                = f_qcd_T_s.Get("ptRecoTop")
-hMeas_qcd_T_tW               = f_qcd_T_tW.Get("ptRecoTop")
-hMeas_qcd_Tbar_tW            = f_qcd_Tbar_tW.Get("ptRecoTop")
-hMeas_qcd_WJets_HT100to200   = f_qcd_WJets_HT100to200.Get("ptRecoTop")
-hMeas_qcd_WJets_HT200to400   = f_qcd_WJets_HT200to400.Get("ptRecoTop")
-hMeas_qcd_WJets_HT400to600   = f_qcd_WJets_HT400to600.Get("ptRecoTop")
-hMeas_qcd_WJets_HT600to800   = f_qcd_WJets_HT600to800.Get("ptRecoTop")
-hMeas_qcd_WJets_HT800to1200  = f_qcd_WJets_HT800to1200.Get("ptRecoTop")
-hMeas_qcd_WJets_HT1200to2500 = f_qcd_WJets_HT1200to2500.Get("ptRecoTop")
-hMeas_qcd_WJets_HT2500toInf  = f_qcd_WJets_HT2500toInf.Get("ptRecoTop")
-
-hMeas1_qcd.Sumw2()
-hMeas2_qcd.Sumw2()
-hMeas_qcd_tt_nonsemi.Sumw2()
-hMeas_qcd_T_t.Sumw2()
-hMeas_qcd_Tbar_t.Sumw2()
-hMeas_qcd_T_s.Sumw2()
-hMeas_qcd_T_tW.Sumw2()
-hMeas_qcd_Tbar_tW.Sumw2()
-hMeas_qcd_WJets_HT100to200.Sumw2()
-hMeas_qcd_WJets_HT200to400.Sumw2()
-hMeas_qcd_WJets_HT400to600.Sumw2()
-hMeas_qcd_WJets_HT600to800.Sumw2()
-hMeas_qcd_WJets_HT800to1200.Sumw2()
-hMeas_qcd_WJets_HT1200to2500.Sumw2()
-hMeas_qcd_WJets_HT2500toInf.Sumw2()
-
+    
 # -------------------------------------------------------------------------------------
 # Normalize histograms
 # -------------------------------------------------------------------------------------
 
 ### normalize measured "data" for closure tests
-if options.closureTest == True: 
+if options.closureTest: 
     hMeas.Scale(PowhegPythia8_norm * eff_closure)
     hMeas.SetName("ptRecoTop_measured")
     
 hTrue.Scale(PowhegPythia8_norm * eff_closure)
 hTrue.SetName("ptGenTop_true")
 
-hMeas_tt_nonsemi.Scale(PowhegPythia8_norm)
 
-hMeas_T_t.Scale( SingleTop_t_t_norm)
-hMeas_Tbar_t.Scale( SingleTop_tbar_t_norm)
-hMeas_T_s.Scale(SingleTop_t_s_norm)
-hMeas_T_tW.Scale(SingleTop_t_tW_norm)
-hMeas_Tbar_tW.Scale(SingleTop_tbar_tW_norm)
-
-hMeas_WJets_HT100to200.Scale(WJets_HT100to200_norm)
-hMeas_WJets_HT200to400.Scale(WJets_HT200to400_norm)
-hMeas_WJets_HT400to600.Scale(WJets_HT400to600_norm)
-hMeas_WJets_HT600to800.Scale(WJets_HT600to800_norm)
-hMeas_WJets_HT800to1200.Scale(WJets_HT800to1200_norm)
-hMeas_WJets_HT1200to2500.Scale(WJets_HT1200to2500_norm)
-hMeas_WJets_HT2500toInf.Scale(WJets_HT2500toInf_norm)
-
-hMeas_qcd_tt_nonsemi.Scale(PowhegPythia8_norm)
-hMeas_qcd_T_t.Scale( SingleTop_t_t_norm)
-hMeas_qcd_Tbar_t.Scale( SingleTop_tbar_t_norm)
-hMeas_qcd_T_s.Scale(SingleTop_t_s_norm)
-hMeas_qcd_T_tW.Scale(SingleTop_t_tW_norm)
-hMeas_qcd_Tbar_tW.Scale(SingleTop_tbar_tW_norm)
-hMeas_qcd_WJets_HT100to200.Scale(WJets_HT100to200_norm)
-hMeas_qcd_WJets_HT200to400.Scale(WJets_HT200to400_norm)
-hMeas_qcd_WJets_HT400to600.Scale(WJets_HT400to600_norm)
-hMeas_qcd_WJets_HT600to800.Scale(WJets_HT600to800_norm)
-hMeas_qcd_WJets_HT800to1200.Scale(WJets_HT800to1200_norm)
-hMeas_qcd_WJets_HT1200to2500.Scale(WJets_HT1200to2500_norm)
-hMeas_qcd_WJets_HT2500toInf.Scale(WJets_HT2500toInf_norm)
-
-hMeas_tt_nonsemi.SetName("ptRecoTop_TTnonSemi")
-
-hMeas_SingleTop = hMeas_T_t.Clone()
-hMeas_SingleTop.SetName("ptRecoTop_SingleTop")
-
-hMeas_WJets = hMeas_WJets_HT100to200.Clone()
-hMeas_WJets.SetName("ptRecoTop_WJets")
-
-hMeas_QCD = hMeas1_qcd.Clone()
-hMeas_QCD.SetName("ptRecoTop_QCD")
-
-for hist in [hMeas_Tbar_t, hMeas_T_s, hMeas_T_tW, hMeas_Tbar_tW] :
-    hMeas_SingleTop.Add( hist )
+if not options.closureTest: 
+    hMeas_tt_nonsemi.Scale(PowhegPythia8_norm)
     
-for hist in [hMeas_WJets_HT200to400,hMeas_WJets_HT400to600,hMeas_WJets_HT600to800,hMeas_WJets_HT800to1200,hMeas_WJets_HT1200to2500,hMeas_WJets_HT2500toInf] :
-    hMeas_WJets.Add( hist )
+    hMeas_T_t.Scale( SingleTop_t_t_norm)
+    hMeas_Tbar_t.Scale( SingleTop_tbar_t_norm)
+    hMeas_T_s.Scale(SingleTop_t_s_norm)
+    hMeas_T_tW.Scale(SingleTop_t_tW_norm)
+    hMeas_Tbar_tW.Scale(SingleTop_tbar_tW_norm)
+    
+    hMeas_WJets_HT100to200.Scale(WJets_HT100to200_norm)
+    hMeas_WJets_HT200to400.Scale(WJets_HT200to400_norm)
+    hMeas_WJets_HT400to600.Scale(WJets_HT400to600_norm)
+    hMeas_WJets_HT600to800.Scale(WJets_HT600to800_norm)
+    hMeas_WJets_HT800to1200.Scale(WJets_HT800to1200_norm)
+    hMeas_WJets_HT1200to2500.Scale(WJets_HT1200to2500_norm)
+    hMeas_WJets_HT2500toInf.Scale(WJets_HT2500toInf_norm)
+    
+    hMeas_qcd_tt_nonsemi.Scale(PowhegPythia8_norm)
+    hMeas_qcd_T_t.Scale( SingleTop_t_t_norm)
+    hMeas_qcd_Tbar_t.Scale( SingleTop_tbar_t_norm)
+    hMeas_qcd_T_s.Scale(SingleTop_t_s_norm)
+    hMeas_qcd_T_tW.Scale(SingleTop_t_tW_norm)
+    hMeas_qcd_Tbar_tW.Scale(SingleTop_tbar_tW_norm)
+    hMeas_qcd_WJets_HT100to200.Scale(WJets_HT100to200_norm)
+    hMeas_qcd_WJets_HT200to400.Scale(WJets_HT200to400_norm)
+    hMeas_qcd_WJets_HT400to600.Scale(WJets_HT400to600_norm)
+    hMeas_qcd_WJets_HT600to800.Scale(WJets_HT600to800_norm)
+    hMeas_qcd_WJets_HT800to1200.Scale(WJets_HT800to1200_norm)
+    hMeas_qcd_WJets_HT1200to2500.Scale(WJets_HT1200to2500_norm)
+    hMeas_qcd_WJets_HT2500toInf.Scale(WJets_HT2500toInf_norm)
+    
+    hMeas_tt_nonsemi.SetName("ptRecoTop_TTnonSemi")
+    
+    hMeas_SingleTop = hMeas_T_t.Clone()
+    hMeas_SingleTop.SetName("ptRecoTop_SingleTop")
+    
+    hMeas_WJets = hMeas_WJets_HT100to200.Clone()
+    hMeas_WJets.SetName("ptRecoTop_WJets")
+    
+    hMeas_QCD = hMeas1_qcd.Clone()
+    hMeas_QCD.SetName("ptRecoTop_QCD")
+    
+    for hist in [hMeas_Tbar_t, hMeas_T_s, hMeas_T_tW, hMeas_Tbar_tW] :
+        hMeas_SingleTop.Add( hist )
+        
+    for hist in [hMeas_WJets_HT200to400,hMeas_WJets_HT400to600,hMeas_WJets_HT600to800,hMeas_WJets_HT800to1200,hMeas_WJets_HT1200to2500,hMeas_WJets_HT2500toInf] :
+        hMeas_WJets.Add( hist )
 
-hMeas_QCD.Add(hMeas2_qcd)
-for hist in [hMeas_qcd_tt_nonsemi,hMeas_qcd_T_t,hMeas_qcd_Tbar_t,hMeas_qcd_T_s,hMeas_qcd_T_tW,hMeas_qcd_Tbar_tW,hMeas_qcd_WJets_HT100to200,hMeas_qcd_WJets_HT200to400,hMeas_qcd_WJets_HT400to600,hMeas_qcd_WJets_HT600to800,hMeas_qcd_WJets_HT800to1200,hMeas_qcd_WJets_HT1200to2500,hMeas_qcd_WJets_HT2500toInf] :
-    hMeas_QCD.Add(hist,-1.0)
+    hMeas_QCD.Add(hMeas2_qcd)
+    for hist in [hMeas_qcd_tt_nonsemi,
+                 hMeas_qcd_T_t,hMeas_qcd_Tbar_t,hMeas_qcd_T_s,hMeas_qcd_T_tW,hMeas_qcd_Tbar_tW
+                 ,hMeas_qcd_WJets_HT100to200,hMeas_qcd_WJets_HT200to400,hMeas_qcd_WJets_HT400to600,
+                 hMeas_qcd_WJets_HT600to800,hMeas_qcd_WJets_HT800to1200,hMeas_qcd_WJets_HT1200to2500,hMeas_qcd_WJets_HT2500toInf] :
+        hMeas_QCD.Add(hist,-1.0)
 
+        
 # -------------------------------------------------------------------------------------
 # subtract backgrounds from the data distribution, but not for closure test!!! 
 # -------------------------------------------------------------------------------------
 
-if options.closureTest == False : 
+if not options.closureTest: 
     for hist in [hMeas_SingleTop, hMeas_WJets, hMeas_QCD, hMeas_tt_nonsemi] :
         hMeas.Add(hist, -1.)
 
@@ -338,25 +354,34 @@ if options.closureTest == False :
         if ( hMeas.GetBinContent( ibin ) < 0.0 ) :
             hMeas.SetBinContent( ibin, 0.0 )        
 
+            
 # -------------------------------------------------------------------------------------
 # do the actual unfolding
 # -------------------------------------------------------------------------------------
 
 print "------------ UNFOLDING (syst: " + options.syst + ") ------------"
-unfold = RooUnfoldBayes(response, hMeas, 4)
+
+n_iter = 4
+print " using " + str(n_iter) + " iterations"
+
+unfold = RooUnfoldBayes(response, hMeas, n_iter)
 #unfold = RooUnfoldTUnfold(response, hMeas)
 
 # get the unfolded distribution
 hReco = unfold.Hreco()
+
 
 # -------------------------------------------------------------------------------------
 # Translate to cross section (not events) in bins of pt N/L/BR)
 # -------------------------------------------------------------------------------------
 # TODO: should fix BR
 
+print "WARNING: treatment of branching ratio is wrong!"
+
 hTrue.Scale(1.0/(lum*0.438/3.)) # true @ parton level
 hMeas.Scale(1.0/(lum*0.438/3.)) # measured @ reco level
 hReco.Scale(1.0/(lum*0.438/3.)) # unfolded to parton level
+
 
 # -------------------------------------------------------------------------------------
 # Adjust for bin width
