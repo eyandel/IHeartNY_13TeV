@@ -76,6 +76,10 @@ parser.add_option('--puFile', metavar='F', type='string', action='store',
                   dest='puFile',
                   help='Pileup reweighting file')
 
+parser.add_option('--muOrEl', metavar='F', type='string', action='store',
+                  default=None,
+                  dest='muOrEl',
+                  help='Muon or electron sample')
 
 (options, args) = parser.parse_args()
 argv = []
@@ -214,7 +218,6 @@ f.cd()
 #~ Tree initializations
 
 recoTree = ROOT.TTree("recoTree", "recoTree")
-trueTree = ROOT.TTree("trueTree", "trueTree")
 
 # parton level
 if options.isMC and options.semilep is not None:
@@ -477,12 +480,15 @@ if options.isMC:
         recoTree.Branch('truthChannel'            , truthChannel           )
 
 if options.fullTruth:
+    trueTree = ROOT.TTree("trueTree", "trueTree")
     trueTree.Branch('genTopPt'               , genTopPt               )
     trueTree.Branch('genTopEta'              , genTopEta              )
     trueTree.Branch('genTopPhi'              , genTopPhi              )
     trueTree.Branch('genTTbarMass'           , genTTbarMass           )
     trueTree.Branch('truthChannel'           , truthChannel           )
-
+    trueTree.Branch('eventWeight_nom'        , eventWeight_nom        )
+    trueTree.Branch('eventWeight_puUp'       , eventWeight_puUp       )
+    trueTree.Branch('eventWeight_puDown'     , eventWeight_puDown     )
 
 # -------------------------------------------------------------------------------------
 # define all variables to be read from input files
@@ -1325,43 +1331,43 @@ for event in events :
     nPassMetFilter += 1
                 
     # -------------------------------
-    # Require a trigger if MC
+    # Require trigger
     # -------------------------------
 
-    passMuTrig = True
-    passElTrig = True
-
-    if options.isMC :
-        passMuTrig = False
-        passElTrig = False
-        prescale = 1.0
+    passMuTrig = False
+    passElTrig = False
+    prescale = 1.0
             
-        event.getByLabel( trigNameLabel, trigNameHandle )
-        event.getByLabel( trigBitsLabel, trigBitsHandle )
-        event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
-
-        triggerNames = trigNameHandle.product()
-        triggerBits = trigBitsHandle.product()
-        triggerPrescales = trigPrescalesHandle.product()
-
-        trigToRun = None
-        for itrig in xrange(0, len(triggerBits) ) :
-            if triggerBits[itrig] != 1 :
-                continue
-            trigName = triggerNames[itrig]
-            if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
-                passElTrig = True
-                prescale = prescale * triggerPrescales[itrig]
-                h_elPrescale.Fill(triggerPrescales[itrig])
-            if "HLT_Mu45_eta2p1" in trigName :
-                passMuTrig = True
-                prescale = prescale * triggerPrescales[itrig]
-                h_muPrescale.Fill(triggerPrescales[itrig])
+    event.getByLabel( trigNameLabel, trigNameHandle )
+    event.getByLabel( trigBitsLabel, trigBitsHandle )
+    event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
+    
+    triggerNames = trigNameHandle.product()
+    triggerBits = trigBitsHandle.product()
+    triggerPrescales = trigPrescalesHandle.product()
+    
+    trigToRun = None
+    for itrig in xrange(0, len(triggerBits) ) :
+        if triggerBits[itrig] != 1 :
+            continue
+        trigName = triggerNames[itrig]
+        if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
+            passElTrig = True
+            prescale = prescale * triggerPrescales[itrig]
+            h_elPrescale.Fill(triggerPrescales[itrig])
+        if "HLT_Mu45_eta2p1" in trigName :
+            passMuTrig = True
+            prescale = prescale * triggerPrescales[itrig]
+            h_muPrescale.Fill(triggerPrescales[itrig])
             
-        weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
-        weight_puUp = weight_puUp * prescale 
-        weight_puDown = weight_puDown * prescale 
+    weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
+    weight_puUp = weight_puUp * prescale 
+    weight_puDown = weight_puDown * prescale 
 
+    if not options.isMC and (options.muOrEl is "mu" and not passMuTrig):
+        continue
+    if not options.isMC and (options.muOrEl is "el" and not passElTrig): 
+        continue
     # -------------------------------------------------------------------------------------
     # read event rho value
     # -------------------------------------------------------------------------------------
