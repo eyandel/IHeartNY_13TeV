@@ -122,7 +122,7 @@ void drawCMS(Double_t x,Double_t y, bool prel) {
 // make pretty plots
 // -------------------------------------------------------------------------------------
 
-void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TString region, bool useQCDMC = false, bool unBlind = false) {
+void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TString region, bool useQCDMC = false, bool unBlind = false, bool usePost = false) {
   
   TH1::AddDirectory(kFALSE); 
   setStyle();
@@ -130,10 +130,10 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
   TString hist = var+region;
   
   // get histograms
-  SummedHist* wjets = getWJets( DIR, var, region, channel, false, "nom" );
-  SummedHist* singletop = getSingleTop( DIR, var, region, channel, false, "nom" );
-  SummedHist* ttbar = getTTbar( DIR, var, region, channel, false, "nom" );
-  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, var, region, channel, false, "nom" );
+  SummedHist* wjets = getWJets( DIR, var, region, channel, false, "nom", usePost );
+  SummedHist* singletop = getSingleTop( DIR, var, region, channel, false, "nom", usePost );
+  SummedHist* ttbar = getTTbar( DIR, var, region, channel, false, "nom", usePost );
+  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, var, region, channel, false, "nom", usePost );
   SummedHist* data = getData( DIR, var, region, channel, false);
 
   // -------------------------------------------------------------------------------------
@@ -141,17 +141,29 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
   
   TH1F* h_qcd;
   if (useQCDMC) {
-    SummedHist* qcd = getQCDMC(DIR, var, region, channel, false, "nom");
+    SummedHist* qcd = getQCDMC(DIR, var, region, channel, false, "nom", usePost);
     h_qcd = (TH1F*) qcd->hist();
   }
   else {
-    h_qcd = getQCDData( DIR, DIRqcd, var, region, channel, "nom"); // Currently taking QCD from data sideband with normalization from MC in signal region
+    h_qcd = getQCDData( DIR, DIRqcd, var, region, channel, "nom", usePost); // Currently taking QCD from data sideband with normalization from MC in signal region
   }
   TH1F* h_wjets = (TH1F*) wjets->hist();
   TH1F* h_ttbar = (TH1F*) ttbar->hist();
   TH1F* h_ttbar_nonSemiLep = (TH1F*) ttbar_nonSemiLep->hist();
   TH1F* h_singletop = (TH1F*) singletop->hist();
   TH1F* h_data = (TH1F*) data->hist();
+
+  // -----------------------------------------------------------------------------------------------------
+  // Apply post-fit normalizations if desired
+  // The scale factors are determined from the post-fit nuisance parameters, not the post-fit event yields
+
+  if (usePost){
+    h_qcd->Scale(0.89);
+    h_singletop->Scale(0.95);
+    h_wjets->Scale(1.06);
+    h_ttbar->Scale(0.79);
+    h_ttbar_nonSemiLep->Scale(0.79);
+  }
 
   // -------------------------------------------------------------------------------------
   // various hist plotting edits

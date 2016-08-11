@@ -1745,6 +1745,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   if (isQCD) outname = outname + "_qcd";
   if (oddOrEven == 1) outname = outname + "_odd";
   if (oddOrEven == 2) outname = outname + "_even";
+  if (!isData && usePost) outname = outname+"_post";
   TFile* fout = new TFile(OUTDIR + "/hists_"+outname+".root","recreate");
 
   // -------------------------------------------------------------------------------------------

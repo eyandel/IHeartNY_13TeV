@@ -142,10 +142,11 @@ TH1* getHist(TString filename, TString histname, TString region){
 // W+jets
 // -------------------------------------------------------------------------------------
 
-SummedHist * getWJets( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst) {
+SummedHist * getWJets( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
 
   TString append = "";
   if (isQCD) append = "_qcd";
+  if (usePost) append += "_post";
   
   const int nwjets = 7;
   
@@ -185,10 +186,11 @@ SummedHist * getWJets( TString DIR, TString histname, TString region, TString ch
 // single top
 // -------------------------------------------------------------------------------------
 
-SummedHist * getSingleTop( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst) {
+SummedHist * getSingleTop( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
 
   TString append = "";
   if (isQCD) append = "_qcd";
+  if (usePost) append += "_post";
   
   const int nsingletop = 5;
   
@@ -225,10 +227,11 @@ SummedHist * getSingleTop( TString DIR, TString histname, TString region, TStrin
 // non-semileptonic ttbar
 // -------------------------------------------------------------------------------------
 
-SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst ) {
+SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost ) {
 
   TString append = "";
   if (isQCD) append = "_qcd";
+  if (usePost) append += "_post";
   
   TString ttbar_name = "PowhegPythia8_nonsemilep";
   double ttbar_norm = 831.76 * LUM / 187626200.;
@@ -247,10 +250,11 @@ SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, 
 // signal ttbar
 // -------------------------------------------------------------------------------------
 
-SummedHist * getTTbar( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst) {
+SummedHist * getTTbar( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
   
   TString append = "";
   if (isQCD) append = "_qcd";
+  if (usePost) append += "_post";
   
   TString ttbar_name = "PowhegPythia8_fullTruth";
   double ttbar_norm = 831.76 * LUM / 187626200.;
@@ -268,10 +272,11 @@ SummedHist * getTTbar( TString DIR, TString histname, TString region, TString ch
 // QCD
 // -------------------------------------------------------------------------------------
 
-SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst) {
+SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
 
   TString append = "";
   if (isQCD) append = "_qcd";
+  if (usePost) append += "_post";
   
   //const int nqcd = 6;
   const int nqcd = 5;
@@ -330,7 +335,10 @@ SummedHist * getData( TString DIR, TString histname, TString region, TString cha
   
 }
 
-float getQCDnorm( TString DIR, TString channel, TString region, TString syst) {
+float getQCDnorm( TString DIR, TString channel, TString region, TString syst, bool usePost) {
+
+  TString append = "";
+  if (usePost) append += "_post";
   
   //const int nqcd = 6;
   const int nqcd = 5;
@@ -356,7 +364,7 @@ float getQCDnorm( TString DIR, TString channel, TString region, TString syst) {
   float n_qcd = 0.0;
   
   for (int i=0; i<nqcd; i++) {
-    TString iname = DIR + "hists_" + qcd_names[i] + "_" + channel + "_" + syst + ".root";
+    TString iname = DIR + "hists_" + qcd_names[i] + "_" + channel + "_" + syst + append + ".root";
     TH1F* hist = (TH1F*) getHist(iname,"lepPhi",region);
     if (hist->Integral() > 0.0) hist->Scale(qcd_norms[i]);
     n_qcd += hist->Integral();
@@ -366,12 +374,12 @@ float getQCDnorm( TString DIR, TString channel, TString region, TString syst) {
   
 }
 
-TH1F * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString region, TString channel, TString syst) {
+TH1F * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString region, TString channel, TString syst, bool usePost) {
 
-  SummedHist* wjets = getWJets( sideDIR, histname, region, channel, true, syst );
-  SummedHist* singletop = getSingleTop( sideDIR, histname, region, channel, true, syst );
-  SummedHist* ttbar = getTTbar( sideDIR, histname, region, channel, true, syst );
-  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( sideDIR, histname, region, channel, true, syst );
+  SummedHist* wjets = getWJets( sideDIR, histname, region, channel, true, syst, usePost);
+  SummedHist* singletop = getSingleTop( sideDIR, histname, region, channel, true, syst, usePost );
+  SummedHist* ttbar = getTTbar( sideDIR, histname, region, channel, true, syst, usePost );
+  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( sideDIR, histname, region, channel, true, syst, usePost );
   SummedHist* data = getData( sideDIR, histname, region, channel, true);
   
   TH1F* h_wjets = (TH1F*) wjets->hist();
@@ -391,7 +399,7 @@ TH1F * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString reg
       if (h_qcd->GetBinContent(ii) < 0.0) h_qcd->SetBinContent(ii,0.0);
     }
     
-    float n_qcd = getQCDnorm(sigDIR,channel,region,syst);
+    float n_qcd = getQCDnorm(sigDIR,channel,region,syst,usePost);
     h_qcd->Scale(n_qcd / h_qcd->Integral());
     h_qcd->SetFillColor(kYellow);
     

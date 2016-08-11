@@ -34,6 +34,11 @@ parser.add_option('--lepType', metavar='F', type='string', action='store',
                   dest='lepType',
                   help='Lepton type (ele or muon)')
 
+parser.add_option('--usePost', metavar='F', action='store_true',
+                  default=False,
+                  dest='usePost',
+                  help='Use posterior top-tag SF and bkg norm')
+
 
 # -------------------------------------------------------------------------------------
 # load options & set plot style
@@ -103,6 +108,10 @@ if options.closureTest == True :
 #  read histogram files
 # -------------------------------------------------------------------------------------
 
+append = ""
+if options.usePost:
+    append = "_post"
+
 muOrEl = "mu"
 if options.lepType=="ele":
     print ""
@@ -128,42 +137,42 @@ elif not options.closureTest:
     
 # In the below, file named f_..._odd will be the one from which response matrix is extracted from (if closureTest == True) 
 if options.closureTest == True : 
-    f_ttbar     = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_even.root")
-    f_ttbar_odd = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_odd.root")
+    f_ttbar     = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_even"+append+".root")
+    f_ttbar_odd = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_odd"+append+".root")
 else :
-    f_ttbar     = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+".root")
+    f_ttbar     = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+append+".root")
 
 if not options.closureTest:
-    f_ttbar_nonsemilep = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+".root")
+    f_ttbar_nonsemilep = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+append+".root")
 
-    f_T_t     = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom.root")
-    f_Tbar_t  = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom.root")
-    f_T_s     = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom.root")
-    f_T_tW    = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom.root")
-    f_Tbar_tW = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom.root")
+    f_T_t     = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom"+append+".root")
+    f_Tbar_t  = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom"+append+".root")
+    f_T_s     = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom"+append+".root")
+    f_T_tW    = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom"+append+".root")
+    f_Tbar_tW = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom"+append+".root")
     
-    f_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom.root")
-    f_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom.root")
-    f_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom.root")
-    f_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom.root")
-    f_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom.root")
-    f_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom.root")
-    f_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom.root")
+    f_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom"+append+".root")
+    f_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom"+append+".root")
+    f_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom"+append+".root")
+    f_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom"+append+".root")
+    f_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom"+append+".root")
+    f_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom"+append+".root")
+    f_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom"+append+".root")
     
-    f_qcd_ttbar              = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_qcd.root")
-    f_qcd_ttbar_nonsemilep   = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+"_qcd.root")
-    f_qcd_T_t                = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom_qcd.root")
-    f_qcd_Tbar_t             = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom_qcd.root")
-    f_qcd_T_s                = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom_qcd.root")
-    f_qcd_T_tW               = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom_qcd.root")
-    f_qcd_Tbar_tW            = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom_qcd.root")
-    f_qcd_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom_qcd.root")
-    f_qcd_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom_qcd.root")
-    f_qcd_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom_qcd.root")
-    f_qcd_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom_qcd.root")
-    f_qcd_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom_qcd.root")
-    f_qcd_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom_qcd.root")
-    f_qcd_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom_qcd.root")
+    f_qcd_ttbar              = TFile("histfiles/hists_PowhegPythia8_fullTruth_"+muOrEl+"_"+options.syst+"_qcd"+append+".root")
+    f_qcd_ttbar_nonsemilep   = TFile("histfiles/hists_PowhegPythia8_nonsemilep_"+muOrEl+"_"+options.syst+"_qcd"+append+".root")
+    f_qcd_T_t                = TFile("histfiles/hists_SingleTop_t_t_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_Tbar_t             = TFile("histfiles/hists_SingleTop_tbar_t_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_T_s                = TFile("histfiles/hists_SingleTop_t_s_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_T_tW               = TFile("histfiles/hists_SingleTop_t_tW_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_Tbar_tW            = TFile("histfiles/hists_SingleTop_tbar_tW_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_WJets_HT100to200   = TFile("histfiles/hists_WJets_HT100to200_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_WJets_HT200to400   = TFile("histfiles/hists_WJets_HT200to400_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_WJets_HT400to600   = TFile("histfiles/hists_WJets_HT400to600_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_WJets_HT600to800   = TFile("histfiles/hists_WJets_HT600to800_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_WJets_HT800to1200  = TFile("histfiles/hists_WJets_HT800to1200_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_WJets_HT1200to2500 = TFile("histfiles/hists_WJets_HT1200to2500_"+muOrEl+"_nom_qcd"+append+".root")
+    f_qcd_WJets_HT2500toInf  = TFile("histfiles/hists_WJets_HT2500toInf_"+muOrEl+"_nom_qcd"+append+".root")
 
     
 # -------------------------------------------------------------------------------------
@@ -341,7 +350,15 @@ if not options.closureTest:
                  hMeas_qcd_WJets_HT600to800,hMeas_qcd_WJets_HT800to1200,hMeas_qcd_WJets_HT1200to2500,hMeas_qcd_WJets_HT2500toInf] :
         hMeas_QCD.Add(hist,-1.0)
 
-        
+# -------------------------------------------------------------------------------------
+# Scale backgrounds if using posterior normalization
+# -------------------------------------------------------------------------------------
+if options.usePost:
+    hMeas_SingleTop.Scale(0.95) #Note: the SFs are taken from the posterior nuisance parameters for the rates
+    hMeas_WJets.Scale(1.06)
+    hMeas_QCD.Scale(0.89)
+    hMeas_tt_nonsemi.Scale(0.79)
+
 # -------------------------------------------------------------------------------------
 # subtract backgrounds from the data distribution, but not for closure test!!! 
 # -------------------------------------------------------------------------------------

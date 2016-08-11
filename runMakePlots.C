@@ -72,8 +72,8 @@ void runMakePlots(TString toPlot = "final"){
     TString opthists[5] = {"metPt","ht","htLep","lepBJetdR","lepTJetdR"};
     
     for (int ii = 0; ii < 5; ii++){
-      makePlots("histfiles_mMu_tEl_MiniIso10/","histfiles_mMu_tEl_MiniIso10/","mu",opthists[ii],"Pre",true,false);
-      makePlots("histfiles_mMu_tEl_MiniIso10/","histfiles_mMu_tEl_MiniIso10/","el",opthists[ii],"Pre",true,false);
+      makePlots("histfiles_mMu_tEl_MiniIso10/","histfiles_mMu_tEl_MiniIso10/","mu",opthists[ii],"Pre",true,false,false);
+      makePlots("histfiles_mMu_tEl_MiniIso10/","histfiles_mMu_tEl_MiniIso10/","el",opthists[ii],"Pre",true,false,false);
     }
 
     makeTable("histfiles_mMu_tEl_MiniIso10/","histfiles_mMu_tEl_MiniIso10/","el",false,true);
@@ -85,19 +85,19 @@ void runMakePlots(TString toPlot = "final"){
     for (int ii = 0; ii < 2; ii++){
       for (int jj = 0; jj < nregion; jj++){
 	for (int kk = 0; kk < nhist; kk++){
-	  makePlots("histfiles/","histfiles/",channels[ii],hists[kk],regions[jj],false,true);
+	  makePlots("histfiles/","histfiles/",channels[ii],hists[kk],regions[jj],false,true,false);
 	}
       }
     }
     
-    makePlots("histfiles/","histfiles/","mu","nAK4jet","Pre",false,true);
-    makePlots("histfiles/","histfiles/","el","nAK4jet","Pre",false,true);
-    makePlots("histfiles/","histfiles/","mu","nBjet","Pre",false,true);
-    makePlots("histfiles/","histfiles/","el","nBjet","Pre",false,true);
-    makePlots("histfiles/","histfiles/","mu","nAK8jet","Pre",false,true);
-    makePlots("histfiles/","histfiles/","el","nAK8jet","Pre",false,true);
-    makePlots("histfiles/","histfiles/","mu","nTjet","Pre",false,true);
-    makePlots("histfiles/","histfiles/","el","nTjet","Pre",false,true);
+    makePlots("histfiles/","histfiles/","mu","nAK4jet","Pre",false,true,false);
+    makePlots("histfiles/","histfiles/","el","nAK4jet","Pre",false,true,false);
+    makePlots("histfiles/","histfiles/","mu","nBjet","Pre",false,true,false);
+    makePlots("histfiles/","histfiles/","el","nBjet","Pre",false,true,false);
+    makePlots("histfiles/","histfiles/","mu","nAK8jet","Pre",false,true,false);
+    makePlots("histfiles/","histfiles/","el","nAK8jet","Pre",false,true,false);
+    makePlots("histfiles/","histfiles/","mu","nTjet","Pre",false,true,false);
+    makePlots("histfiles/","histfiles/","el","nTjet","Pre",false,true,false);
     
     cout << endl << "Finished with regular plots!" << endl << endl;
 
@@ -134,6 +134,27 @@ void runMakePlots(TString toPlot = "final"){
     makeTable("histfiles/","histfiles/","mu",false,false);
     cout << endl;
     makeTable("histfiles/","histfiles/","el",false,false);
+  }
+
+  if (toPlot == "post"){
+    for (int ii = 0; ii < 2; ii++){
+      for (int jj = 0; jj < nregion; jj++){
+	for (int kk = 0; kk < nhist; kk++){
+	  makePlots("histfiles/","histfiles/",channels[ii],hists[kk],regions[jj],false,true,true);
+	}
+      }
+    }
+    
+    makePlots("histfiles/","histfiles/","mu","nAK4jet","Pre",false,true,true);
+    makePlots("histfiles/","histfiles/","el","nAK4jet","Pre",false,true,true);
+    makePlots("histfiles/","histfiles/","mu","nBjet","Pre",false,true,true);
+    makePlots("histfiles/","histfiles/","el","nBjet","Pre",false,true,true);
+    makePlots("histfiles/","histfiles/","mu","nAK8jet","Pre",false,true,true);
+    makePlots("histfiles/","histfiles/","el","nAK8jet","Pre",false,true,true);
+    makePlots("histfiles/","histfiles/","mu","nTjet","Pre",false,true,true);
+    makePlots("histfiles/","histfiles/","el","nTjet","Pre",false,true,true);
+    
+    cout << endl << "Finished with postfit plots!" << endl << endl;
   }
 
   if (toPlot == "combine"){
