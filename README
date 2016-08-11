@@ -1,15 +1,58 @@
 IHeartNY_13TeV
 
-13 TeV implementation of code for boosted ttbar differential cross section. Currently designed to run on B2G EDM ntuple files and create slimmed trees for later analysis.
+13 TeV implementation of code for boosted ttbar differential cross section.
+Current branch: CMSSW_7_6_X
 
-Description of files: 
+### Running ntuples ###
+
+Relevant files: 
+  pileupMC.C
+  get_data_pileup.sh
+  calcPUweight.C
   PSet.py -- defines input files for standalone running
+  JECs -- directory with jet corrections files
   iheartny_topxs_fwlite.py -- analysis code to make trees
-  execute_iheartNY.sh -- commands for standalone running
-  crabConfig_Boosted.py -- crab3 config file
+  execute_iheartNY_*.sh -- commands for standalone running (variants are data, ttbar_fullTruth, ttbar_semilep, ttbar_nonsemilep, MC)
+  crabConfig_*.py -- crab3 config files for all samples
 
-To run as standalone:
-source execute_iheartNY.sh
+To make pileup reweight file:
+  root -b -q 'pileupMC.C()'
+  source get_data_pileup.sh
+  root -b -q 'calcPUweight.C()'
 
-To run using Crab3:
-crab submit -c crabConfig_Boosted.py
+To make tree as standalone:
+  source execute_iheartNY_*.sh
+
+To make trees using Crab3:
+  source /cvmfs/cms.cern.ch/crab3/crab.csh
+  crab submit -c crabConfig_*.py
+
+### Making histograms & response matrices###
+
+Relevant files:
+  makeHists.C -- macro to make histograms from a single dataset
+  RooUnfold -- directory containing RooUnfold code for filling response matrix
+  BTagCalibrationStandalone.h/.cc -- standalone code (outside CMSSW) for loading btag SF
+  runMakeHists.C -- top-level script
+
+To run:
+  root -b -q 'runMakeHists.C()'
+
+### Doing plotting, making combine inputs, etc. ###
+
+Relevant files:
+  makePlots.cc/.h -- collection of macros for plot-making
+  runMakePlots.C -- top-level script
+
+To run:
+  root -b -q 'runMakePlots.C()' -- make kinematic plots (prefit), QCD shape comparisons, template shape comparisons, combine inputs, event count tables
+  root -b -q 'runMakePlots.C("combine")' -- make pre- and post-fit combine plots, correlation matrices
+
+### Do unfolding ###
+
+Relevant files:
+  unfoldTopPt.py -- do specific unfolding
+  run_unfold_test.py -- top-level script
+
+To run:
+  python run_unfold_test.py (--isClosureTest)

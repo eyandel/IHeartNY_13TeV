@@ -101,7 +101,6 @@ void runMakePlots(TString toPlot = "final"){
     
     cout << endl << "Finished with regular plots!" << endl << endl;
 
-    /*
     for (int ii = 0; ii < 2; ii++){
       for (int jj = 0; jj < 30; jj++){
 	makeQCDComp("histfiles/","histfiles/",channels[ii],hists[jj]);
@@ -113,7 +112,6 @@ void runMakePlots(TString toPlot = "final"){
     }
     
     cout << endl << "Finished with QCD comparison plots!" << endl << endl;
-    */
     
     for (int ii = 0; ii < 2; ii++){
       for (int jj = 0; jj < nregion; jj++){
@@ -125,8 +123,7 @@ void runMakePlots(TString toPlot = "final"){
 
     cout << endl << "Finished making shape comparisons!" << endl << endl;
     
-    makeCombineInputs("histfiles/","histfiles/","mu");
-    //makeCombineInputs("histfiles/","histfiles/","el");
+    makeCombineInputs("histfiles/","histfiles/");
     
     cout << endl << "Finished making combine inputs!" << endl << endl;
 
@@ -140,8 +137,29 @@ void runMakePlots(TString toPlot = "final"){
   }
 
   if (toPlot == "combine"){
-    combineResults("mu","mu","pre");
-    combineResults("mu","mu","post");
-  }
-  
+    combineResults("mu","muA","pre");
+    combineResults("mu","muA","post");
+    combineResults("mu","muB","pre");
+    combineResults("mu","muB","post");
+    combineResults("mu","muC","pre");
+    combineResults("mu","muC","post");
+    combineResults("el","elA","pre");
+    combineResults("el","elA","post");
+    combineResults("el","elB","pre");
+    combineResults("el","elB","post");
+    combineResults("el","elC","pre");
+    combineResults("el","elC","post");
+    combineResults("mu","combA","pre");
+    combineResults("mu","combA","post");
+    combineResults("mu","combB","pre");
+    combineResults("mu","combB","post");
+    combineResults("mu","combC","pre");
+    combineResults("mu","combC","post");
+    combineResults("el","combA","pre");
+    combineResults("el","combA","post");
+    combineResults("el","combB","pre");
+    combineResults("el","combB","post");
+    combineResults("el","combC","pre");
+    combineResults("el","combC","post");
+  }  
 }

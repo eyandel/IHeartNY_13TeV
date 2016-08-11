@@ -7,6 +7,7 @@
 #include "TLatex.h"
 #include "THStack.h"
 #include "TExec.h"
+#include "TPaletteAxis.h"
 
 #include <iostream>
 #include <iomanip>
@@ -162,7 +163,7 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
     if (h_ttbar) h_ttbar->Rebin(5);
     h_data->Rebin(5);
   }
-  
+
   h_data->UseCurrentStyle();
   h_data->SetMarkerColor(1);
   h_data->SetMarkerStyle(8);
@@ -454,11 +455,13 @@ void compareShapes(TString DIR, TString DIRqcd, TString channel, TString var, TS
 }
 
 
-void makeCombineInputs(TString DIR, TString DIRqcd, TString channel) {
+void makeCombineInputs(TString DIR, TString DIRqcd) {
   
   TH1::AddDirectory(kFALSE); 
   setStyle();
 
+  const int nchannels = 2;
+  TString channels[nchannels] = {"mu","el"};
   const int nhist = 5;
   TString histnames[nhist] = {"lepAbsEta","ak8jetTau21","lepAbsEta","ak8jetTau32","ak8jetSDmass"};
   TString regions[nhist] = {"0t","0t","1t0b","1t0b","1t1b"};
@@ -466,106 +469,125 @@ void makeCombineInputs(TString DIR, TString DIRqcd, TString channel) {
   const int nsys = 13;
   TString sysnames[nsys] = {"nom","puUp","puDown","JECUp","JECDown","JERUp","JERDown","lepUp","lepDown","BTagUp","BTagDown","TopTagUp","TopTagDown"};
   
-  TH1F* h_qcd[nhist][nsys];
-  TH1F* h_wjets[nhist][nsys];
-  TH1F* h_ttbar[nhist][nsys];
-  TH1F* h_singletop[nhist][nsys];
-  TH1F* h_data[nhist];
+  TH1F* h_qcd[nchannels][nhist][nsys];
+  TH1F* h_wjets[nchannels][nhist][nsys];
+  TH1F* h_ttbar[nchannels][nhist][nsys];
+  TH1F* h_singletop[nchannels][nhist][nsys];
+  TH1F* h_data[nchannels][nhist];
   
-  for (int ii = 0; ii < nhist; ii++){
-    for (int jj = 0; jj < nsys; jj++){
-      TString append = "";
-      if (sysnames[jj] != "nom") append = "_" + sysnames[jj];
+  for (int ii = 0; ii < nchannels; ii++){
+    for (int jj = 0; jj < nhist; jj++){
+      for (int kk = 0; kk < nsys; kk++){
+	TString append = "";
+	if (sysnames[kk] != "nom") append = "_" + sysnames[kk];
       
-      // get histograms
-      SummedHist* wjets = getWJets( DIR, histnames[ii], regions[ii], channel, false, sysnames[jj] );
-      SummedHist* singletop = getSingleTop( DIR, histnames[ii], regions[ii], channel, false, sysnames[jj] );
-      SummedHist* ttbar = getTTbar( DIR, histnames[ii], regions[ii], channel, false, sysnames[jj] );
-      SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, histnames[ii], regions[ii], channel, false, sysnames[jj] );
-      
-      // -------------------------------------------------------------------------------------
-      // get the TH1F versions
-      
-      h_qcd[ii][jj] = (TH1F*) getQCDData( DIR, DIRqcd, histnames[ii], regions[ii], channel, sysnames[jj])->Clone("QCD"+append);
-      // Currently taking QCD from data sideband with no triangular cut, with normalization from MC in signal region
-      h_wjets[ii][jj] = (TH1F*) wjets->hist()->Clone("WJets"+append);
-      h_ttbar[ii][jj] = (TH1F*) ttbar->hist()->Clone("TTbar"+append);
-      h_ttbar[ii][jj]->Add((TH1F*) ttbar_nonSemiLep->hist());
-      h_singletop[ii][jj] = (TH1F*) singletop->hist()->Clone("SingleTop"+append);
+	// get histograms
+	SummedHist* wjets = getWJets( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
+	SummedHist* singletop = getSingleTop( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
+	SummedHist* ttbar = getTTbar( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
+	SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
+	
+	// -------------------------------------------------------------------------------------
+	// get the TH1F versions
+	
+	h_qcd[ii][jj][kk] = (TH1F*) getQCDData( DIR, DIRqcd, histnames[jj], regions[jj], channels[ii], sysnames[kk])->Clone("QCD"+append);
+	h_wjets[ii][jj][kk] = (TH1F*) wjets->hist()->Clone("WJets"+append);
+	h_ttbar[ii][jj][kk] = (TH1F*) ttbar->hist()->Clone("TTbar"+append);
+	h_ttbar[ii][jj][kk]->Add((TH1F*) ttbar_nonSemiLep->hist());
+	h_singletop[ii][jj][kk] = (TH1F*) singletop->hist()->Clone("SingleTop"+append);
 
-      h_qcd[ii][jj]->Rebin(rebinby[ii]);
-      h_wjets[ii][jj]->Rebin(rebinby[ii]);
-      h_ttbar[ii][jj]->Rebin(rebinby[ii]);
-      h_singletop[ii][jj]->Rebin(rebinby[ii]);
+	if (sysnames[kk] == "TopTagUp"){
+	  h_qcd[ii][jj][kk]->SetName("QCD_TopMisTagUp");
+	  h_wjets[ii][jj][kk]->SetName("WJets_TopMisTagUp");
+	  h_singletop[ii][jj][kk]->SetName("SingleTop_TopMisTagUp");
+	}
+	
+	if (sysnames[kk] == "TopTagDown"){
+	  h_qcd[ii][jj][kk]->SetName("QCD_TopMisTagDown");
+	  h_wjets[ii][jj][kk]->SetName("WJets_TopMisTagDown");
+	  h_singletop[ii][jj][kk]->SetName("SingleTop_TopMisTagDown");
+	}
+	
+	h_qcd[ii][jj][kk]->Rebin(rebinby[jj]);
+	h_wjets[ii][jj][kk]->Rebin(rebinby[jj]);
+	h_ttbar[ii][jj][kk]->Rebin(rebinby[jj]);
+	h_singletop[ii][jj][kk]->Rebin(rebinby[jj]);
+      }
+
+      SummedHist* data = getData( DIR, histnames[jj], regions[jj], channels[ii], false);
+      h_data[ii][jj] = (TH1F*) data->hist()->Clone("data_obs");
+      h_data[ii][jj]->Rebin(rebinby[jj]);
     }
-
-    SummedHist* data = getData( DIR, histnames[ii], regions[ii], channel, false);
-    h_data[ii] = (TH1F*) data->hist()->Clone("data_obs");
-    h_data[ii]->Rebin(rebinby[ii]);
   }
 
   // Write input file
   TFile* fout = new TFile("combineInputs.root","recreate");
   TDirectory* topdir = fout->GetDirectory("");
-  TDirectory* dirs[nhist];
-  for (int ii = 0; ii < nhist; ii ++){
-    dirs[ii] = fout->mkdir(histnames[ii]+regions[ii]);
-    dirs[ii]->cd();
-    for (int jj = 0; jj < nsys; jj++){
-      h_qcd[ii][jj]->Write();
-      h_wjets[ii][jj]->Write();
-      h_singletop[ii][jj]->Write();
-      h_ttbar[ii][jj]->Write();
+  TDirectory* dirs[nchannels][nhist];
+  for (int ii = 0; ii < nchannels; ii++){
+    for (int jj = 0; jj < nhist; jj++){
+      dirs[ii][jj] = fout->mkdir(histnames[jj]+regions[jj]+"_"+channels[ii]);
+      dirs[ii][jj]->cd();
+      for (int kk = 0; kk < nsys; kk++){
+	h_qcd[ii][jj][kk]->Write();
+	h_wjets[ii][jj][kk]->Write();
+	h_singletop[ii][jj][kk]->Write();
+	h_ttbar[ii][jj][kk]->Write();
+      }
+      h_data[ii][jj]->Write();
+      topdir->cd();
     }
-    h_data[ii]->Write();
-    topdir->cd();
   }
   fout->Close();
 
   // Make comparison plots
   int colors[nsys-1] = {2,2,3,3,4,4,5,5,6,6,7,7};
   int styles[nsys-1] = {1,2,1,2,1,2,1,2,1,2,1,2};
-  for (int ii = 0; ii < nhist; ii++){
+  for (int ii = 0; ii < nchannels; ii++){
+    for (int jj = 0; jj < nhist; jj++){
 
-    TCanvas* c = new TCanvas("c_"+histnames[ii]+regions[ii],"c_"+histnames[ii]+regions[ii],900,800);
+      TCanvas* c = new TCanvas("c_"+histnames[jj]+regions[jj]+"_"+channels[ii],"c_"+histnames[jj]+regions[jj]+"_"+channels[ii],900,800);
 
-    h_ttbar[ii][0]->SetFillColor(0);
-    h_ttbar[ii][0]->SetMaximum(1.5*h_ttbar[ii][0]->GetMaximum());
-    h_ttbar[ii][0]->Draw("hist");
+      h_ttbar[ii][jj][0]->SetFillColor(0);
+      h_ttbar[ii][jj][0]->SetMaximum(1.5*h_ttbar[ii][jj][0]->GetMaximum());
+      h_ttbar[ii][jj][0]->Draw("hist");
     
-    TLegend* leg;
-    float xmin = 0.66;
-    if (regions[ii] == "1t1b" || regions[ii] == "1t0b") xmin = 0.2;
-    leg = new TLegend(xmin,0.65,xmin+0.2,0.88);
-    leg->SetBorderSize(0);
-    leg->SetFillStyle(0);
-    leg->SetTextFont(42);
-    leg->SetTextSize(0.035);
-    leg->AddEntry(h_ttbar[ii][0], "TTbar nominal", "l");
+      TLegend* leg;
+      float xmin = 0.66;
+      if (regions[jj] == "1t1b" || regions[jj] == "1t0b") xmin = 0.2;
+      leg = new TLegend(xmin,0.65,xmin+0.2,0.88);
+      leg->SetBorderSize(0);
+      leg->SetFillStyle(0);
+      leg->SetTextFont(42);
+      leg->SetTextSize(0.035);
+      leg->AddEntry(h_ttbar[ii][jj][0], "TTbar nominal", "l");
 
-    for (int jj = 1; jj < nsys; jj++){
-      h_ttbar[ii][jj]->SetFillColor(0);
-      h_ttbar[ii][jj]->SetLineColor(colors[jj-1]);
-      h_ttbar[ii][jj]->SetLineStyle(styles[jj-1]);
-      h_ttbar[ii][jj]->Draw("hist,same");
-      if (jj%2 == 1) leg->AddEntry(h_ttbar[ii][jj],sysnames[jj],"l");
+      for (int kk = 1; kk < nsys; kk++){
+	h_ttbar[ii][jj][kk]->SetFillColor(0);
+	h_ttbar[ii][jj][kk]->SetLineColor(colors[kk-1]);
+	h_ttbar[ii][jj][kk]->SetLineStyle(styles[kk-1]);
+	h_ttbar[ii][jj][kk]->Draw("hist,same");
+	if (kk%2 == 1) leg->AddEntry(h_ttbar[ii][jj][kk],sysnames[kk],"l");
+      }
+
+      leg->Draw();
+
+      TString outname = "Plots/sysVar_"+channels[ii]+"_"+histnames[jj]+regions[jj]+".pdf";
+      c->SaveAs(outname);
     }
-
-    leg->Draw();
-
-    TString outname = "Plots/sysVar_"+channel+"_"+histnames[ii]+regions[ii]+".pdf";
-    c->SaveAs(outname);
   }
   
   // Cleanup
-  for (int ii = 0; ii < 3; ii ++){
-    for (int jj = 0; jj < 3; jj++){
-      h_qcd[ii][jj]->Delete();
-      h_wjets[ii][jj]->Delete();
-      h_singletop[ii][jj]->Delete();
-      h_ttbar[ii][jj]->Delete();
+  for (int ii = 0; ii < nchannels; ii++){
+    for (int jj = 0; jj < nhist; jj ++){
+      for (int kk = 0; kk < nsys; kk++){
+	h_qcd[ii][jj][kk]->Delete();
+	h_wjets[ii][jj][kk]->Delete();
+	h_singletop[ii][jj][kk]->Delete();
+	h_ttbar[ii][jj][kk]->Delete();
+      }
+      h_data[ii][jj]->Delete();
     }
-    h_data[ii]->Delete();
   }
 }
 
@@ -820,50 +842,56 @@ void combineResults(TString channel, TString fit, TString preorpost) {
 
   TH1::AddDirectory(kFALSE); 
   setStyle();
-  
-  const int nhist = 4;
-  TString what[nhist] = {"lepAbsEta0t","lepAbsEta1t0b","ak8jetTau321t0b","ak8jetSDmass1t1b"};
+
+  int nhist = 3;
+  if (fit.Contains("C")) nhist = 4;
+  TString whatA[3] = {"lepAbsEta0t","ak8jetTau321t0b","ak8jetSDmass1t1b"};
+  TString whatB[3] = {"lepAbsEta0t","lepAbsEta1t0b","ak8jetSDmass1t1b"};
+  TString whatC[4] = {"lepAbsEta0t","lepAbsEta1t0b","ak8jetTau321t0b","ak8jetSDmass1t1b"};
   const int nsample = 4;
   TString samples[nsample] = {"TTbar","SingleTop","WJets","QCD"};
   
   // counts for cutflow
-  float count_tt[nhist] = {0};
-  float count_singletop[nhist] = {0};
-  float count_wjets[nhist] = {0};
-  float count_qcd[nhist] = {0};
-  float count_tot[nhist] = {0};
-  float count_data[nhist] = {0};
+  float count_tt[4] = {0};
+  float count_singletop[4] = {0};
+  float count_wjets[4] = {0};
+  float count_qcd[4] = {0};
+  float count_tot[4] = {0};
+  float count_data[4] = {0};
   
   // errors for cutflow
-  float err_tt[nhist] = {0};
-  float err_singletop[nhist] = {0};
-  float err_wjets[nhist] = {0};
-  float err_qcd[nhist] = {0};
-  float err_tot[nhist] = {0};
+  float err_tt[4] = {0};
+  float err_singletop[4] = {0};
+  float err_wjets[4] = {0};
+  float err_qcd[4] = {0};
+  float err_tot[4] = {0};
 
-  TH1F* h_data[nhist];
+  TH1F* h_data[4];
 
   // Get data hists
-  TString dname = "";
-  if (channel == "mu") dname = "combineInputs.root";
-  TFile* datafile = TFile::Open(dname);
+  TFile* datafile = TFile::Open("combineInputs.root");
   for (int ii = 0; ii < nhist; ii++){
-    h_data[ii] = (TH1F*) datafile->Get(what[ii]+"/data_obs");
+    if (fit.Contains("A")) h_data[ii] = (TH1F*) datafile->Get(whatA[ii]+"_"+channel+"/data_obs");
+    if (fit.Contains("B")) h_data[ii] = (TH1F*) datafile->Get(whatB[ii]+"_"+channel+"/data_obs");
+    if (fit.Contains("C")) h_data[ii] = (TH1F*) datafile->Get(whatC[ii]+"_"+channel+"/data_obs");
     count_data[ii] = h_data[ii]->GetSum();
   }
   datafile->Close();
   delete datafile;
 
   // Get sample hists
-  TString iname = "";
-  if (channel == "mu" && fit == "mu") iname = "mlfit.root";
-  TFile* MCfile = TFile::Open( iname );
-  
+  TFile* MCfile = TFile::Open( "mlfit_"+fit+".root" );
+
   TString DIR = "shapes_fit_s/";
   if (preorpost == "pre") DIR = "shapes_prefit/";
 
   // Get count and error for each sample
   for (int ii = 0; ii < nhist; ii ++){
+    TString thishist = "";
+    if (fit.Contains("A")) thishist = whatA[ii];
+    if (fit.Contains("B")) thishist = whatB[ii];
+    if (fit.Contains("C")) thishist = whatC[ii];
+    
     TH1F* h_wjets = (TH1F*) h_data[ii]->Clone();
     h_wjets->Reset();
     TH1F* h_ttbar = (TH1F*) h_data[ii]->Clone();
@@ -874,11 +902,12 @@ void combineResults(TString channel, TString fit, TString preorpost) {
     h_qcd->Reset();
     TH1F* h_totalbkg = (TH1F*) h_data[ii]->Clone();
     h_totalbkg->Reset();
-    TH1F* h_wjets_tmp = (TH1F*) MCfile->Get(DIR+what[ii]+"/WJets");
-    TH1F* h_ttbar_tmp = (TH1F*) MCfile->Get(DIR+what[ii]+"/TTbar");
-    TH1F* h_singletop_tmp = (TH1F*) MCfile->Get(DIR+what[ii]+"/SingleTop");
-    TH1F* h_qcd_tmp = (TH1F*) MCfile->Get(DIR+what[ii]+"/QCD");
-    TH1F* h_totalbkg_tmp = (TH1F*) MCfile->Get(DIR+what[ii]+"/total");
+
+    TH1F* h_wjets_tmp = (TH1F*) MCfile->Get(DIR+thishist+"_"+channel+"/WJets");
+    TH1F* h_ttbar_tmp = (TH1F*) MCfile->Get(DIR+thishist+"_"+channel+"/TTbar");
+    TH1F* h_singletop_tmp = (TH1F*) MCfile->Get(DIR+thishist+"_"+channel+"/SingleTop");
+    TH1F* h_qcd_tmp = (TH1F*) MCfile->Get(DIR+thishist+"_"+channel+"/QCD");
+    TH1F* h_totalbkg_tmp = (TH1F*) MCfile->Get(DIR+thishist+"_"+channel+"/total");
 
     // error on pre-fit counts
     for (int ib=0; ib<h_data[ii]->GetNbinsX(); ib++) {
@@ -924,11 +953,11 @@ void combineResults(TString channel, TString fit, TString preorpost) {
 
     TH1F* h_ratio;
     TH1F* h_ratio2;
-    h_ratio = (TH1F*) h_data[ii]->Clone("ratio_"+what[ii]);  // Data / MC
+    h_ratio = (TH1F*) h_data[ii]->Clone("ratio_"+thishist+"_"+channel);  // Data / MC
     h_ratio->Sumw2();
     h_ratio->Divide(h_totalbkg);
 
-    h_ratio2 = (TH1F*) h_totalbkg->Clone("ratio2_"+what[ii]); // Uncertainty on Data / MC
+    h_ratio2 = (TH1F*) h_totalbkg->Clone("ratio2_"+thishist+"_"+channel); // Uncertainty on Data / MC
     h_ratio2->Sumw2();
     for (int ib=0; ib<h_totalbkg->GetNbinsX(); ib++) {
       h_ratio2->SetBinContent(ib+1, 1.0);
@@ -940,16 +969,16 @@ void combineResults(TString channel, TString fit, TString preorpost) {
 
     float mymax = max(h_data[ii]->GetMaximum(),h_totalbkg->GetMaximum());
     h_data[ii]->SetAxisRange(0,mymax*1.05,"Y");
-    
+
     // -------------------------------------------------------------------------------------
     // plotting!
 
-    TCanvas* c = new TCanvas("c_"+what[ii],"c_"+what[ii],900,800);
-    TPad* p1 = new TPad("datamcp1_"+what[ii],"datamcp1_"+what[ii],0,0.3,1,1);
+    TCanvas* c = new TCanvas("c_"+thishist+"_"+channel,"c_"+thishist+"_"+channel,900,800);
+    TPad* p1 = new TPad("datamcp1_"+thishist+"_"+channel,"datamcp1_"+thishist+"_"+channel,0,0.3,1,1);
     p1->SetTopMargin(0.08);
     p1->SetBottomMargin(0.05);
     p1->SetNumber(1);
-    TPad* p2 = new TPad("datamcp2_"+what[ii],"datamcp2_"+what[ii],0,0,1,0.3);
+    TPad* p2 = new TPad("datamcp2_"+thishist+"_"+channel,"datamcp2_"+thishist+"_"+channel,0,0,1,0.3);
     p2->SetNumber(2);
     p2->SetTopMargin(0.05);
     p2->SetBottomMargin(0.35);
@@ -989,7 +1018,7 @@ void combineResults(TString channel, TString fit, TString preorpost) {
     float xwidth = 0.18;
     float ywidth = 0.32;
     
-    if (what[ii] == "ak8jetTau321t0b" || what[ii] == "ak8jetSDmass1t1b") xmin = 0.16;
+    if (thishist == "ak8jetTau321t0b" || thishist == "ak8jetSDmass1t1b") xmin = 0.16;
 
     // legend
     TLegend* leg;
@@ -1030,9 +1059,29 @@ void combineResults(TString channel, TString fit, TString preorpost) {
     h_ratio->GetYaxis()->SetTitleSize(32);
 
     // save output
-    TString outname = "Plots/"+channel+"_"+what[ii]+"_"+preorpost+".pdf";
+    TString outname = "Plots/"+channel+"_"+thishist+"_"+fit+"_"+preorpost+".pdf";
     c->SaveAs(outname);
 
+  }
+
+  // Now plot correlation matrix
+  if (preorpost == "post"){
+    TH2F* h_mcorr = (TH2F*) MCfile->Get("covariance_fit_s");
+    TCanvas* c2 = new TCanvas("c2","c2",900,700);
+    c2->SetLeftMargin(0.18);
+    c2->SetRightMargin(0.12);
+    c2->SetBottomMargin(0.1);
+    h_mcorr->GetZaxis()->SetLabelSize(0.04);
+    h_mcorr->Draw("COLZ");
+    gPad->Update();
+    TPaletteAxis *palette = (TPaletteAxis*)h_mcorr->GetListOfFunctions()->FindObject("palette");
+    palette->SetX1NDC(0.88);
+    palette->SetX2NDC(0.93);
+    palette->SetY1NDC(0.1);
+    palette->SetY2NDC(0.9);
+    gPad->Modified();
+    gPad->Update();
+    c2->SaveAs("Plots/correlation_"+fit+".pdf");
   }
 
   // Finally make table

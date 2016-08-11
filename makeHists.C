@@ -100,11 +100,11 @@ double getElectronSFerr(double eta){
 // ----------------------------------------------------------------------------------------------------------------
 
 
-void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, bool isData = false, bool isSignal = false, TString lepID = "Medium", TString iso = "None", bool doHemiCuts = false, float metCut = 0.0, bool doTriangular = false, bool isQCD = false, TString systematic = "nom", int oddOrEven = 0) {
-   
+void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, bool isData = false, bool isSignal = false, TString lepID = "Medium", TString iso = "None", bool doHemiCuts = false, float metCut = 0.0, bool doTriangular = false, bool isQCD = false, TString systematic = "nom", int oddOrEven = 0, bool usePost = false) {
+  
   SetPlotStyle();
   TH1::AddDirectory(kFALSE);
-
+  
   //--------------------------
   // Setup for response matrix
   //--------------------------
@@ -118,13 +118,13 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   response.SetName("response_pt");
   TH1F* h_ptGenTop = new TH1F("ptGenTop", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1F* h_ptRecoTop = new TH1F("ptRecoTop", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
-
+  
   float weight_response = 2689 * 831.76 / 187626200.; //lum * xsec / Nevents for PowhegPythia8
-
+  
   // ----------------------------------------------------------------------------------------------------------
   // If running on signal, load truth information for events not passing reco, in order to fill response matrix
   // ----------------------------------------------------------------------------------------------------------
-
+  
   if (sample.Contains("fullTruth")){
     TChain* treeTO = new TChain("trueTree");
     treeTO->Add(INDIR + sample + ".root");
@@ -133,35 +133,49 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       cout << "File doesn't exist or is empty, returning..." << endl;
       return;
     }
-
+    
     vector<int>*   truthChannel_TO = 0;
     vector<float>* genTopPt_TO     = 0;
     vector<float>* genTopEta_TO    = 0;
     vector<float>* genTopPhi_TO    = 0;
     vector<float>* genTTbarMass_TO = 0;
+    //vector<float>* eventWeight_nom_TO = 0;
+    //vector<float>* eventWeight_puUp_TO = 0;
+    //vector<float>* eventWeight_puDown_TO = 0;
     TBranch* b_truthChannel_TO;
     TBranch* b_genTopPt_TO;
     TBranch* b_genTopEta_TO;
     TBranch* b_genTopPhi_TO;
     TBranch* b_genTTbarMass_TO;
+    //TBranch* b_eventWeight_nom_TO;
+    //TBranch* b_eventWeight_puUp_TO;
+    //TBranch* b_eventWeight_puDown_TO;
     
     treeTO->SetBranchAddress("truthChannel"           , &truthChannel_TO        , &b_truthChannel_TO        );     
     treeTO->SetBranchAddress("genTopPt"               , &genTopPt_TO            , &b_genTopPt_TO            );
     treeTO->SetBranchAddress("genTopEta"              , &genTopEta_TO           , &b_genTopEta_TO           );
     treeTO->SetBranchAddress("genTopPhi"              , &genTopPhi_TO           , &b_genTopPhi_TO           );
     treeTO->SetBranchAddress("genTTbarMass"           , &genTTbarMass_TO        , &b_genTTbarMass_TO        );
-
+    //treeTO->SetBranchAddress("eventWeight_nom"      , &eventWeight_nom_TO     , &b_eventWeight_nom_TO     );
+    //treeTO->SetBranchAddress("eventWeight_puUp"     , &eventWeight_puUp_TO    , &b_eventWeight_puUp_TO    );
+    //treeTO->SetBranchAddress("eventWeight_puDown"   , &eventWeight_puDown_TO  , &b_eventWeight_puDown_TO  );
+    
     for (int i=0; i<treeTO->GetEntries(); i++) {
       
       treeTO->GetEntry(i,0);
-
+      
       if (i%1000000 == 0) cout << "Event " << i << " (trueTree)" << endl;
       
       if (oddOrEven != 0){
 	if (i % 2 == oddOrEven - 1) continue;
       }
 
-    // Do channel selection at parton level
+      float weight = 1.0;
+      //float weight = eventWeight_nom_TO->at(0);
+      //if (systematic == "puUp") weight = eventWeight_puUp_TO->at(0);
+      //if (systematic == "puDown") weight = eventWeight_puDown_TO->at(0);
+      
+      // Do channel selection at parton level
       if ((int)truthChannel_TO->size() == 0){
 	cout << "Error: no truthChannel information!" << endl;
 	continue;
@@ -172,21 +186,21 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       if (truthChannel_TO->at(0) == 0 && channel == "el") continue;
       if (truthChannel_TO->at(0) == 1 && channel == "mu") continue;
-      h_ptGenTop->Fill(genTopPt_TO->at(0),1.0); //TODO: store weight to apply here
-      response.Miss(genTopPt_TO->at(0),1.0*weight_response);
+      h_ptGenTop->Fill(genTopPt_TO->at(0),weight);
+      response.Miss(genTopPt_TO->at(0),weight*weight_response);
     }
-  treeTO->Delete();
+    treeTO->Delete();
   }
-
+  
   // -------------------------
   // Load information for reco
   // -------------------------
-
+  
   BTagCalibration calib("CSVv2", "CSVv2.csv"); //76X
   BTagCalibrationReader reader(BTagEntry::OP_MEDIUM, "central");
   BTagCalibrationReader reader_up(BTagEntry::OP_MEDIUM, "up");
   BTagCalibrationReader reader_down(BTagEntry::OP_MEDIUM, "down");
-
+  
   reader.load(calib, BTagEntry::FLAV_B, "mujets"); //b
   reader.load(calib, BTagEntry::FLAV_C, "mujets"); //c
   reader.load(calib, BTagEntry::FLAV_UDSG, "incl"); //light
@@ -203,7 +217,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1F* h_muID = (TH1F*) f_muID->Get("MC_NUM_MediumID_DEN_genTracks_PAR_eta/eta_ratio")->Clone();
   f_muID->Close();
   delete f_muID;
-
+  
   TFile* f_muTrig = TFile::Open("SingleMuonTrigger_Z_RunCD_Reco76X_Feb15.root","read");
   TH1F* h_muTrig1 = (TH1F*) f_muTrig->Get("runC_Mu45_eta2p1_EtaBins/eta_ratio");
   h_muTrig1->Scale(18./2689.); //Scale by fraction of lumi in runC
@@ -225,10 +239,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     cout << "File doesn't exist or is empty, returning..." << endl;
     return;
   }
-
+  
   // ----------------------------------------------------------------------------------------------------------------
   // define leafs & branches
-
+  
   // reco level
   vector<float>* metPt                 = 0;
   vector<float>* metPhi                = 0;
@@ -252,6 +266,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   vector<float>* mudRPt40              = 0;
   vector<float>* mudRPt45              = 0;
   vector<int>*   muTight               = 0;
+  vector<float>* muCharge              = 0;
   vector<float>* elPt                  = 0;
   vector<float>* elEta                 = 0;
   vector<float>* elPhi                 = 0;
@@ -271,6 +286,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   vector<float>* eldRPt40              = 0;
   vector<float>* eldRPt45              = 0;
   vector<int>*   elTight               = 0;
+  vector<float>* elCharge              = 0;
   vector<float>* ak4jetPt              = 0;
   vector<float>* ak4jetEta             = 0;
   vector<float>* ak4jetPhi             = 0;
@@ -350,6 +366,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TBranch* b_mudRPt40              ;
   TBranch* b_mudRPt45              ;
   TBranch* b_muTight               ;
+  TBranch* b_muCharge              ;
   TBranch* b_elPt                  ;
   TBranch* b_elEta                 ;
   TBranch* b_elPhi                 ;
@@ -369,6 +386,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TBranch* b_eldRPt40              ;
   TBranch* b_eldRPt45              ;
   TBranch* b_elTight               ;
+  TBranch* b_elCharge              ;
   TBranch* b_ak4jetPt              ;
   TBranch* b_ak4jetEta             ;
   TBranch* b_ak4jetPhi             ;
@@ -446,6 +464,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   tree->SetBranchAddress("mudRPt40"               , &mudRPt40            , &b_mudRPt40            );
   tree->SetBranchAddress("mudRPt45"               , &mudRPt45            , &b_mudRPt45            );
   tree->SetBranchAddress("muTight"                , &muTight             , &b_muTight             );
+  tree->SetBranchAddress("muCharge"               , &muCharge            , &b_muCharge            );
   tree->SetBranchAddress("elPt"                   , &elPt                , &b_elPt                );
   tree->SetBranchAddress("elEta"                  , &elEta               , &b_elEta               );
   tree->SetBranchAddress("elPhi"                  , &elPhi               , &b_elPhi               );
@@ -465,6 +484,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   tree->SetBranchAddress("eldRPt40"               , &eldRPt40            , &b_eldRPt40            );
   tree->SetBranchAddress("eldRPt45"               , &eldRPt45            , &b_eldRPt45            );
   tree->SetBranchAddress("elTight"                , &elTight             , &b_elTight             );
+  tree->SetBranchAddress("elCharge"               , &elCharge            , &b_elCharge            );
   tree->SetBranchAddress("ak4jetPt"               , &ak4jetPt            , &b_ak4jetPt            );
   tree->SetBranchAddress("ak4jetEta"              , &ak4jetEta           , &b_ak4jetEta           );
   tree->SetBranchAddress("ak4jetPhi"              , &ak4jetPhi           , &b_ak4jetPhi           );
@@ -825,7 +845,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   
   int nevt = tree->GetEntries();
   cout << "number of events = " << nevt << endl;
-
+  
   int nPassSemiLep = 0;
   int nPassParton = 0;
   int nPassParticle = 0;
@@ -835,44 +855,44 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   int passStep3 = 0;
   int passStep4 = 0;
   int passStep5 = 0;
-
+  
   int nPassCSV = 0;
   int nPassBtag = 0;
   int nPassMassCut = 0;
   int nPassTau32Cut = 0;
   int nPassTopTag = 0;
-
+  
   int n1b = 0;
   int n1t = 0;
   int n1t1b = 0;
-
+  
   float noIsoCount = 0.;
   float MiniIsoCounts[30] = {0.};
   float Count2DIso[7][6][4] = {0.};
-
+  
   // ----------------------------------------------------------------------------------------------------------------
   // event loop
   for (int i=0; i<nevt; i++) {
-
+    
     bool passParton = false;
     bool passReco = false;
-
+    
     tree->GetEntry(i,0);
-
+    
     if (i%10000 == 0) cout << "Event " << i << endl;
-
+    
     if (oddOrEven != 0){
       if (i % 2 == oddOrEven - 1) continue;
     }
     // ----------------------------------------------------------------------------------------------------------------
-
+    
     float weight = eventWeight_nom->at(0);
     if (!isData && systematic == "puUp") weight = eventWeight_puUp->at(0);
     if (!isData && systematic == "puDown") weight = eventWeight_puDown->at(0);
     
     // Look at truth information (TTbar signal only)
     if (isSignal) {
-   
+      
       // Do channel selection at parton level
       if ((int)truthChannel->size() == 0){
 	cout << "Error: no truthChannel information!" << endl;
@@ -895,9 +915,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	h_genTopEta->Fill(genTopEta->at(0),weight);
 	h_genTopPhi->Fill(genTopPhi->at(0),weight);
 	h_genTTbarMass->Fill(genTTbarMass->at(0),weight);
-
+	
 	h_ptGenTop->Fill(genTopPt->at(0),weight);
-
+	
 	if (channel == "mu"){
 	  if ((int)genMuPt->size() == 0) {
 	    cout << "Error: no muon in mu channel!" << endl;
@@ -907,7 +927,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  h_genLepEta->Fill(genMuEta->at(0),weight);
 	  h_genLepPhi->Fill(genMuPhi->at(0),weight);
 	}
-
+	
 	if (channel == "el"){
 	  if ((int)genElPt->size() == 0){
 	    cout << "Error: no electron in el channel!" << endl;
@@ -918,12 +938,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  h_genLepPhi->Fill(genElPhi->at(0),weight);
 	}
       }
-
+      
       /*
       // TODO: implement further particle-level selection here
       //h_ngenAK4jet->Fill((int)genAK4jetPt->size(),weight);
       if ((int)genAK4jetPt->size() != 0){
-	for (int it=0; it<(int)genAK4jetPt->size(); it++) {
+        for (int it=0; it<(int)genAK4jetPt->size(); it++) {
 	  //h_genAK4jetPt->Fill(genAK4jetPt->at(it),weight);
 	  //h_genAK4jetEta->Fill(genAK4jetEta->at(it),weight);
 	  //h_genAK4jetPhi->Fill(genAK4jetPhi->at(it),weight);
@@ -963,7 +983,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // R E C O   L E V E L
     // ------------------------
     // Recall here that events are only stored in trees if they pass tree-level reco preselection, aka
-    // >=1 lepton with pt > 50
+    // ==1 Medium lepton with pt > 50
     // >=1 AK8 jet with pt > 350
     // >=1 AK4 jet with pt > 50
 
@@ -971,7 +991,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     if (!isData){
       if ((int)muTrigPass->size() == 0)	continue;
       if ((int)elTrigPass->size() == 0)	continue;
-
+      
       if (channel == "mu" && !(muTrigPass->at(0))) {
 	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
 	continue;
@@ -1009,7 +1029,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       ak4Jets.push_back(jetP4);
     }
-
+    
     std::vector<TLorentzVector> ak8Jets;
     if ((int)ak8jetPt->size() == 0) {
       if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
@@ -1036,7 +1056,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       ak8Jets.push_back(jetP4);
     }
-
+    
     // Get (and count / categorize) muons
     TLorentzVector goodMu;
     float goodMuMiniIso = 0.;
@@ -1044,7 +1064,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     int nMuForVeto = 0;
     
     // Loop over muons
-    // First plot 'raw' muon quantities, aka for medium ID no-iso muons. These are also the veto muons.
+    // We only expect 0 or 1 muons, but leaving this as a loop for now in case we change something later
     if ((int)muPt->size() != 0) {
       for (int it = 0; it < (int)muPt->size(); it++){
 	float dRclosest = 99.;
@@ -1060,8 +1080,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	    }
 	  }
 	}
-	nMuForVeto += 1; //Veto on medium muons for now
-
+	nMuForVeto += 1; //Veto on medium muons
+	
 	// Now define 'good' muons.
 	if (iso == "Loose" ||
 	    (!isQCD && iso == "MiniIso10" && muMiniIso->at(it) < 0.10 ) ||
@@ -1070,8 +1090,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	    (!isQCD && iso == "2DisoPt45" && (muPtRelPt45->at(it) > 35.0 || mudRPt45->at(it) > 0.4)) ||
 	    (!isQCD && iso == "2DisoB2G"  && (muPtRelPt15->at(it) > 20.0 || mudRPt15->at(it) > 0.4)) ||
 	    (!isQCD && iso == "2DisoIHNY" && (muPtRelPt25->at(it) > 25.0 || mudRPt25->at(it) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && muMiniIso->at(it) > 0.10 )){
-	  if (lepID == "Medium" || (lepID == "Tight" && muTight->at(0))){
+	    (isQCD && iso == "MiniIso10" && muMiniIso->at(it) > 0.10 && muMiniIso->at(it) < 0.20)){
+	  if (lepID == "Medium" || (lepID == "Tight" && muTight->at(it))){
 	    goodMu.SetPtEtaPhiM(muPt->at(it),muEta->at(it),muPhi->at(it),0.105);
 	    goodMuMiniIso = muMiniIso->at(it);
 	    nGoodMu += 1;
@@ -1079,14 +1099,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	}		  
       } //End muon loop
     }
-
+    
     // Get (and count / categorize) electrons
     TLorentzVector goodEl;
     float goodElMiniIso = 0.;
     int nGoodEl = 0;
     int nElForVeto = 0;
-
-    // Get raw (veto) electrons
+    
+    // Loop over electrons
+    // We only expect 0 or 1 electrons, but leaving this as a loop for now in case we change something later
     if ((int)elPt->size() != 0) {
       for (int it = 0; it < (int)elPt->size(); it++){
 	float dRclosest = 99.;
@@ -1103,7 +1124,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  }
 	}
 	nElForVeto += 1;
-
+	
 	// Now define 'good' electrons
 	if (iso == "Loose" ||
 	    (!isQCD && iso == "MiniIso10" && elMiniIso->at(it) < 0.10 ) ||
@@ -1112,8 +1133,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	    (!isQCD && iso == "2DisoPt45" && (elPtRelPt45->at(it) > 25.0 || eldRPt45->at(it) > 0.4)) ||
 	    (!isQCD && iso == "2DisoB2G"  && (elPtRelPt15->at(it) > 20.0 || eldRPt15->at(it) > 0.4)) ||
 	    (!isQCD && iso == "2DisoIHNY" && (elPtRelPt25->at(it) > 25.0 || eldRPt25->at(it) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && elMiniIso->at(it) > 0.10 )){
-	  if (lepID == "Medium" || (lepID == "Tight" && elTight->at(0))){
+	    (isQCD && iso == "MiniIso10" && elMiniIso->at(it) > 0.10 && elMiniIso->at(it) < 0.20)){
+	  if (lepID == "Medium" || (lepID == "Tight" && elTight->at(it))){
 	    goodEl.SetPtEtaPhiM(elPt->at(it),elEta->at(it),elPhi->at(it),0.0);
 	    goodElMiniIso = elMiniIso->at(it);
 	    nGoodEl += 1;
@@ -1121,7 +1142,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	}
       }
     }
-
+    
     // Isolation studies
     if (!isData && (int)ak4Jets.size() > 1 && (int)ak8Jets.size() != 0 && ak8Jets.at(0).Perp() > 400.){//Loose jet 'preselection' -- same as regular preselection but no hemisphere requirement
       float MiniIsoCuts[30] = {0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29};
@@ -1139,7 +1160,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  h_2DisoPt40->Fill(mudRPt40->at(0),muPtRelPt40->at(0),weight);
 	  h_2DisoPt45->Fill(mudRPt45->at(0),muPtRelPt45->at(0),weight);
 	}
-
+	
 	noIsoCount += weight;
 	
 	for (int ii = 0; ii < 30; ii ++){
@@ -1149,7 +1170,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	    }
 	  }
 	}
-
+	
 	for (int ii = 0; ii < 6; ii++){
 	  for (int jj = 0; jj < 4; jj++){
 	    for (int kk = 0; kk < (int)muPt->size(); kk++){
@@ -1166,7 +1187,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  }
 	}
       }
-
+      
       if (channel == "el" && (int)elPt->size() != 0){
 	if (lepID == "Medium" || (lepID == "Tight" && elTight->at(0))){
 	  h_2DisoPt15->Fill(eldRPt15->at(0),elPtRelPt15->at(0),weight);
@@ -1177,7 +1198,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  h_2DisoPt40->Fill(eldRPt40->at(0),elPtRelPt40->at(0),weight);
 	  h_2DisoPt45->Fill(eldRPt45->at(0),elPtRelPt45->at(0),weight);
 	}
-
+	
 	noIsoCount += weight;
 	
 	for (int ii = 0; ii < 30; ii ++){
@@ -1187,7 +1208,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	    }
 	  }
 	}
-
+	
 	for (int ii = 0; ii < 6; ii++){
 	  for (int jj = 0; jj < 4; jj++){
 	    for (int kk = 0; kk < (int)elPt->size(); kk++){
@@ -1209,7 +1230,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // ------------------------
     // Preselection
     // ------------------------
-
+    
     // Require exactly one good mu/el and veto additional el/mu
     if (iso == "Loose"){
       if (channel == "mu" && !(nMuForVeto == 1 && nElForVeto == 0)) continue; 
@@ -1225,33 +1246,38 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	continue;
       }
     }
-
+    
     TLorentzVector refLep;
     float refLepMiniIso;
+    float lepQ;
     if (channel == "mu") {
       refLep = goodMu;
       refLepMiniIso = goodMuMiniIso;
-      if (!isData && systematic == "lepUp") weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"up");
-      else if (!isData && systematic == "lepDown") weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"down");
-      else if (!isData) weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"nom");
+      lepQ = muCharge->at(0);
+      if (!isData){
+	if (systematic == "lepUp") weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"up");
+	else if (systematic == "lepDown") weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"down");
+	else weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"nom");
+      }
     }
     if (channel == "el") {
       refLep = goodEl;
       refLepMiniIso = goodElMiniIso;
+      lepQ = elCharge->at(0);
       if (!isData) {
 	if (systematic == "lepUp") weight *= (getElectronSF(refLep.Eta()) + getElectronSFerr(refLep.Eta()));
 	else if (systematic == "lepDown") weight *= (getElectronSF(refLep.Eta()) - getElectronSFerr(refLep.Eta()));
 	else weight *= getElectronSF(refLep.Eta());
       }
     }
-
+    
     // Triangular cut, if using
     if (channel == "el" && doTriangular){
       float dphi_emet = std::abs(metPhi->at(0) - refLep.Phi());
       if (dphi_emet > 3.14159) dphi_emet = std::abs(2*3.14159 - dphi_emet);
       float dphi_jetmet = std::abs(metPhi->at(0) - ak4Jets.at(0).Phi());
       if (dphi_jetmet > 3.14159) dphi_jetmet = std::abs(2*3.14159 - dphi_jetmet);
-
+      
       if ( std::abs(dphi_emet-1.5) > 1.5 * metPt->at(0) / 75.0 || std::abs(dphi_jetmet-1.5) > 1.5 * metPt->at(0) / 75.0) {
 	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
 	continue;
@@ -1259,14 +1285,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     } // End triangular cut
     
     passStep1 += 1;
-
+    
     // Require at least two jets
     if ((int)ak4Jets.size() < 2) {
       if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
       continue;
     }
     passStep2 += 1;
-
+    
     // Define leptonic jets (AK4 jets with dR(jet,lep) < pi/2) and b jet candidate (leptonic jet closest to lepton)
     float bJetCandDR = 99.;
     int ibJetCand = -1;
@@ -1281,7 +1307,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	ibJetCand = it;
       }
     }
-
+    
     // Require at least one leptonic jet
     if (nLepJet < 1) {
       if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
@@ -1303,21 +1329,21 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	itopJetCand = it;
       }
     }
-
+    
     // Require at least one hadronic jet
     if (nHadJet < 1) {
       if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
       continue;
     }
     passStep4 += 1;
-
+    
     // Require MET > 35 GeV
     if (metPt->at(0) < metCut) {
       if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
       continue;
     }
     passStep5 += 1;
-
+    
     // ----------------------------
     // Fill preselection histograms
     // ----------------------------
@@ -1366,6 +1392,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_lepPtPre->Fill(refLep.Perp(),weight);
     h_lepEtaPre->Fill(refLep.Eta(),weight);
     h_lepAbsEtaPre->Fill(abs(refLep.Eta()),weight);
+    h_lepSignEtaPre->Fill(lepQ*refLep.Eta(),weight);
     h_lepPhiPre->Fill(refLep.Phi(),weight);
     h_lepBJetdRPre->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
     h_lepTJetdRPre->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
@@ -1386,19 +1413,23 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     float highmasscut = 220.;
     bool passTopTag = false;
     float toptagSF = 1.0;
+    float toptagUnc = 0.5;
+    if (usePost) {
+      toptagSF = 1.11;
+      toptagUnc = 0.14;
+    }
     if (ak8jetSDmass->at(itopJetCand) > lowmasscut && ak8jetSDmass->at(itopJetCand) < highmasscut){
       nPassMassCut += 1;
       if ((ak8jetTau3->at(itopJetCand) / ak8jetTau2->at(itopJetCand)) < tau32cut) {
 	nPassTau32Cut += 1;
-	if (max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)) > btagcut){
-	  nPassTopTag += 1;
-	  passTopTag = true;
-	  if (!isData){
-	    toptagSF = 0.90;
-	    if (systematic == "TopTagUp") toptagSF *= 1.5;
-	    if (systematic == "TopTagDown") toptagSF *= 0.5;
-	  }
+	//if (max(ak8jetSDsubjet0CSV->at(itopJetCand),ak8jetSDsubjet1CSV->at(itopJetCand)) > btagcut){
+	nPassTopTag += 1;
+	passTopTag = true;
+	if (!isData){
+	  if (systematic == "TopTagUp") toptagSF *= (1.0+toptagUnc);
+	  if (systematic == "TopTagDown") toptagSF *= (1.0-toptagUnc);
 	}
+	//}
       }
     }
 
@@ -1530,6 +1561,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_lepPt1b->Fill(refLep.Perp(),weight*btagSF);
       h_lepEta1b->Fill(refLep.Eta(),weight*btagSF);
       h_lepAbsEta1b->Fill(abs(refLep.Eta()),weight*btagSF);
+      h_lepSignEta1b->Fill(lepQ*refLep.Eta(),weight*btagSF);
       h_lepPhi1b->Fill(refLep.Phi(),weight*btagSF);
       h_lepBJetdR1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*btagSF);
       h_lepTJetdR1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*btagSF);
@@ -1588,6 +1620,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_lepPt1t->Fill(refLep.Perp(),weight*toptagSF);
       h_lepEta1t->Fill(refLep.Eta(),weight*toptagSF);
       h_lepAbsEta1t->Fill(abs(refLep.Eta()),weight*toptagSF);
+      h_lepSignEta1t->Fill(lepQ*refLep.Eta(),weight*toptagSF);
       h_lepPhi1t->Fill(refLep.Phi(),weight*toptagSF);
       h_lepBJetdR1t->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*toptagSF);
       h_lepTJetdR1t->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*toptagSF);
@@ -1646,6 +1679,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_lepPt1t1b->Fill(refLep.Perp(),weight*btagSF*toptagSF);
       h_lepEta1t1b->Fill(refLep.Eta(),weight*btagSF*toptagSF);
       h_lepAbsEta1t1b->Fill(abs(refLep.Eta()),weight*btagSF*toptagSF);
+      h_lepSignEta1t1b->Fill(lepQ*refLep.Eta(),weight*btagSF*toptagSF);
       h_lepPhi1t1b->Fill(refLep.Phi(),weight*btagSF*toptagSF);
       h_lepBJetdR1t1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*btagSF*toptagSF);
       h_lepTJetdR1t1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*btagSF*toptagSF);
@@ -1788,6 +1822,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_lepPtPre->Write();
   h_lepEtaPre->Write();
   h_lepAbsEtaPre->Write();
+  h_lepSignEtaPre->Write();
   h_lepPhiPre->Write();
   h_lepBJetdRPre->Write();
   h_lepTJetdRPre->Write();
@@ -1838,6 +1873,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_lepPt1b->Write();
   h_lepEta1b->Write();
   h_lepAbsEta1b->Write();
+  h_lepSignEta1b->Write();
   h_lepPhi1b->Write();
   h_lepBJetdR1b->Write();
   h_lepTJetdR1b->Write();
@@ -1887,6 +1923,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_lepPt1t->Write();
   h_lepEta1t->Write();
   h_lepAbsEta1t->Write();
+  h_lepSignEta1t->Write();
   h_lepPhi1t->Write();
   h_lepBJetdR1t->Write();
   h_lepTJetdR1t->Write();
@@ -1936,6 +1973,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_lepPt1t1b->Write();
   h_lepEta1t1b->Write();
   h_lepAbsEta1t1b->Write();
+  h_lepSignEta1t1b->Write();
   h_lepPhi1t1b->Write();
   h_lepBJetdR1t1b->Write();
   h_lepTJetdR1t1b->Write();
