@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'QCD_HT700to1000'
+config.General.requestName = 'QCD_HT300to500'
 config.General.workArea = 'test'
 config.General.transferLogs = True
 
@@ -14,7 +14,7 @@ config.JobType.outputFiles = ['test_iheartNY.root']
 config.JobType.scriptExe = 'execute_iheartNY_MC.sh'
 
 config.section_("Data")
-config.Data.inputDataset = '/QCD_HT700to1000_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/jaking-B2GAnaFW_80X_V1p2_Spring16_25nsV3-57245828f0aff35008e119696cd27428/USER'
+config.Data.inputDataset = '/QCD_HT300to500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/jaking-B2GAnaFW_80X_V1p2_Spring16_25nsV3-57245828f0aff35008e119696cd27428/USER'
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1

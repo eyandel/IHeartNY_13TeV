@@ -14,7 +14,7 @@ config.JobType.outputFiles = ['test_iheartNY.root']
 config.JobType.scriptExe = 'execute_iheartNY_MC.sh'
 
 config.section_("Data")
-config.Data.inputDataset = '/QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/knash-RunIISpring16MiniAODv2_B2GAnaFW_80x_V1p0-4e74e3854bbd13b3866f4a57304f402f/USER'
+config.Data.inputDataset = '/QCD_HT1000to1500_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/knash-RunIISpring16MiniAODv2_B2GAnaFW_80x_V1p0_v2-4e74e3854bbd13b3866f4a57304f402f/USER'
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1

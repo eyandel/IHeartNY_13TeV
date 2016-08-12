@@ -23,6 +23,8 @@ MAX_JET_ETA = 2.4
 
 TOP_PT_CUT = 350.0
 
+MIN_TOP_MASS = 105.0
+MAX_TOP_MASS = 220.0
 # -------------------------------------------------------------------------------------
 # define input options
 # -------------------------------------------------------------------------------------
@@ -67,13 +69,17 @@ parser.add_option('--debug', metavar='M', action='store_true',
 parser.add_option('--fullTruth', metavar='M', action='store_true',
                   default=False,
                   dest='fullTruth',
-                  help='Save truth info for all events')
+                  help='Save additional tree with truth info for fail-reco events')
 
 parser.add_option('--puFile', metavar='F', type='string', action='store',
                   default=None,
                   dest='puFile',
                   help='Pileup reweighting file')
 
+parser.add_option('--muOrEl', metavar='F', type='string', action='store',
+                  default=None,
+                  dest='muOrEl',
+                  help='Muon or electron sample')
 
 (options, args) = parser.parse_args()
 argv = []
@@ -86,7 +92,9 @@ from array import *
 import sys
 from DataFormats.FWLite import Events, Handle
 
-
+if options.fullTruth and not (options.isMC and options.semilep == 1):
+    sys.exit("ERROR: can only use fullTruth option with semilep TTbar MC!\n")
+    
 # -------------------------------------------------------------------------------------
 # jet energy corrections
 # -------------------------------------------------------------------------------------
@@ -156,6 +164,7 @@ if not options.isMC :
 
 ak8JetCorrector = ROOT.FactorizedJetCorrector(vParJecAK8)
 
+    
 # -------------------------------------------------------------------------------------
 # define helper classes that use ROOT
 # -------------------------------------------------------------------------------------
@@ -207,7 +216,7 @@ f.cd()
 
 #~ Tree initializations
 
-myTree = ROOT.TTree("myTree", "myTree")
+recoTree = ROOT.TTree("recoTree", "recoTree")
 
 # parton level
 if options.isMC and options.semilep is not None:
@@ -333,141 +342,147 @@ eventWeight_nom        = ROOT.vector('float')()
 eventWeight_puUp       = ROOT.vector('float')()
 eventWeight_puDown     = ROOT.vector('float')()
 
-if options.isMC :
-    muTrigPass             = ROOT.vector('int')()
-    elTrigPass             = ROOT.vector('int')()
-    if options.semilep == 1:
-        truthChannel       = ROOT.vector('int')()
+if options.isMC and options.semilep == 1:
+    truthChannel       = ROOT.vector('int')()
 
 if options.isMC and options.semilep is not None:
-    myTree.Branch('genTopPt'               , genTopPt               )
-    myTree.Branch('genTopEta'              , genTopEta              )
-    myTree.Branch('genTopPhi'              , genTopPhi              )
-    myTree.Branch('genMuPt'                , genMuPt                )
-    myTree.Branch('genMuEta'               , genMuEta               )
-    myTree.Branch('genMuPhi'               , genMuPhi               )
-    myTree.Branch('genElPt'                , genElPt                )
-    myTree.Branch('genElEta'               , genElEta               )
-    myTree.Branch('genElPhi'               , genElPhi               )
-    myTree.Branch('genTTbarMass'           , genTTbarMass           )
+    recoTree.Branch('genTopPt'               , genTopPt               )
+    recoTree.Branch('genTopEta'              , genTopEta              )
+    recoTree.Branch('genTopPhi'              , genTopPhi              )
+    recoTree.Branch('genMuPt'                , genMuPt                )
+    recoTree.Branch('genMuEta'               , genMuEta               )
+    recoTree.Branch('genMuPhi'               , genMuPhi               )
+    recoTree.Branch('genElPt'                , genElPt                )
+    recoTree.Branch('genElEta'               , genElEta               )
+    recoTree.Branch('genElPhi'               , genElPhi               )
+    recoTree.Branch('genTTbarMass'           , genTTbarMass           )
     
-    #myTree.Branch('genAK4jetPt'            , genAK4jetPt            )
-    #myTree.Branch('genAK4jetEta'           , genAK4jetEta           )
-    #myTree.Branch('genAK4jetPhi'           , genAK4jetPhi           )
-    #myTree.Branch('genAK4jetMass'          , genAK4jetMass          )
-    myTree.Branch('genAK8jetPt'            , genAK8jetPt            )
-    myTree.Branch('genAK8jetEta'           , genAK8jetEta           )
-    myTree.Branch('genAK8jetPhi'           , genAK8jetPhi           )
-    myTree.Branch('genAK8jetMass'          , genAK8jetMass          )
-    myTree.Branch('partMuPt'               , partMuPt               )
-    myTree.Branch('partMuEta'              , partMuEta              )
-    myTree.Branch('partMuPhi'              , partMuPhi              )
-    myTree.Branch('partElPt'               , partElPt               )
-    myTree.Branch('partElEta'              , partElEta              )
-    myTree.Branch('partElPhi'              , partElPhi              )
+    #recoTree.Branch('genAK4jetPt'            , genAK4jetPt            )
+    #recoTree.Branch('genAK4jetEta'           , genAK4jetEta           )
+    #recoTree.Branch('genAK4jetPhi'           , genAK4jetPhi           )
+    #recoTree.Branch('genAK4jetMass'          , genAK4jetMass          )
+    recoTree.Branch('genAK8jetPt'            , genAK8jetPt            )
+    recoTree.Branch('genAK8jetEta'           , genAK8jetEta           )
+    recoTree.Branch('genAK8jetPhi'           , genAK8jetPhi           )
+    recoTree.Branch('genAK8jetMass'          , genAK8jetMass          )
+    recoTree.Branch('partMuPt'               , partMuPt               )
+    recoTree.Branch('partMuEta'              , partMuEta              )
+    recoTree.Branch('partMuPhi'              , partMuPhi              )
+    recoTree.Branch('partElPt'               , partElPt               )
+    recoTree.Branch('partElEta'              , partElEta              )
+    recoTree.Branch('partElPhi'              , partElPhi              )
 
-myTree.Branch('metPt'                  , metPt                  )
-myTree.Branch('metPhi'                 , metPhi                 )
-myTree.Branch('ht'                     , ht                     )
-myTree.Branch('muPt'                   , muPt                   )
-myTree.Branch('muEta'                  , muEta                  )
-myTree.Branch('muPhi'                  , muPhi                  )
-myTree.Branch('muMiniIso'              , muMiniIso              )
-myTree.Branch('muPtRelPt15'            , muPtRelPt15            )
-myTree.Branch('muPtRelPt20'            , muPtRelPt20            )
-myTree.Branch('muPtRelPt25'            , muPtRelPt25            )
-myTree.Branch('muPtRelPt30'            , muPtRelPt30            )
-myTree.Branch('muPtRelPt35'            , muPtRelPt35            )
-myTree.Branch('muPtRelPt40'            , muPtRelPt40            )
-myTree.Branch('muPtRelPt45'            , muPtRelPt45            )
-myTree.Branch('mudRPt15'               , mudRPt15               )
-myTree.Branch('mudRPt20'               , mudRPt20               )
-myTree.Branch('mudRPt25'               , mudRPt25               )
-myTree.Branch('mudRPt30'               , mudRPt30               )
-myTree.Branch('mudRPt35'               , mudRPt35               )
-myTree.Branch('mudRPt40'               , mudRPt40               )
-myTree.Branch('mudRPt45'               , mudRPt45               )
-myTree.Branch('muTight'                , muTight                )
-myTree.Branch('muCharge'               , muCharge               )
-myTree.Branch('elPt'                   , elPt                   )
-myTree.Branch('elEta'                  , elEta                  )
-myTree.Branch('elPhi'                  , elPhi                  )
-myTree.Branch('elMiniIso'              , elMiniIso              )
-myTree.Branch('elPtRelPt15'            , elPtRelPt15            )
-myTree.Branch('elPtRelPt20'            , elPtRelPt20            )
-myTree.Branch('elPtRelPt25'            , elPtRelPt25            )
-myTree.Branch('elPtRelPt30'            , elPtRelPt30            )
-myTree.Branch('elPtRelPt35'            , elPtRelPt35            )
-myTree.Branch('elPtRelPt40'            , elPtRelPt40            )
-myTree.Branch('elPtRelPt45'            , elPtRelPt45            )
-myTree.Branch('eldRPt15'               , eldRPt15               )
-myTree.Branch('eldRPt20'               , eldRPt20               )
-myTree.Branch('eldRPt25'               , eldRPt25               )
-myTree.Branch('eldRPt30'               , eldRPt30               )
-myTree.Branch('eldRPt35'               , eldRPt35               )
-myTree.Branch('eldRPt40'               , eldRPt40               )
-myTree.Branch('eldRPt45'               , eldRPt45               )
-myTree.Branch('elTight'                , elTight                )
-myTree.Branch('elCharge'               , elCharge               )
-myTree.Branch('ak4jetPt'               , ak4jetPt               )
-myTree.Branch('ak4jetEta'              , ak4jetEta              )
-myTree.Branch('ak4jetPhi'              , ak4jetPhi              )
-myTree.Branch('ak4jetMass'             , ak4jetMass             )
-myTree.Branch('ak4jetCSV'              , ak4jetCSV              )
-myTree.Branch('ak4jetVtxMass'          , ak4jetVtxMass          )
-myTree.Branch('ak4jetJECunc'           , ak4jetJECunc           )
+recoTree.Branch('metPt'                  , metPt                  )
+recoTree.Branch('metPhi'                 , metPhi                 )
+recoTree.Branch('ht'                     , ht                     )
+recoTree.Branch('muPt'                   , muPt                   )
+recoTree.Branch('muEta'                  , muEta                  )
+recoTree.Branch('muPhi'                  , muPhi                  )
+recoTree.Branch('muMiniIso'              , muMiniIso              )
+recoTree.Branch('muPtRelPt15'            , muPtRelPt15            )
+recoTree.Branch('muPtRelPt20'            , muPtRelPt20            )
+recoTree.Branch('muPtRelPt25'            , muPtRelPt25            )
+recoTree.Branch('muPtRelPt30'            , muPtRelPt30            )
+recoTree.Branch('muPtRelPt35'            , muPtRelPt35            )
+recoTree.Branch('muPtRelPt40'            , muPtRelPt40            )
+recoTree.Branch('muPtRelPt45'            , muPtRelPt45            )
+recoTree.Branch('mudRPt15'               , mudRPt15               )
+recoTree.Branch('mudRPt20'               , mudRPt20               )
+recoTree.Branch('mudRPt25'               , mudRPt25               )
+recoTree.Branch('mudRPt30'               , mudRPt30               )
+recoTree.Branch('mudRPt35'               , mudRPt35               )
+recoTree.Branch('mudRPt40'               , mudRPt40               )
+recoTree.Branch('mudRPt45'               , mudRPt45               )
+recoTree.Branch('muTight'                , muTight                )
+recoTree.Branch('muCharge'               , muCharge               )
+recoTree.Branch('elPt'                   , elPt                   )
+recoTree.Branch('elEta'                  , elEta                  )
+recoTree.Branch('elPhi'                  , elPhi                  )
+recoTree.Branch('elMiniIso'              , elMiniIso              )
+recoTree.Branch('elPtRelPt15'            , elPtRelPt15            )
+recoTree.Branch('elPtRelPt20'            , elPtRelPt20            )
+recoTree.Branch('elPtRelPt25'            , elPtRelPt25            )
+recoTree.Branch('elPtRelPt30'            , elPtRelPt30            )
+recoTree.Branch('elPtRelPt35'            , elPtRelPt35            )
+recoTree.Branch('elPtRelPt40'            , elPtRelPt40            )
+recoTree.Branch('elPtRelPt45'            , elPtRelPt45            )
+recoTree.Branch('eldRPt15'               , eldRPt15               )
+recoTree.Branch('eldRPt20'               , eldRPt20               )
+recoTree.Branch('eldRPt25'               , eldRPt25               )
+recoTree.Branch('eldRPt30'               , eldRPt30               )
+recoTree.Branch('eldRPt35'               , eldRPt35               )
+recoTree.Branch('eldRPt40'               , eldRPt40               )
+recoTree.Branch('eldRPt45'               , eldRPt45               )
+recoTree.Branch('elTight'                , elTight                )
+recoTree.Branch('elCharge'               , elCharge               )
+recoTree.Branch('ak4jetPt'               , ak4jetPt               )
+recoTree.Branch('ak4jetEta'              , ak4jetEta              )
+recoTree.Branch('ak4jetPhi'              , ak4jetPhi              )
+recoTree.Branch('ak4jetMass'             , ak4jetMass             )
+recoTree.Branch('ak4jetCSV'              , ak4jetCSV              )
+recoTree.Branch('ak4jetVtxMass'          , ak4jetVtxMass          )
+recoTree.Branch('ak4jetJECunc'           , ak4jetJECunc           )
 if options.isMC:
-    myTree.Branch('ak4jetHadronFlavour'    , ak4jetHadronFlavour    )
-    myTree.Branch('ak4jetPtJERup'          , ak4jetPtJERup          )
-    myTree.Branch('ak4jetPtJERdown'        , ak4jetPtJERdown        )
-    myTree.Branch('ak4jetEtaJERup'         , ak4jetEtaJERup         )
-    myTree.Branch('ak4jetEtaJERdown'       , ak4jetEtaJERdown       )
-    myTree.Branch('ak4jetPhiJERup'         , ak4jetPhiJERup         )
-    myTree.Branch('ak4jetPhiJERdown'       , ak4jetPhiJERdown       )
-    myTree.Branch('ak4jetMassJERup'        , ak4jetMassJERup        )
-    myTree.Branch('ak4jetMassJERdown'      , ak4jetMassJERdown      )
-myTree.Branch('ak8jetPt'               , ak8jetPt               )
-myTree.Branch('ak8jetEta'              , ak8jetEta              )
-myTree.Branch('ak8jetPhi'              , ak8jetPhi              )
-myTree.Branch('ak8jetMass'             , ak8jetMass             )
-myTree.Branch('ak8jetMassPruned'       , ak8jetMassPruned       )
-myTree.Branch('ak8jetMassFiltered'     , ak8jetMassFiltered     )
-myTree.Branch('ak8jetMassTrimmed'      , ak8jetMassTrimmed      )
-myTree.Branch('ak8jetTau1'             , ak8jetTau1             )
-myTree.Branch('ak8jetTau2'             , ak8jetTau2             )
-myTree.Branch('ak8jetTau3'             , ak8jetTau3             )
-myTree.Branch('ak8jetCSV'              , ak8jetCSV              )
-myTree.Branch('ak8jetSDmass'           , ak8jetSDmass           )
-myTree.Branch('ak8jetSDsubjet0pt'      , ak8jetSDsubjet0pt      )
-myTree.Branch('ak8jetSDsubjet0eta'     , ak8jetSDsubjet0eta     )
-myTree.Branch('ak8jetSDsubjet0phi'     , ak8jetSDsubjet0phi     )
-myTree.Branch('ak8jetSDsubjet0mass'    , ak8jetSDsubjet0mass    )
-myTree.Branch('ak8jetSDsubjet0CSV'     , ak8jetSDsubjet0CSV     )
-myTree.Branch('ak8jetSDsubjet1pt'      , ak8jetSDsubjet1pt      ) 
-myTree.Branch('ak8jetSDsubjet1eta'     , ak8jetSDsubjet1eta     )
-myTree.Branch('ak8jetSDsubjet1phi'     , ak8jetSDsubjet1phi     )
-myTree.Branch('ak8jetSDsubjet1mass'    , ak8jetSDsubjet1mass    )
-myTree.Branch('ak8jetSDsubjet1CSV'     , ak8jetSDsubjet1CSV     )
-myTree.Branch('ak8jetJECunc'           , ak8jetJECunc           )
+    recoTree.Branch('ak4jetHadronFlavour'    , ak4jetHadronFlavour    )
+    recoTree.Branch('ak4jetPtJERup'          , ak4jetPtJERup          )
+    recoTree.Branch('ak4jetPtJERdown'        , ak4jetPtJERdown        )
+    recoTree.Branch('ak4jetEtaJERup'         , ak4jetEtaJERup         )
+    recoTree.Branch('ak4jetEtaJERdown'       , ak4jetEtaJERdown       )
+    recoTree.Branch('ak4jetPhiJERup'         , ak4jetPhiJERup         )
+    recoTree.Branch('ak4jetPhiJERdown'       , ak4jetPhiJERdown       )
+    recoTree.Branch('ak4jetMassJERup'        , ak4jetMassJERup        )
+    recoTree.Branch('ak4jetMassJERdown'      , ak4jetMassJERdown      )
+recoTree.Branch('ak8jetPt'               , ak8jetPt               )
+recoTree.Branch('ak8jetEta'              , ak8jetEta              )
+recoTree.Branch('ak8jetPhi'              , ak8jetPhi              )
+recoTree.Branch('ak8jetMass'             , ak8jetMass             )
+recoTree.Branch('ak8jetMassPruned'       , ak8jetMassPruned       )
+recoTree.Branch('ak8jetMassFiltered'     , ak8jetMassFiltered     )
+recoTree.Branch('ak8jetMassTrimmed'      , ak8jetMassTrimmed      )
+recoTree.Branch('ak8jetTau1'             , ak8jetTau1             )
+recoTree.Branch('ak8jetTau2'             , ak8jetTau2             )
+recoTree.Branch('ak8jetTau3'             , ak8jetTau3             )
+recoTree.Branch('ak8jetCSV'              , ak8jetCSV              )
+recoTree.Branch('ak8jetSDmass'           , ak8jetSDmass           )
+recoTree.Branch('ak8jetSDsubjet0pt'      , ak8jetSDsubjet0pt      )
+recoTree.Branch('ak8jetSDsubjet0eta'     , ak8jetSDsubjet0eta     )
+recoTree.Branch('ak8jetSDsubjet0phi'     , ak8jetSDsubjet0phi     )
+recoTree.Branch('ak8jetSDsubjet0mass'    , ak8jetSDsubjet0mass    )
+recoTree.Branch('ak8jetSDsubjet0CSV'     , ak8jetSDsubjet0CSV     )
+recoTree.Branch('ak8jetSDsubjet1pt'      , ak8jetSDsubjet1pt      ) 
+recoTree.Branch('ak8jetSDsubjet1eta'     , ak8jetSDsubjet1eta     )
+recoTree.Branch('ak8jetSDsubjet1phi'     , ak8jetSDsubjet1phi     )
+recoTree.Branch('ak8jetSDsubjet1mass'    , ak8jetSDsubjet1mass    )
+recoTree.Branch('ak8jetSDsubjet1CSV'     , ak8jetSDsubjet1CSV     )
+recoTree.Branch('ak8jetJECunc'           , ak8jetJECunc           )
 if options.isMC:
-    myTree.Branch('ak8jetPtJERup'          , ak8jetPtJERup          )
-    myTree.Branch('ak8jetPtJERdown'        , ak8jetPtJERdown        )
-    myTree.Branch('ak8jetEtaJERup'         , ak8jetEtaJERup         )
-    myTree.Branch('ak8jetEtaJERdown'       , ak8jetEtaJERdown       )
-    myTree.Branch('ak8jetPhiJERup'         , ak8jetPhiJERup         )
-    myTree.Branch('ak8jetPhiJERdown'       , ak8jetPhiJERdown       )
-    myTree.Branch('ak8jetMassJERup'        , ak8jetMassJERup        )
-    myTree.Branch('ak8jetMassJERdown'      , ak8jetMassJERdown      )
+    recoTree.Branch('ak8jetPtJERup'          , ak8jetPtJERup          )
+    recoTree.Branch('ak8jetPtJERdown'        , ak8jetPtJERdown        )
+    recoTree.Branch('ak8jetEtaJERup'         , ak8jetEtaJERup         )
+    recoTree.Branch('ak8jetEtaJERdown'       , ak8jetEtaJERdown       )
+    recoTree.Branch('ak8jetPhiJERup'         , ak8jetPhiJERup         )
+    recoTree.Branch('ak8jetPhiJERdown'       , ak8jetPhiJERdown       )
+    recoTree.Branch('ak8jetMassJERup'        , ak8jetMassJERup        )
+    recoTree.Branch('ak8jetMassJERdown'      , ak8jetMassJERdown      )
 
-myTree.Branch('eventWeight_nom'           , eventWeight_nom           )
+recoTree.Branch('eventWeight_nom'           , eventWeight_nom           )
 
 if options.isMC:
-    myTree.Branch('eventWeight_puUp'          , eventWeight_puUp          )
-    myTree.Branch('eventWeight_puDown'        , eventWeight_puDown        )
-    myTree.Branch('muTrigPass'             , muTrigPass             )
-    myTree.Branch('elTrigPass'             , elTrigPass             )
+    recoTree.Branch('eventWeight_puUp'          , eventWeight_puUp          )
+    recoTree.Branch('eventWeight_puDown'        , eventWeight_puDown        )
     if options.semilep == 1:
-        myTree.Branch('truthChannel'            , truthChannel           )
+        recoTree.Branch('truthChannel'            , truthChannel           )
+
+if options.fullTruth:
+    trueTree = ROOT.TTree("trueTree", "trueTree")
+    trueTree.Branch('genTopPt'               , genTopPt               )
+    trueTree.Branch('genTopEta'              , genTopEta              )
+    trueTree.Branch('genTopPhi'              , genTopPhi              )
+    trueTree.Branch('genTTbarMass'           , genTTbarMass           )
+    trueTree.Branch('truthChannel'           , truthChannel           )
+    trueTree.Branch('eventWeight_nom'        , eventWeight_nom        )
+    trueTree.Branch('eventWeight_puUp'       , eventWeight_puUp       )
+    trueTree.Branch('eventWeight_puDown'     , eventWeight_puDown     )
 
 # -------------------------------------------------------------------------------------
 # define all variables to be read from input files
@@ -772,8 +787,6 @@ h_NPV_noweight   = ROOT.TH1F("h_NPV_noweight"  , "", 50,0,50 )
 h_NPV            = ROOT.TH1F("h_NPV"           , "", 50,0,50 )
 h_muPrescale     = ROOT.TH1F("h_muPrescale"    , "", 50,0,50 )
 h_elPrescale     = ROOT.TH1F("h_elPrescale"    , "", 50,0,50 )
-h_JERSF_AK4      = ROOT.TH1F("h_JERSF_AK4"       , "", 122,0.99,1.60)
-h_JERSF_AK8      = ROOT.TH1F("h_JERSF_AK8"       , "", 122,0.99,1.60)
 
 # -------------------------------------------------------------------------------------
 # Get pileup weights
@@ -950,8 +963,6 @@ for event in events :
         ak8jetMassJERdown.clear()
         eventWeight_puUp.clear()
         eventWeight_puDown.clear()
-        muTrigPass.clear()
-        elTrigPass.clear()
         if options.semilep == 1:
             truthChannel.clear()
     
@@ -970,136 +981,6 @@ for event in events :
             continue
         print 'Event ' + str(ntotal)
 
-    filledEvent = False
-
-    # ------------------------------
-    # Require a good primary vertex
-    # ------------------------------
-
-    event.getByLabel( pvChiLabel, pvChiHandle )
-    event.getByLabel( pvRhoLabel, pvRhoHandle )
-    event.getByLabel( pvZLabel, pvZHandle )
-    event.getByLabel( pvNdofLabel, pvNdofHandle )
-    
-    pv_chi  = pvChiHandle.product()
-    pv_rho  = pvRhoHandle.product()
-    pv_z    = pvZHandle.product()
-    pv_ndof = pvNdofHandle.product()
-    NPV = 0
-    
-    for ivtx in xrange( len(pv_chi) ) :
-        if abs(pv_z[ivtx]) < 24. and pv_ndof[ivtx] > 4 and abs(pv_rho[ivtx]) < 2.0 :
-            NPV += 1
-
-    # -------------------------------
-    # Do pileup reweighting if MC
-    # -------------------------------
-    
-    if options.isMC :
-        event.getByLabel(puNtrueIntLabel, puNtrueIntHandle)
-        puNTrueInt = puNtrueIntHandle.product()[0] 
-        h_NtrueIntPU.Fill( puNTrueInt )
-
-        if options.puFile is not None :
-            weight_nom  *= hPUweight_nom.GetBinContent( hPUweight_nom.GetXaxis().FindBin( puNTrueInt ) )
-            weight_puUp   *= hPUweight_up.GetBinContent( hPUweight_up.GetXaxis().FindBin( puNTrueInt ) )
-            weight_puDown *= hPUweight_down.GetBinContent( hPUweight_down.GetXaxis().FindBin( puNTrueInt ) )
-            if options.debug :
-                print 'Event weight after pileup reweigting is : ' + str(weight_nom)
-
-    #Fill NPV hists before and after PU reweighting
-    h_NPV_noweight.Fill(NPV)
-    h_NPV.Fill(NPV,weight_nom)
-
-    if NPV == 0 :
-        continue
-    nPassNPV += 1
-
-    # -------------------------------
-    # Require met filter
-    # -------------------------------
-    
-    metFilt = False
-    hbheFilt = False
-
-    gotName = event.getByLabel( metFilterNameLabel, metFilterNameHandle )
-    gotBits = event.getByLabel( metFilterBitsLabel, metFilterBitsHandle )
-    gotHBHE = event.getByLabel( HBHEfilterLabel, HBHEfilterHandle )
-
-    if gotName == False or gotBits == False  :
-        continue
-
-    filterNameStrings = metFilterNameHandle.product()
-    filterBits = metFilterBitsHandle.product()
-
-    hbheFilt = HBHEfilterHandle.product()[0]
-
-    for itrig in xrange(0, len(filterNameStrings) ) :
-        if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 1:
-            if options.debug :
-                print 'MET filter: ' + filterNameStrings[itrig]
-            metFilt = True
-
-        if "HBHE" in filterNameStrings[itrig] and filterBits[itrig] == 1: #Basically OR of our HBHE filter and the one stored in METUserData
-            if options.debug :
-                print 'MET filter: ' + filterNameStrings[itrig]
-            hbheFilt = True
-
-    if hbheFilt == False or metFilt == False :
-        continue
-    nPassMetFilter += 1
-                
-    # -------------------------------
-    # Require a trigger if MC
-    # -------------------------------
-
-    passMuTrig = True
-    passElTrig = True
-
-    # 80X does not have trigger stored! Turn this off for now
-    #
-    #if options.isMC :
-    #    passMuTrig = False
-    #    passElTrig = False
-    #    prescale = 1.0
-    #        
-    #    event.getByLabel( trigNameLabel, trigNameHandle )
-    #    event.getByLabel( trigBitsLabel, trigBitsHandle )
-    #    event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
-    #
-    #    triggerNames = trigNameHandle.product()
-    #    triggerBits = trigBitsHandle.product()
-    #    triggerPrescales = trigPrescalesHandle.product()
-    #
-    #    trigToRun = None
-    #    for itrig in xrange(0, len(triggerBits) ) :
-    #        if triggerBits[itrig] != 1 :
-    #            continue
-    #        trigName = triggerNames[itrig]
-    #        if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
-    #            passElTrig = True
-    #            prescale = prescale * triggerPrescales[itrig]
-    #            h_elPrescale.Fill(triggerPrescales[itrig])
-    #        if "HLT_Mu45_eta2p1" in trigName :
-    #            passMuTrig = True
-    #            prescale = prescale * triggerPrescales[itrig]
-    #            h_muPrescale.Fill(triggerPrescales[itrig])
-    #        
-    #    weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
-    #    weight_puUp = weight_puUp * prescale 
-    #    weight_puDown = weight_puDown * prescale 
-
-    # -------------------------------------------------------------------------------------
-    # read event rho value
-    # -------------------------------------------------------------------------------------
-
-    event.getByLabel( rhoLabel, rhoHandle )
-    if len(rhoHandle.product()) == 0 :
-        print "Event has no rho values."
-        continue
-    rho = rhoHandle.product()[0]
-    nPassRho += 1
-    
     # -------------------------------------------------------------------------------------
     # Get parton-level info
     # -------------------------------------------------------------------------------------
@@ -1148,10 +1029,10 @@ for event in events :
         # loop over gen particles
         for igen in xrange( len(genParticlesPt) ) :
             
-            # Find tops -- |pdgID| = 6, status 22
-            if genParticlesPdgId[igen] == 6 and genParticlesStatus[igen] == 22 :
+            # Find tops -- |pdgID| = 6, status 62 (Pythia8)
+            if genParticlesPdgId[igen] == 6 and genParticlesStatus[igen] == 62 :
                 p4Top.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )                    
-            if genParticlesPdgId[igen] == -6 and genParticlesStatus[igen] == 22:
+            if genParticlesPdgId[igen] == -6 and genParticlesStatus[igen] == 62:
                 p4Antitop.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
             
             # If there is an antilepton (e+, mu+, tau+) in the W+ decay then the top is leptonic
@@ -1223,39 +1104,28 @@ for event in events :
             hadTop = topQuarks[1]
             lepTop = topQuarks[0]
 
-            
-        # cut on generated m(ttbar) if stitching sample
         ttbarGen = hadTop.p4 + lepTop.p4
-        mttbarGen = ttbarGen.M()
-        
-        if options.mttGenMax is not None :
-            if mttbarGen > options.mttGenMax :
-                continue
 
         # ------------------------------------------------------------
-        # Store parton-level information if event good at parton level
+        # Store parton-level information 
         # ------------------------------------------------------------
         
-        if hadTop.p4.Perp() > TOP_PT_CUT :
-            nPassParton += 1
-            filledEvent = True
-            genTopPt.push_back(hadTop.p4.Perp())
-            genTopEta.push_back(hadTop.p4.Eta())
-            genTopPhi.push_back(hadTop.p4.Phi())
-            genTTbarMass.push_back(ttbarGen.M())
+        nPassParton += 1
+        genTopPt.push_back(hadTop.p4.Perp())
+        genTopEta.push_back(hadTop.p4.Eta())
+        genTopPhi.push_back(hadTop.p4.Phi())
+        genTTbarMass.push_back(ttbarGen.M())
+        
+        if len(genMuons) != 0:
+            genMuPt.push_back(genMuons[0].Perp())
+            genMuEta.push_back(genMuons[0].Eta())
+            genMuPhi.push_back(genMuons[0].Phi())
             
-            if len(genMuons) != 0:
-                genMuPt.push_back(genMuons[0].Perp())
-                genMuEta.push_back(genMuons[0].Eta())
-                genMuPhi.push_back(genMuons[0].Phi())
-                
-            if len(genElectrons) != 0:
-                genElPt.push_back(genElectrons[0].Perp())
-                genElEta.push_back(genElectrons[0].Eta())
-                genElPhi.push_back(genElectrons[0].Phi())   
+        if len(genElectrons) != 0:
+            genElPt.push_back(genElectrons[0].Perp())
+            genElEta.push_back(genElectrons[0].Eta())
+            genElPhi.push_back(genElectrons[0].Phi())   
 
-    nPassSemiLep += 1
-            
     # -------------------------------------------------------------------------------------
     # read gen jets
     # -------------------------------------------------------------------------------------
@@ -1299,7 +1169,7 @@ for event in events :
             # loop over AK8 gen jets
             if len(ak8GenJetPt) != 0:
                 for iak8 in xrange( len(ak8GenJetPt) ) :
-                    if ak8GenJetPt[iak8] > TOP_PT_CUT and abs(ak8GenJetEta[iak8]) < MAX_JET_ETA and ak8GenJetMass[iak8] > 140. and ak8GenJetMass[iak8] < 250.:
+                    if abs(ak8GenJetEta[iak8]) < MAX_JET_ETA and ak8GenJetMass[iak8] > MIN_TOP_MASS and ak8GenJetMass[iak8] < MAX_TOP_MASS: # no pt cut
                         p4 = ROOT.TLorentzVector()
                         p4.SetPtEtaPhiM( ak8GenJetPt[iak8], ak8GenJetEta[iak8], ak8GenJetPhi[iak8], ak8GenJetMass[iak8] )
                         genTops.append(p4)
@@ -1324,7 +1194,6 @@ for event in events :
 
         if len(genTops) >= 1 and (len(partMu) + len(partEl)) >= 1:
             nPassParticle += 1
-            filledEvent = True
             #if options.fullTruth:
             #    genAK8jetPt.push_back(genTops[0].Perp())
             #    genAK8jetEta.push_back(genTops[0].Eta())
@@ -1366,6 +1235,145 @@ for event in events :
 
     passReco = True #This will be set to false later if cuts fail
 
+    # ------------------------------
+    # Require a good primary vertex
+    # ------------------------------
+
+    event.getByLabel( pvChiLabel, pvChiHandle )
+    event.getByLabel( pvRhoLabel, pvRhoHandle )
+    event.getByLabel( pvZLabel, pvZHandle )
+    event.getByLabel( pvNdofLabel, pvNdofHandle )
+    
+    pv_chi  = pvChiHandle.product()
+    pv_rho  = pvRhoHandle.product()
+    pv_z    = pvZHandle.product()
+    pv_ndof = pvNdofHandle.product()
+    NPV = 0
+    
+    for ivtx in xrange( len(pv_chi) ) :
+        if abs(pv_z[ivtx]) < 24. and pv_ndof[ivtx] > 4 and abs(pv_rho[ivtx]) < 2.0 :
+            NPV += 1
+
+    # -------------------------------
+    # Do pileup reweighting if MC
+    # -------------------------------
+    
+    if options.isMC :
+        event.getByLabel(puNtrueIntLabel, puNtrueIntHandle)
+        puNTrueInt = puNtrueIntHandle.product()[0] 
+        h_NtrueIntPU.Fill( puNTrueInt )
+
+        if options.puFile is not None :
+            weight_nom  *= hPUweight_nom.GetBinContent( hPUweight_nom.GetXaxis().FindBin( puNTrueInt ) )
+            weight_puUp   *= hPUweight_up.GetBinContent( hPUweight_up.GetXaxis().FindBin( puNTrueInt ) )
+            weight_puDown *= hPUweight_down.GetBinContent( hPUweight_down.GetXaxis().FindBin( puNTrueInt ) )
+            if options.debug :
+                print 'Event weight after pileup reweigting is : ' + str(weight_nom)
+
+    #Fill NPV hists before and after PU reweighting
+    h_NPV_noweight.Fill(NPV)
+    h_NPV.Fill(NPV,weight_nom)
+
+    if NPV == 0 :
+        passReco = False
+        if not options.fullTruth:
+            continue
+    nPassNPV += 1
+
+    # -------------------------------
+    # Require met filter
+    # -------------------------------
+    
+    metFilt = False
+    hbheFilt = False
+
+    gotName = event.getByLabel( metFilterNameLabel, metFilterNameHandle )
+    gotBits = event.getByLabel( metFilterBitsLabel, metFilterBitsHandle )
+    gotHBHE = event.getByLabel( HBHEfilterLabel, HBHEfilterHandle )
+
+    if gotName == False or gotBits == False  :
+        passReco = False
+        if not options.fullTruth:
+            continue
+
+    filterNameStrings = metFilterNameHandle.product()
+    filterBits = metFilterBitsHandle.product()
+
+    hbheFilt = HBHEfilterHandle.product()[0]
+
+    for itrig in xrange(0, len(filterNameStrings) ) :
+        if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 1:
+            if options.debug :
+                print 'MET filter: ' + filterNameStrings[itrig]
+            metFilt = True
+
+        if "HBHE" in filterNameStrings[itrig] and filterBits[itrig] == 1: #Basically OR of our HBHE filter and the one stored in METUserData
+            if options.debug :
+                print 'MET filter: ' + filterNameStrings[itrig]
+            hbheFilt = True
+
+    if hbheFilt == False or metFilt == False :
+        passReco = False
+        if not options.fullTruth:
+            continue
+    nPassMetFilter += 1
+                
+    # -------------------------------
+    # Require a trigger if MC
+    # -------------------------------
+
+    passMuTrig = True
+    passElTrig = True
+    
+    if not options.isMC :    # 80X does not have trigger stored for MC
+        passMuTrig = False
+        passElTrig = False
+        prescale = 1.0
+            
+        event.getByLabel( trigNameLabel, trigNameHandle )
+        event.getByLabel( trigBitsLabel, trigBitsHandle )
+        event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
+    
+        triggerNames = trigNameHandle.product()
+        triggerBits = trigBitsHandle.product()
+        triggerPrescales = trigPrescalesHandle.product()
+    
+        trigToRun = None
+        for itrig in xrange(0, len(triggerBits) ) :
+            if triggerBits[itrig] != 1 :
+                continue
+            trigName = triggerNames[itrig]
+            if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
+                passElTrig = True
+                prescale = prescale * triggerPrescales[itrig]
+                h_elPrescale.Fill(triggerPrescales[itrig])
+            if "HLT_Mu45_eta2p1" in trigName :
+                passMuTrig = True
+                prescale = prescale * triggerPrescales[itrig]
+                h_muPrescale.Fill(triggerPrescales[itrig])
+            
+        weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
+        weight_puUp = weight_puUp * prescale 
+        weight_puDown = weight_puDown * prescale
+
+        if options.muOrEl is "mu" and not passMuTrig:
+            continue
+        if options.muOrEl is "el" and not passElTrig:
+            continue
+    
+    # -------------------------------------------------------------------------------------
+    # read event rho value
+    # -------------------------------------------------------------------------------------
+
+    event.getByLabel( rhoLabel, rhoHandle )
+    if len(rhoHandle.product()) == 0 :
+        passReco = False
+        print "Event has no rho values."
+        if not options.fullTruth :
+            continue
+    rho = rhoHandle.product()[0]
+    nPassRho += 1
+    
     # -------------------------------------------------------------------------------------
     # get electrons
     # -------------------------------------------------------------------------------------
@@ -1599,18 +1607,6 @@ for event in events :
     else :
         nPassLep += 1
 
-    #Store which trigger passes for later use
-    if options.isMC:
-        if passMuTrig :
-            muTrigPass.push_back(1)
-        else :
-            muTrigPass.push_back(0)
-
-        if passElTrig :
-            elTrigPass.push_back(1)
-        else :
-            elTrigPass.push_back(0)
-
     # -------------------------------------------------------------------------------------
     # read MET 
     # -------------------------------------------------------------------------------------
@@ -1762,10 +1758,10 @@ for event in events :
                 metv += jetP4Pre
                 metv -= cleanedLepton
                 metv -= jetP4
-            else :
-                if abs(jetP4.Perp() - jetP4Pre.Perp()) > 0.001 :
-                    print 'Error: AK4 jet pt changed after undoing / redoing JEC w/o cleaning! Old pt ' + str(jetP4Pre.Perp()) + ' new pt ' + str(jetP4.Perp())
-                    
+            else:                  #Correct MET due to adjusting JEC
+                metv += jetP4Pre
+                metv -= jetP4
+
             UncertJetAK4.setJetEta(jetP4Raw.Eta())
             UncertJetAK4.setJetPhi(jetP4Raw.Phi())
             UncertJetAK4.setJetPt(jetP4.Perp())
@@ -1779,7 +1775,6 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
-                h_JERSF_AK4.Fill(ak4JERSFnoms[ijet])
                 if ak4MatchedGenJetPts[ijet] > 0:
                     genJetP4 = ROOT.TLorentzVector()
                     genJetP4.SetPtEtaPhiE(ak4MatchedGenJetPts[ijet],ak4MatchedGenJetEtas[ijet],ak4MatchedGenJetPhis[ijet],ak4MatchedGenJetEnergys[ijet])
@@ -2091,9 +2086,9 @@ for event in events :
                 metv += AK8jetP4Pre
                 metv -= AK8cleanedLepton
                 metv -= AK8jetP4
-            else :
-                if abs(AK8jetP4.Perp() - AK8jetP4Pre.Perp()) > 0.001 :
-                    print 'Error: AK8 jet pt changed after undoing / redoing JEC w/o cleaning! Old pt ' + str(jetP4Pre.Perp()) + ' new pt ' + str(jetP4.Perp())
+            else:                     #Correct MET due to adjusting JEC
+                metv += AK8jetP4Pre
+                metv -= AK8jetP4
 
             UncertJetAK8.setJetEta(AK8jetP4Raw.Eta())
             UncertJetAK8.setJetPhi(AK8jetP4Raw.Phi())
@@ -2108,7 +2103,6 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
-                h_JERSF_AK8.Fill(ak8JERSFnoms[ijet])
                 if ak8MatchedGenJetPts[ijet] > 0:
                     AK8genJetP4 = ROOT.TLorentzVector()
                     AK8genJetP4.SetPtEtaPhiE(ak8MatchedGenJetPts[ijet],ak8MatchedGenJetEtas[ijet],ak8MatchedGenJetPhis[ijet],ak8MatchedGenJetEnergys[ijet])
@@ -2210,31 +2204,17 @@ for event in events :
 
     if passReco :
         nEventsPass += 1
-        filledEvent = True
+        
+    eventWeight_nom.push_back(weight_nom)
+    if options.isMC:
+        eventWeight_puUp.push_back(weight_puUp)
+        eventWeight_puDown.push_back(weight_puDown)
 
-    if options.fullTruth : # Only store information relevant for unfolding -- differential quantities and things needed for selection
+    if passReco :
+        recoTree.Fill()
 
-        ak8jetTau1.clear() 
-        ak8jetMassPruned.clear()
-        ak8jetMassFiltered.clear()
-        ak8jetMassTrimmed.clear()   
-        ak8jetSDsubjet0pt.clear()
-        ak8jetSDsubjet0eta.clear()
-        ak8jetSDsubjet0phi.clear()
-        ak8jetSDsubjet0mass.clear()
-        ak8jetSDsubjet0CSV.clear()
-        ak8jetSDsubjet1pt.clear()
-        ak8jetSDsubjet1eta.clear()
-        ak8jetSDsubjet1phi.clear()
-        ak8jetSDsubjet1mass.clear()
-        ak8jetSDsubjet1CSV.clear()    
-    
-    if filledEvent :
-        eventWeight_nom.push_back(weight_nom)
-        if options.isMC:
-            eventWeight_puUp.push_back(weight_puUp)
-            eventWeight_puDown.push_back(weight_puDown)
-        myTree.Fill()
+    if options.fullTruth :
+        trueTree.Fill()
     
 # -------------------------------------------------------------------------------------
 # END OF LOOPING OVER EVENTS!!!

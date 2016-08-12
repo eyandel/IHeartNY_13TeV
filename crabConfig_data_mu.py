@@ -11,7 +11,7 @@ config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
 config.JobType.inputFiles = ['FrameworkJobReport.xml', 'execute_for_crab.py', 'iheartny_topxs_fwlite.py', 'JECs']
 config.JobType.outputFiles = ['test_iheartNY.root']
-config.JobType.scriptExe = 'execute_iheartNY_data.sh'
+config.JobType.scriptExe = 'execute_iheartNY_data_mu.sh'
 
 config.section_("Data")
 config.Data.inputDataset = '/SingleMuon/asparker-RunIISpring16MiniAODv2_B2GAnaFW_80x_V1p0-c9ad27f972ae59d36cd924fb5f87408c/USER'
