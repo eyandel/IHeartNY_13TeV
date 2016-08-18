@@ -130,4 +130,18 @@ void runMakeHists(TString toMake = "postfit"){
       }
     }
   }
+
+  if (toMake == "unfold") {
+    
+    makeHists("skimTrees/","histfiles","PowhegPythia8_fullTruth","mu",false,true,"Medium","MiniIso10",true,35.0,true,false,"nom",0);
+    makeHists("skimTrees/","histfiles","PowhegPythia8_fullTruth","mu",false,true,"Medium","MiniIso10",true,35.0,true,false,"nom",1); //Odd (for unfolding closure)
+    makeHists("skimTrees/","histfiles","PowhegPythia8_fullTruth","mu",false,true,"Medium","MiniIso10",true,35.0,true,false,"nom",2); //Even (for unfolding closure)
+
+    /*
+    makeHists("skimTrees/","histfiles","PowhegPythia8_fullTruth","el",false,true,"Medium","MiniIso10",true,35.0,true,false,"nom",0);
+    makeHists("skimTrees/","histfiles","PowhegPythia8_fullTruth","el",false,true,"Medium","MiniIso10",true,35.0,true,false,"nom",1); //Odd (for unfolding closure)
+    makeHists("skimTrees/","histfiles","PowhegPythia8_fullTruth","el",false,true,"Medium","MiniIso10",true,35.0,true,false,"nom",2); //Even (for unfolding closure)
+    */
+  }
+
 }

@@ -105,6 +105,11 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   SetPlotStyle();
   TH1::AddDirectory(kFALSE);
   
+
+  // minimum top pt cut
+  float MINTOPPT = 400.0;
+
+
   //--------------------------
   // Setup for response matrix
   //--------------------------
@@ -1065,17 +1070,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // Loop over muons
     // We only expect 0 or 1 muons, but leaving this as a loop for now in case we change something later
     if ((int)muPt->size() != 0) {
-      for (int it = 0; it < (int)muPt->size(); it++){
+      for (int imu = 0; imu < (int)muPt->size(); imu++){
 	float dRclosest = 99.;
 	float ptRelClosest = -1.0;
 	if ((int)ak4Jets.size() != 0){
 	  TLorentzVector muP4;
-	  muP4.SetPtEtaPhiM(muPt->at(it),muEta->at(it),muPhi->at(it),0.105);
-	  for (int it = 0; it < (int)ak4Jets.size(); it++){
-	    float dRtemp = muP4.DeltaR(ak4Jets.at(it));
+	  muP4.SetPtEtaPhiM(muPt->at(imu),muEta->at(imu),muPhi->at(imu),0.105);
+	  for (int ij = 0; ij < (int)ak4Jets.size(); ij++){
+	    float dRtemp = muP4.DeltaR(ak4Jets.at(ij));
 	    if (dRtemp < dRclosest) {
 	      dRclosest = dRtemp;
-	      ptRelClosest = muP4.Perp(ak4Jets.at(it).Vect());
+	      ptRelClosest = muP4.Perp(ak4Jets.at(ij).Vect());
 	    }
 	  }
 	}
@@ -1083,16 +1088,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	
 	// Now define 'good' muons.
 	if (iso == "Loose" ||
-	    (!isQCD && iso == "MiniIso10" && muMiniIso->at(it) < 0.10 ) ||
-	    (!isQCD && iso == "MiniIso20" && muMiniIso->at(it) < 0.20 ) ||
-	    (!isQCD && iso == "2DisoPt25" && (muPtRelPt25->at(it) > 45.0 || mudRPt25->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoPt45" && (muPtRelPt45->at(it) > 35.0 || mudRPt45->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoB2G"  && (muPtRelPt15->at(it) > 20.0 || mudRPt15->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoIHNY" && (muPtRelPt25->at(it) > 25.0 || mudRPt25->at(it) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && muMiniIso->at(it) > 0.10 && muMiniIso->at(it) < 0.20)){
-	  if (lepID == "Medium" || (lepID == "Tight" && muTight->at(it))){
-	    goodMu.SetPtEtaPhiM(muPt->at(it),muEta->at(it),muPhi->at(it),0.105);
-	    goodMuMiniIso = muMiniIso->at(it);
+	    (!isQCD && iso == "MiniIso10" && muMiniIso->at(imu) < 0.10 ) ||
+	    (!isQCD && iso == "MiniIso20" && muMiniIso->at(imu) < 0.20 ) ||
+	    (!isQCD && iso == "2DisoPt25" && (muPtRelPt25->at(imu) > 45.0 || mudRPt25->at(imu) > 0.4)) ||
+	    (!isQCD && iso == "2DisoPt45" && (muPtRelPt45->at(imu) > 35.0 || mudRPt45->at(imu) > 0.4)) ||
+	    (!isQCD && iso == "2DisoB2G"  && (muPtRelPt15->at(imu) > 20.0 || mudRPt15->at(imu) > 0.4)) ||
+	    (!isQCD && iso == "2DisoIHNY" && (muPtRelPt25->at(imu) > 25.0 || mudRPt25->at(imu) > 0.5)) ||
+	    (isQCD && iso == "MiniIso10" && muMiniIso->at(imu) > 0.10 && muMiniIso->at(imu) < 0.20)){
+	  if (lepID == "Medium" || (lepID == "Tight" && muTight->at(imu))){
+	    goodMu.SetPtEtaPhiM(muPt->at(imu),muEta->at(imu),muPhi->at(imu),0.105);
+	    goodMuMiniIso = muMiniIso->at(imu);
 	    nGoodMu += 1;
 	  }
 	}		  
@@ -1108,17 +1113,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // Loop over electrons
     // We only expect 0 or 1 electrons, but leaving this as a loop for now in case we change something later
     if ((int)elPt->size() != 0) {
-      for (int it = 0; it < (int)elPt->size(); it++){
+      for (int iel = 0; iel < (int)elPt->size(); iel++){
 	float dRclosest = 99.;
 	float ptRelClosest = -1.0;
 	if ((int)ak4Jets.size() != 0){
 	  TLorentzVector elP4;
-	  elP4.SetPtEtaPhiM(elPt->at(it),elEta->at(it),elPhi->at(it),0.0);
-	  for (int it = 0; it < (int)ak4Jets.size(); it++){
-	    float dRtemp = elP4.DeltaR(ak4Jets.at(it));
+	  elP4.SetPtEtaPhiM(elPt->at(iel),elEta->at(iel),elPhi->at(iel),0.0);
+	  for (int ij = 0; ij < (int)ak4Jets.size(); ij++){
+	    float dRtemp = elP4.DeltaR(ak4Jets.at(ij));
 	    if (dRtemp < dRclosest) {
 	      dRclosest = dRtemp;
-	      ptRelClosest = elP4.Perp(ak4Jets.at(it).Vect());
+	      ptRelClosest = elP4.Perp(ak4Jets.at(ij).Vect());
 	    }
 	  }
 	}
@@ -1126,16 +1131,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	
 	// Now define 'good' electrons
 	if (iso == "Loose" ||
-	    (!isQCD && iso == "MiniIso10" && elMiniIso->at(it) < 0.10 ) ||
-	    (!isQCD && iso == "MiniIso20" && elMiniIso->at(it) < 0.20 ) ||
-	    (!isQCD && iso == "2DisoPt25" && (elPtRelPt25->at(it) > 25.0 || eldRPt25->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoPt45" && (elPtRelPt45->at(it) > 25.0 || eldRPt45->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoB2G"  && (elPtRelPt15->at(it) > 20.0 || eldRPt15->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoIHNY" && (elPtRelPt25->at(it) > 25.0 || eldRPt25->at(it) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && elMiniIso->at(it) > 0.10 && elMiniIso->at(it) < 0.20)){
-	  if (lepID == "Medium" || (lepID == "Tight" && elTight->at(it))){
-	    goodEl.SetPtEtaPhiM(elPt->at(it),elEta->at(it),elPhi->at(it),0.0);
-	    goodElMiniIso = elMiniIso->at(it);
+	    (!isQCD && iso == "MiniIso10" && elMiniIso->at(iel) < 0.10 ) ||
+	    (!isQCD && iso == "MiniIso20" && elMiniIso->at(iel) < 0.20 ) ||
+	    (!isQCD && iso == "2DisoPt25" && (elPtRelPt25->at(iel) > 25.0 || eldRPt25->at(iel) > 0.4)) ||
+	    (!isQCD && iso == "2DisoPt45" && (elPtRelPt45->at(iel) > 25.0 || eldRPt45->at(iel) > 0.4)) ||
+	    (!isQCD && iso == "2DisoB2G"  && (elPtRelPt15->at(iel) > 20.0 || eldRPt15->at(iel) > 0.4)) ||
+	    (!isQCD && iso == "2DisoIHNY" && (elPtRelPt25->at(iel) > 25.0 || eldRPt25->at(iel) > 0.5)) ||
+	    (isQCD && iso == "MiniIso10" && elMiniIso->at(iel) > 0.10 && elMiniIso->at(iel) < 0.20)){
+	  if (lepID == "Medium" || (lepID == "Tight" && elTight->at(iel))){
+	    goodEl.SetPtEtaPhiM(elPt->at(iel),elEta->at(iel),elPhi->at(iel),0.0);
+	    goodElMiniIso = elMiniIso->at(iel);
 	    nGoodEl += 1;
 	  }
 	}
@@ -1143,7 +1148,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     }
     
     // Isolation studies
-    if (!isData && (int)ak4Jets.size() > 1 && (int)ak8Jets.size() != 0 && ak8Jets.at(0).Perp() > 400.){//Loose jet 'preselection' -- same as regular preselection but no hemisphere requirement
+    if (!isData && (int)ak4Jets.size() > 1 && (int)ak8Jets.size() != 0 && ak8Jets.at(0).Perp() > MINTOPPT){//Loose jet 'preselection' -- same as regular preselection but no hemisphere requirement
       float MiniIsoCuts[30] = {0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29};
       float PtRelCuts[6] = {20.,25.,30.,35.,40.,45.};
       float dRCuts[4] = {0.4,0.45,0.4,0.55};
@@ -1319,7 +1324,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     int itopJetCand = -1;
     int nHadJet = 0;
     for (int it = 0; it < (int)ak8Jets.size(); it++){
-      if (ak8Jets.at(it).Perp() < 400.) continue;
+      if (ak8Jets.at(it).Perp() < MINTOPPT) continue;
       float dRtemp = refLep.DeltaR(ak8Jets.at(it));
       if (doHemiCuts && dRtemp < 3.1415 / 2.) continue;
       nHadJet += 1;
