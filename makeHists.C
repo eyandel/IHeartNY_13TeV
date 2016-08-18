@@ -139,26 +139,26 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     vector<float>* genTopEta_TO    = 0;
     vector<float>* genTopPhi_TO    = 0;
     vector<float>* genTTbarMass_TO = 0;
-    //vector<float>* eventWeight_nom_TO = 0;
-    //vector<float>* eventWeight_puUp_TO = 0;
-    //vector<float>* eventWeight_puDown_TO = 0;
+    vector<float>* eventWeight_nom_TO = 0;
+    vector<float>* eventWeight_puUp_TO = 0;
+    vector<float>* eventWeight_puDown_TO = 0;
     TBranch* b_truthChannel_TO;
     TBranch* b_genTopPt_TO;
     TBranch* b_genTopEta_TO;
     TBranch* b_genTopPhi_TO;
     TBranch* b_genTTbarMass_TO;
-    //TBranch* b_eventWeight_nom_TO;
-    //TBranch* b_eventWeight_puUp_TO;
-    //TBranch* b_eventWeight_puDown_TO;
+    TBranch* b_eventWeight_nom_TO;
+    TBranch* b_eventWeight_puUp_TO;
+    TBranch* b_eventWeight_puDown_TO;
     
     treeTO->SetBranchAddress("truthChannel"           , &truthChannel_TO        , &b_truthChannel_TO        );     
     treeTO->SetBranchAddress("genTopPt"               , &genTopPt_TO            , &b_genTopPt_TO            );
     treeTO->SetBranchAddress("genTopEta"              , &genTopEta_TO           , &b_genTopEta_TO           );
     treeTO->SetBranchAddress("genTopPhi"              , &genTopPhi_TO           , &b_genTopPhi_TO           );
     treeTO->SetBranchAddress("genTTbarMass"           , &genTTbarMass_TO        , &b_genTTbarMass_TO        );
-    //treeTO->SetBranchAddress("eventWeight_nom"      , &eventWeight_nom_TO     , &b_eventWeight_nom_TO     );
-    //treeTO->SetBranchAddress("eventWeight_puUp"     , &eventWeight_puUp_TO    , &b_eventWeight_puUp_TO    );
-    //treeTO->SetBranchAddress("eventWeight_puDown"   , &eventWeight_puDown_TO  , &b_eventWeight_puDown_TO  );
+    treeTO->SetBranchAddress("eventWeight_nom"      , &eventWeight_nom_TO     , &b_eventWeight_nom_TO     );
+    treeTO->SetBranchAddress("eventWeight_puUp"     , &eventWeight_puUp_TO    , &b_eventWeight_puUp_TO    );
+    treeTO->SetBranchAddress("eventWeight_puDown"   , &eventWeight_puDown_TO  , &b_eventWeight_puDown_TO  );
     
     for (int i=0; i<treeTO->GetEntries(); i++) {
       
@@ -170,10 +170,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	if (i % 2 == oddOrEven - 1) continue;
       }
 
-      float weight = 1.0;
-      //float weight = eventWeight_nom_TO->at(0);
-      //if (systematic == "puUp") weight = eventWeight_puUp_TO->at(0);
-      //if (systematic == "puDown") weight = eventWeight_puDown_TO->at(0);
+      float weight = eventWeight_nom_TO->at(0);
+      if (systematic == "puUp") weight = eventWeight_puUp_TO->at(0);
+      if (systematic == "puDown") weight = eventWeight_puDown_TO->at(0);
       
       // Do channel selection at parton level
       if ((int)truthChannel_TO->size() == 0){
@@ -231,7 +230,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
   TChain* tree;
-  if (sample.Contains("fullTruth")) tree = new TChain("recoTree");
+  if (sample.Contains("fullTruth") or sample.Contains("Data")) tree = new TChain("recoTree");
   else tree = new TChain("myTree");
   tree->Add(INDIR + sample + ".root");
   

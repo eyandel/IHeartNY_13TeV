@@ -381,15 +381,15 @@ void compareShapes(TString DIR, TString DIRqcd, TString channel, TString var, TS
   TString hist = var+region;
   
   // get histograms
-  SummedHist* wjets = getWJets( DIR, var, region, channel, false, "nom" );
-  SummedHist* ttbar = getTTbar( DIR, var, region, channel, false, "nom" );
-  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, var, region, channel, false, "nom" );
-  //SummedHist* singletop = getSingleTop( DIR, var, region, channel, false, "nom" );
+  SummedHist* wjets = getWJets( DIR, var, region, channel, false, "nom", false );
+  SummedHist* ttbar = getTTbar( DIR, var, region, channel, false, "nom", false );
+  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, var, region, channel, false, "nom", false );
+  //SummedHist* singletop = getSingleTop( DIR, var, region, channel, false, "nom", false );
 
   // -------------------------------------------------------------------------------------
   // get the TH1F versions
   
-  TH1F* h_qcd = getQCDData( DIR, DIRqcd, var, region, channel, "nom"); // Currently taking QCD from data sideband with no triangular cut,
+  TH1F* h_qcd = getQCDData( DIR, DIRqcd, var, region, channel, "nom", false); // Currently taking QCD from data sideband with no triangular cut,
                                                                 // with normalization from MC in signal region
   TH1F* h_wjets = (TH1F*) wjets->hist();
   TH1F* h_ttbar = (TH1F*) ttbar->hist();
@@ -494,15 +494,15 @@ void makeCombineInputs(TString DIR, TString DIRqcd) {
 	if (sysnames[kk] != "nom") append = "_" + sysnames[kk];
       
 	// get histograms
-	SummedHist* wjets = getWJets( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
-	SummedHist* singletop = getSingleTop( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
-	SummedHist* ttbar = getTTbar( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
-	SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk] );
+	SummedHist* wjets = getWJets( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk],false );
+	SummedHist* singletop = getSingleTop( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk],false);
+	SummedHist* ttbar = getTTbar( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk], false );
+	SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk], false);
 	
 	// -------------------------------------------------------------------------------------
 	// get the TH1F versions
 	
-	h_qcd[ii][jj][kk] = (TH1F*) getQCDData( DIR, DIRqcd, histnames[jj], regions[jj], channels[ii], sysnames[kk])->Clone("QCD"+append);
+	h_qcd[ii][jj][kk] = (TH1F*) getQCDData( DIR, DIRqcd, histnames[jj], regions[jj], channels[ii], sysnames[kk], false)->Clone("QCD"+append);
 	h_wjets[ii][jj][kk] = (TH1F*) wjets->hist()->Clone("WJets"+append);
 	h_ttbar[ii][jj][kk] = (TH1F*) ttbar->hist()->Clone("TTbar"+append);
 	h_ttbar[ii][jj][kk]->Add((TH1F*) ttbar_nonSemiLep->hist());
@@ -555,10 +555,23 @@ void makeCombineInputs(TString DIR, TString DIRqcd) {
   // Make comparison plots
   int colors[nsys-1] = {2,2,3,3,4,4,5,5,6,6,7,7};
   int styles[nsys-1] = {1,2,1,2,1,2,1,2,1,2,1,2};
+  TH1F* h_ratio[nchannels][nhist][nsys-1];
   for (int ii = 0; ii < nchannels; ii++){
     for (int jj = 0; jj < nhist; jj++){
 
       TCanvas* c = new TCanvas("c_"+histnames[jj]+regions[jj]+"_"+channels[ii],"c_"+histnames[jj]+regions[jj]+"_"+channels[ii],900,800);
+      TPad* p1 = new TPad("p1_"+histnames[jj]+regions[jj]+"_"+channels[ii],"p1_"+histnames[jj]+regions[jj]+"_"+channels[ii],0,0.3,1,1);
+      p1->SetTopMargin(0.08);
+      p1->SetBottomMargin(0.05);
+      p1->SetNumber(1);
+      TPad* p2 = new TPad("p2_"+histnames[jj]+regions[jj]+"_"+channels[ii],"p2_"+histnames[jj]+regions[jj]+"_"+channels[ii],0,0,1,0.3);
+      p2->SetNumber(2);
+      p2->SetTopMargin(0.05);
+      p2->SetBottomMargin(0.35);
+      
+      p1->Draw();
+      p2->Draw();
+      p1->cd();
 
       h_ttbar[ii][jj][0]->SetFillColor(0);
       h_ttbar[ii][jj][0]->SetMaximum(1.5*h_ttbar[ii][jj][0]->GetMaximum());
@@ -578,11 +591,23 @@ void makeCombineInputs(TString DIR, TString DIRqcd) {
 	h_ttbar[ii][jj][kk]->SetFillColor(0);
 	h_ttbar[ii][jj][kk]->SetLineColor(colors[kk-1]);
 	h_ttbar[ii][jj][kk]->SetLineStyle(styles[kk-1]);
+	h_ratio[ii][jj][kk-1] = (TH1F*) h_ttbar[ii][jj][kk]->Clone();
+	h_ratio[ii][jj][kk-1]->Divide(h_ttbar[ii][jj][0]);
 	h_ttbar[ii][jj][kk]->Draw("hist,same");
 	if (kk%2 == 1) leg->AddEntry(h_ttbar[ii][jj][kk],sysnames[kk],"l");
       }
 
       leg->Draw();
+
+      p2->cd();
+
+      h_ratio[ii][jj][0]->SetMaximum(1.1);
+      h_ratio[ii][jj][0]->SetMinimum(0.9);
+      h_ratio[ii][jj][0]->Draw("hist");
+
+      for (int kk = 1; kk < nsys-1; kk++){
+	h_ratio[ii][jj][kk]->Draw("hist,same");
+      }
 
       TString outname = "Plots/sysVar_"+channels[ii]+"_"+histnames[jj]+regions[jj]+".pdf";
       c->SaveAs(outname);
@@ -597,6 +622,7 @@ void makeCombineInputs(TString DIR, TString DIRqcd) {
 	h_wjets[ii][jj][kk]->Delete();
 	h_singletop[ii][jj][kk]->Delete();
 	h_ttbar[ii][jj][kk]->Delete();
+	if (kk != nsys - 1) h_ratio[ii][jj][kk]->Delete();
       }
       h_data[ii][jj]->Delete();
     }
@@ -611,12 +637,12 @@ void makeQCDComp(TString DIR, TString DIRqcd, TString channel, TString var) {
   TString hist = var+"Pre";
   
   // get histograms
-  SummedHist* sigQCDMC = getQCDMC(DIR, var, "Pre", channel, false, "nom");
-  SummedHist* sideQCDMC = getQCDMC(DIRqcd, var, "Pre", channel, true, "nom");
+  SummedHist* sigQCDMC = getQCDMC(DIR, var, "Pre", channel, false, "nom", false);
+  SummedHist* sideQCDMC = getQCDMC(DIRqcd, var, "Pre", channel, true, "nom", false);
   TH1F* h_sigQCDMC = (TH1F*) sigQCDMC->hist();
   TH1F* h_sideQCDMC = (TH1F*) sideQCDMC->hist();
 
-  TH1F* h_sideQCDData = getQCDData(DIR,DIRqcd,var,"Pre",channel,"nom");
+  TH1F* h_sideQCDData = getQCDData(DIR,DIRqcd,var,"Pre",channel,"nom", false);
 
   h_sigQCDMC->SetLineColor(2);
   h_sigQCDMC->SetMarkerColor(2);
@@ -746,10 +772,10 @@ void makeTable(TString DIR, TString DIRqcd, TString channel, bool inSideband, bo
   // Get count and error for each sample
   for (int ii = 0; ii < nhist; ii ++){
     // get histograms
-    SummedHist* wjets = getWJets(DIR, what, regions[ii], channel, inSideband, "nom" );
-    SummedHist* singletop = getSingleTop(DIR, what, regions[ii], channel, inSideband, "nom" );
-    SummedHist* ttbar = getTTbar(DIR, what, regions[ii], channel, inSideband, "nom" );
-    SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep(DIR, what, regions[ii], channel, inSideband, "nom" );
+    SummedHist* wjets = getWJets(DIR, what, regions[ii], channel, inSideband, "nom", false );
+    SummedHist* singletop = getSingleTop(DIR, what, regions[ii], channel, inSideband, "nom", false);
+    SummedHist* ttbar = getTTbar(DIR, what, regions[ii], channel, inSideband, "nom", false );
+    SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep(DIR, what, regions[ii], channel, inSideband, "nom", false );
     SummedHist* data = getData(DIR, what, regions[ii], channel, inSideband);
 
     TH1F* h_wjets = (TH1F*) wjets->hist();
@@ -760,10 +786,10 @@ void makeTable(TString DIR, TString DIRqcd, TString channel, bool inSideband, bo
 
     TH1F* h_qcd;
     if(inSideband || useQCDMC) {
-      SummedHist* qcd = getQCDMC(DIRqcd, what, regions[ii], channel, inSideband, "nom");
+      SummedHist* qcd = getQCDMC(DIRqcd, what, regions[ii], channel, inSideband, "nom", false);
       h_qcd = (TH1F*) qcd->hist();
     }
-    else h_qcd = getQCDData(DIR,DIRqcd,what, regions[ii],channel,"nom");
+    else h_qcd = getQCDData(DIR,DIRqcd,what, regions[ii],channel,"nom", false);
     
     // error on pre-fit counts
     for (int ib=0; ib<h_ttbar_semiLep->GetNbinsX(); ib++) {
@@ -1247,8 +1273,8 @@ void makeEffPlots(TString channel, TString which) {
     TH1F* h_signal_post = (TH1F*) getSignal("histfiles_mMu_mEl_"+isos[ii]+"/", which, "Pre", channel, false ); //These should be with iso
 
     // Get QCD
-    SummedHist* bkg_pre = getQCDMC("histfiles_mMu_mEl_Loose/",which, "Pre",channel,false,"nom");
-    SummedHist* bkg_post = getQCDMC("histfiles_mMu_mEl_"+isos[ii]+"/",which, "Pre",channel,false,"nom");
+    SummedHist* bkg_pre = getQCDMC("histfiles_mMu_mEl_Loose/",which, "Pre",channel,false,"nom", false);
+    SummedHist* bkg_post = getQCDMC("histfiles_mMu_mEl_"+isos[ii]+"/",which, "Pre",channel,false,"nom",false);
     TH1F* h_bkg_pre = (TH1F*) bkg_pre->hist();
     TH1F* h_bkg_post = (TH1F*) bkg_post->hist();
 
@@ -1338,8 +1364,8 @@ void makeEffPlotsFinal() {
       h_signal_post->Sumw2();
 
       //This version uses QCD only
-      SummedHist* bkg_pre = getQCDMC("histfiles_mMu_mEl_Loose/",hists[ii],"Pre",channels[jj],false,"nom");
-      SummedHist* bkg_post = getQCDMC("histfiles_mMu_tEl_MiniIso10/",hists[ii],"Pre",channels[jj],false,"nom");
+      SummedHist* bkg_pre = getQCDMC("histfiles_mMu_mEl_Loose/",hists[ii],"Pre",channels[jj],false,"nom",false);
+      SummedHist* bkg_post = getQCDMC("histfiles_mMu_tEl_MiniIso10/",hists[ii],"Pre",channels[jj],false,"nom",false);
       TH1F* h_bkg_pre = (TH1F*) bkg_pre->hist();
       h_bkg_pre->Sumw2();
       TH1F* h_bkg_post = (TH1F*) bkg_post->hist();
@@ -1415,14 +1441,14 @@ void drawROCCurve(TString channel){
 
   setStyle();
   
-  SummedHist* Iso2DScanPoints_sig = getTTbar("histfiles_mMu_mEl_Loose/","2DisoScanPoints","",channel,false,"nom");
-  SummedHist* Iso2DScanPoints_bkg = getQCDMC("histfiles_mMu_mEl_Loose/","2DisoScanPoints","",channel,false,"nom");
-  SummedHist* MiniIsoScanPoints_sig = getTTbar("histfiles_mMu_mEl_Loose/","MiniIsoScanPoints","",channel,false,"nom");
-  SummedHist* MiniIsoScanPoints_bkg = getQCDMC("histfiles_mMu_mEl_Loose/","MiniIsoScanPoints","",channel,false,"nom");
-  SummedHist* Iso2DScanPoints_sig_tight = getTTbar("histfiles_tMu_tEl/","2DisoScanPoints","",channel,false,"nom");
-  SummedHist* Iso2DScanPoints_bkg_tight = getQCDMC("histfiles_tMu_tEl/","2DisoScanPoints","",channel,false,"nom");
-  SummedHist* MiniIsoScanPoints_sig_tight = getTTbar("histfiles_tMu_tEl/","MiniIsoScanPoints","",channel,false,"nom");
-  SummedHist* MiniIsoScanPoints_bkg_tight = getQCDMC("histfiles_tMu_tEl/","MiniIsoScanPoints","",channel,false,"nom");
+  SummedHist* Iso2DScanPoints_sig = getTTbar("histfiles_mMu_mEl_Loose/","2DisoScanPoints","",channel,false,"nom",false);
+  SummedHist* Iso2DScanPoints_bkg = getQCDMC("histfiles_mMu_mEl_Loose/","2DisoScanPoints","",channel,false,"nom",false);
+  SummedHist* MiniIsoScanPoints_sig = getTTbar("histfiles_mMu_mEl_Loose/","MiniIsoScanPoints","",channel,false,"nom",false);
+  SummedHist* MiniIsoScanPoints_bkg = getQCDMC("histfiles_mMu_mEl_Loose/","MiniIsoScanPoints","",channel,false,"nom",false);
+  SummedHist* Iso2DScanPoints_sig_tight = getTTbar("histfiles_tMu_tEl/","2DisoScanPoints","",channel,false,"nom",false);
+  SummedHist* Iso2DScanPoints_bkg_tight = getQCDMC("histfiles_tMu_tEl/","2DisoScanPoints","",channel,false,"nom",false);
+  SummedHist* MiniIsoScanPoints_sig_tight = getTTbar("histfiles_tMu_tEl/","MiniIsoScanPoints","",channel,false,"nom",false);
+  SummedHist* MiniIsoScanPoints_bkg_tight = getQCDMC("histfiles_tMu_tEl/","MiniIsoScanPoints","",channel,false,"nom",false);
     
   TH1F* h_Iso2DScanPoints_sig = (TH1F*) Iso2DScanPoints_sig->hist();
   TH1F* h_Iso2DScanPoints_bkg = (TH1F*) Iso2DScanPoints_bkg->hist();
