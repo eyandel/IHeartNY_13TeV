@@ -21,7 +21,7 @@ config.Data.unitsPerJob = 2
 #config.Data.totalUnits = 1000
 config.Data.ignoreLocality = True
 config.Data.publication = False
-config.Data.outLFNDirBase = '/store/user/dittmer/13TeV'
+config.Data.outLFNDirBase = '/store/user/dittmer/13TeV_80X'
 # This string is used to construct the output dataset name
 
 config.section_("Site")
