@@ -39,6 +39,11 @@ parser.add_option('--usePost', metavar='F', action='store_true',
                   dest='usePost',
                   help='Use posterior top-tag SF and bkg norm')
 
+parser.add_option('--nbr', metavar='F', type='string', action='store',
+                  default='',
+                  dest='nbr',
+                  help='')
+
 
 # -------------------------------------------------------------------------------------
 # load options & set plot style
@@ -112,6 +117,7 @@ append = ""
 if options.usePost:
     append = "_post"
 
+
 muOrEl = "mu"
 if options.lepType=="ele":
     print ""
@@ -180,10 +186,10 @@ if not options.closureTest:
 # -------------------------------------------------------------------------------------
 
 if options.closureTest == True:
-    response = f_ttbar_odd.Get("response_pt")
+    response = f_ttbar_odd.Get("response_pt"+options.nbr)
     response.SetName("response_pt_"+options.syst)
 else :
-    response = f_ttbar.Get("response_pt")
+    response = f_ttbar.Get("response_pt"+options.nbr)
     response.SetName("response_pt_"+options.syst)
 
 TH1.AddDirectory(0)
@@ -200,40 +206,40 @@ norm_flag = ""
 if options.normalize:
     norm_flag = "_norm"
 
-fout = TFile("UnfoldingPlots/unfold_pt_PowhegPythia8_"+options.syst+closureout+norm_flag+".root","recreate");
+fout = TFile("UnfoldingPlots/unfold"+options.nbr+"_pt_PowhegPythia8_"+options.syst+closureout+norm_flag+".root","recreate");
 
 
 # -------------------------------------------------------------------------------------
 # read actual histograms
 # -------------------------------------------------------------------------------------
 
-hTrue = f_ttbar.Get("ptGenTop")
+hTrue = f_ttbar.Get("ptGenTop"+options.nbr)
 
 if not options.closureTest: 
-    hMeas1 = f_data1.Get("ptRecoTop")
-    hMeas2 = f_data2.Get("ptRecoTop")
+    hMeas1 = f_data1.Get("ptRecoTop"+options.nbr)
+    hMeas2 = f_data2.Get("ptRecoTop"+options.nbr)
     hMeas1.Sumw2()
     hMeas2.Sumw2()
     hMeas = hMeas1.Clone()
     hMeas.Add(hMeas2)
 else :
-    hMeas = f_ttbar.Get("ptRecoTop")
+    hMeas = f_ttbar.Get("ptRecoTop"+options.nbr)
 
 
 if not options.closureTest: 
-    hMeas_tt_nonsemi         = f_ttbar_nonsemilep.Get("ptRecoTop").Clone()
-    hMeas_T_t                = f_T_t.Get("ptRecoTop")
-    hMeas_Tbar_t             = f_Tbar_t.Get("ptRecoTop")
-    hMeas_T_s                = f_T_s.Get("ptRecoTop")
-    hMeas_T_tW               = f_T_tW.Get("ptRecoTop")
-    hMeas_Tbar_tW            = f_Tbar_tW.Get("ptRecoTop")
-    hMeas_WJets_HT100to200   = f_WJets_HT100to200.Get("ptRecoTop")
-    hMeas_WJets_HT200to400   = f_WJets_HT200to400.Get("ptRecoTop")
-    hMeas_WJets_HT400to600   = f_WJets_HT400to600.Get("ptRecoTop")
-    hMeas_WJets_HT600to800   = f_WJets_HT600to800.Get("ptRecoTop")
-    hMeas_WJets_HT800to1200  = f_WJets_HT800to1200.Get("ptRecoTop")
-    hMeas_WJets_HT1200to2500 = f_WJets_HT1200to2500.Get("ptRecoTop")
-    hMeas_WJets_HT2500toInf  = f_WJets_HT2500toInf.Get("ptRecoTop")
+    hMeas_tt_nonsemi         = f_ttbar_nonsemilep.Get("ptRecoTop"+options.nbr).Clone()
+    hMeas_T_t                = f_T_t.Get("ptRecoTop"+options.nbr)
+    hMeas_Tbar_t             = f_Tbar_t.Get("ptRecoTop"+options.nbr)
+    hMeas_T_s                = f_T_s.Get("ptRecoTop"+options.nbr)
+    hMeas_T_tW               = f_T_tW.Get("ptRecoTop"+options.nbr)
+    hMeas_Tbar_tW            = f_Tbar_tW.Get("ptRecoTop"+options.nbr)
+    hMeas_WJets_HT100to200   = f_WJets_HT100to200.Get("ptRecoTop"+options.nbr)
+    hMeas_WJets_HT200to400   = f_WJets_HT200to400.Get("ptRecoTop"+options.nbr)
+    hMeas_WJets_HT400to600   = f_WJets_HT400to600.Get("ptRecoTop"+options.nbr)
+    hMeas_WJets_HT600to800   = f_WJets_HT600to800.Get("ptRecoTop"+options.nbr)
+    hMeas_WJets_HT800to1200  = f_WJets_HT800to1200.Get("ptRecoTop"+options.nbr)
+    hMeas_WJets_HT1200to2500 = f_WJets_HT1200to2500.Get("ptRecoTop"+options.nbr)
+    hMeas_WJets_HT2500toInf  = f_WJets_HT2500toInf.Get("ptRecoTop"+options.nbr)
     
     hMeas_tt_nonsemi.Sumw2()
     hMeas_T_t.Sumw2()
@@ -249,21 +255,21 @@ if not options.closureTest:
     hMeas_WJets_HT1200to2500.Sumw2()
     hMeas_WJets_HT2500toInf.Sumw2()
     
-    hMeas1_qcd                   = f_QCD1.Get("ptRecoTop")
-    hMeas2_qcd                   = f_QCD2.Get("ptRecoTop")
-    hMeas_qcd_tt_nonsemi         = f_qcd_ttbar_nonsemilep.Get("ptRecoTop")
-    hMeas_qcd_T_t                = f_qcd_T_t.Get("ptRecoTop")
-    hMeas_qcd_Tbar_t             = f_qcd_Tbar_t.Get("ptRecoTop")
-    hMeas_qcd_T_s                = f_qcd_T_s.Get("ptRecoTop")
-    hMeas_qcd_T_tW               = f_qcd_T_tW.Get("ptRecoTop")
-    hMeas_qcd_Tbar_tW            = f_qcd_Tbar_tW.Get("ptRecoTop")
-    hMeas_qcd_WJets_HT100to200   = f_qcd_WJets_HT100to200.Get("ptRecoTop")
-    hMeas_qcd_WJets_HT200to400   = f_qcd_WJets_HT200to400.Get("ptRecoTop")
-    hMeas_qcd_WJets_HT400to600   = f_qcd_WJets_HT400to600.Get("ptRecoTop")
-    hMeas_qcd_WJets_HT600to800   = f_qcd_WJets_HT600to800.Get("ptRecoTop")
-    hMeas_qcd_WJets_HT800to1200  = f_qcd_WJets_HT800to1200.Get("ptRecoTop")
-    hMeas_qcd_WJets_HT1200to2500 = f_qcd_WJets_HT1200to2500.Get("ptRecoTop")
-    hMeas_qcd_WJets_HT2500toInf  = f_qcd_WJets_HT2500toInf.Get("ptRecoTop")
+    hMeas1_qcd                   = f_QCD1.Get("ptRecoTop"+options.nbr)
+    hMeas2_qcd                   = f_QCD2.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_tt_nonsemi         = f_qcd_ttbar_nonsemilep.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_T_t                = f_qcd_T_t.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_Tbar_t             = f_qcd_Tbar_t.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_T_s                = f_qcd_T_s.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_T_tW               = f_qcd_T_tW.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_Tbar_tW            = f_qcd_Tbar_tW.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_WJets_HT100to200   = f_qcd_WJets_HT100to200.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_WJets_HT200to400   = f_qcd_WJets_HT200to400.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_WJets_HT400to600   = f_qcd_WJets_HT400to600.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_WJets_HT600to800   = f_qcd_WJets_HT600to800.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_WJets_HT800to1200  = f_qcd_WJets_HT800to1200.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_WJets_HT1200to2500 = f_qcd_WJets_HT1200to2500.Get("ptRecoTop"+options.nbr)
+    hMeas_qcd_WJets_HT2500toInf  = f_qcd_WJets_HT2500toInf.Get("ptRecoTop"+options.nbr)
     
     hMeas1_qcd.Sumw2()
     hMeas2_qcd.Sumw2()
@@ -350,14 +356,17 @@ if not options.closureTest:
                  hMeas_qcd_WJets_HT600to800,hMeas_qcd_WJets_HT800to1200,hMeas_qcd_WJets_HT1200to2500,hMeas_qcd_WJets_HT2500toInf] :
         hMeas_QCD.Add(hist,-1.0)
 
+        
 # -------------------------------------------------------------------------------------
 # Scale backgrounds if using posterior normalization
 # -------------------------------------------------------------------------------------
+
 if options.usePost:
     hMeas_SingleTop.Scale(0.95) #Note: the SFs are taken from the posterior nuisance parameters for the rates
     hMeas_WJets.Scale(1.06)
     hMeas_QCD.Scale(0.89)
     hMeas_tt_nonsemi.Scale(0.79)
+
 
 # -------------------------------------------------------------------------------------
 # subtract backgrounds from the data distribution, but not for closure test!!! 
@@ -378,7 +387,7 @@ if not options.closureTest:
 
 print "------------ UNFOLDING (syst: " + options.syst + ") ------------"
 
-n_iter = 4
+n_iter = 3
 print " using " + str(n_iter) + " iterations"
 
 unfold = RooUnfoldBayes(response, hMeas, n_iter)
