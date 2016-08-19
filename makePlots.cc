@@ -474,10 +474,10 @@ void makeCombineInputs(TString DIR, TString DIRqcd) {
 
   const int nchannels = 2;
   TString channels[nchannels] = {"mu","el"};
-  const int nhist = 5;
-  TString histnames[nhist] = {"lepAbsEta","ak8jetTau21","lepAbsEta","ak8jetTau32","ak8jetSDmass"};
-  TString regions[nhist] = {"0t","0t","1t0b","1t0b","1t1b"};
-  int rebinby[nhist] = {5,5,5,5,5};
+  const int nhist = 7;
+  TString histnames[nhist] = {"lepAbsEta","lepSignEta","ak8jetTau21","lepAbsEta","lepSignEta","ak8jetTau32","ak8jetSDmass"};
+  TString regions[nhist] = {"0t","0t","0t","1t0b","1t0b","1t0b","1t1b"};
+  int rebinby[nhist] = {5,5,5,5,5,5,5};
   const int nsys = 13;
   TString sysnames[nsys] = {"nom","puUp","puDown","JECUp","JECDown","JERUp","JERDown","lepUp","lepDown","BTagUp","BTagDown","TopTagUp","TopTagDown"};
   
@@ -882,10 +882,13 @@ void combineResults(TString channel, TString fit, TString preorpost) {
   setStyle();
 
   int nhist = 3;
-  if (fit.Contains("C")) nhist = 4;
+  if (fit.Contains("C") || fit.Contains("F")) nhist = 4;
   TString whatA[3] = {"lepAbsEta0t","ak8jetTau321t0b","ak8jetSDmass1t1b"};
   TString whatB[3] = {"lepAbsEta0t","lepAbsEta1t0b","ak8jetSDmass1t1b"};
   TString whatC[4] = {"lepAbsEta0t","lepAbsEta1t0b","ak8jetTau321t0b","ak8jetSDmass1t1b"};
+  TString whatD[3] = {"lepSignEta0t","ak8jetTau321t0b","ak8jetSDmass1t1b"};
+  TString whatE[3] = {"lepSignEta0t","lepSignEta1t0b","ak8jetSDmass1t1b"};
+  TString whatF[4] = {"lepSignEta0t","lepSignEta1t0b","ak8jetTau321t0b","ak8jetSDmass1t1b"};
   const int nsample = 4;
   TString samples[nsample] = {"TTbar","SingleTop","WJets","QCD"};
   
@@ -912,6 +915,9 @@ void combineResults(TString channel, TString fit, TString preorpost) {
     if (fit.Contains("A")) h_data[ii] = (TH1F*) datafile->Get(whatA[ii]+"_"+channel+"/data_obs");
     if (fit.Contains("B")) h_data[ii] = (TH1F*) datafile->Get(whatB[ii]+"_"+channel+"/data_obs");
     if (fit.Contains("C")) h_data[ii] = (TH1F*) datafile->Get(whatC[ii]+"_"+channel+"/data_obs");
+    if (fit.Contains("D")) h_data[ii] = (TH1F*) datafile->Get(whatD[ii]+"_"+channel+"/data_obs");
+    if (fit.Contains("E")) h_data[ii] = (TH1F*) datafile->Get(whatE[ii]+"_"+channel+"/data_obs");
+    if (fit.Contains("F")) h_data[ii] = (TH1F*) datafile->Get(whatF[ii]+"_"+channel+"/data_obs");
     count_data[ii] = h_data[ii]->GetSum();
   }
   datafile->Close();
@@ -929,6 +935,9 @@ void combineResults(TString channel, TString fit, TString preorpost) {
     if (fit.Contains("A")) thishist = whatA[ii];
     if (fit.Contains("B")) thishist = whatB[ii];
     if (fit.Contains("C")) thishist = whatC[ii];
+    if (fit.Contains("D")) thishist = whatD[ii];
+    if (fit.Contains("E")) thishist = whatE[ii];
+    if (fit.Contains("F")) thishist = whatF[ii];
     
     TH1F* h_wjets = (TH1F*) h_data[ii]->Clone();
     h_wjets->Reset();
