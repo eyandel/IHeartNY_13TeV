@@ -356,7 +356,7 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
   leg->AddEntry(h_ratio2, "MC Stat. Unc.","f");
   leg->Draw();
 
-  myText(0.10,0.94,1,"#intLdt = 2.7 fb^{-1}");
+  myText(0.10,0.94,1,"#intLdt = 12.4 fb^{-1}");
   myText(0.80,0.94,1,"#sqrt{s} = 13 TeV");
 
   // plot ratio part
@@ -1065,7 +1065,7 @@ void combineResults(TString channel, TString fit, TString preorpost) {
     leg->AddEntry(h_ratio2, "MC Stat. Unc.","f");
     leg->Draw();
 
-    myText(0.10,0.94,1,"#intLdt = 2.7 fb^{-1}");
+    myText(0.10,0.94,1,"#intLdt = 12.4 fb^{-1}");
     myText(0.80,0.94,1,"#sqrt{s} = 13 TeV");
 
     // plot ratio part
