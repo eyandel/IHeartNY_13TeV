@@ -2232,7 +2232,7 @@ for event in events :
     if passReco :
         recoTree.Fill()
 
-    if options.fullTruth :
+    if options.fullTruth and not passReco :
         trueTree.Fill()
     
 # -------------------------------------------------------------------------------------
