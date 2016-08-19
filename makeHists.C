@@ -1661,14 +1661,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptRecoTop3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
       h_ptRecoTop4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
 
-      h_ptRecoTopMod->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptup);
-      h_ptRecoTopMod2->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptup);
-      h_ptRecoTopMod3->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptup);
-      h_ptRecoTopMod4->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptup);
-      h_ptRecoTopModDown->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptdn);
-      h_ptRecoTopModDown2->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptdn);
-      h_ptRecoTopModDown3->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptdn);
-      h_ptRecoTopModDown4->Fill(oldrecopt,weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopMod->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopModDown->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
 
       if (isSignal){
 	if (passParton) {
