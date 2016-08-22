@@ -90,7 +90,7 @@ ROOT.gROOT.Macro("rootlogon.C")
 from array import *
 
 import sys
-from DataFormats.FWLite import Events, Handle
+from DataFormats.FWLite import Events, Handle, Runs
 
 if options.fullTruth and not (options.isMC and options.semilep == 1):
     sys.exit("ERROR: can only use fullTruth option with semilep TTbar MC!\n")
@@ -341,6 +341,9 @@ ak8jetMassJERdown      = ROOT.vector('float')()
 eventWeight_nom        = ROOT.vector('float')()
 eventWeight_puUp       = ROOT.vector('float')()
 eventWeight_puDown     = ROOT.vector('float')()
+eventWeight_Q2Up       = ROOT.vector('float')()
+eventWeight_Q2Down     = ROOT.vector('float')()
+eventWeight_PDF        = ROOT.vector('float')()
 
 if options.isMC and options.semilep == 1:
     truthChannel       = ROOT.vector('int')()
@@ -471,7 +474,10 @@ if options.isMC:
     recoTree.Branch('eventWeight_puUp'          , eventWeight_puUp          )
     recoTree.Branch('eventWeight_puDown'        , eventWeight_puDown        )
     if options.semilep == 1:
-        recoTree.Branch('truthChannel'            , truthChannel           )
+        recoTree.Branch('eventWeight_Q2Up'   , eventWeight_Q2Up )
+        recoTree.Branch('eventWeight_Q2Down' , eventWeight_Q2Down )
+        recoTree.Branch('eventWeight_PDF'    , eventWeight_PDF )
+        recoTree.Branch('truthChannel'       , truthChannel           )
 
 if options.fullTruth:
     trueTree = ROOT.TTree("trueTree", "trueTree")
@@ -483,12 +489,16 @@ if options.fullTruth:
     trueTree.Branch('eventWeight_nom'        , eventWeight_nom        )
     trueTree.Branch('eventWeight_puUp'       , eventWeight_puUp       )
     trueTree.Branch('eventWeight_puDown'     , eventWeight_puDown     )
+    trueTree.Branch('eventWeight_Q2Up'       , eventWeight_Q2Up       )
+    trueTree.Branch('eventWeight_Q2Down'     , eventWeight_Q2Down     )
+    trueTree.Branch('eventWeight_PDF'        , eventWeight_PDF        )
 
 # -------------------------------------------------------------------------------------
 # define all variables to be read from input files
 # -------------------------------------------------------------------------------------
 
 events = Events (files)
+#runs = Runs ( files)
 
 jetname = "CHS"
 if options.usePuppi:
@@ -516,6 +526,11 @@ metFilterBitsHandle = Handle( "std::vector<float>")
 metFilterBitsLabel  = ("METUserData", "triggerBitTree")
 HBHEfilterHandle    = Handle("bool")
 HBHEfilterLabel     = ("HBHENoiseFilterResultProducer", "HBHENoiseFilterResult")
+
+#LHEHandle = Handle("LHERunInfoProduct")
+#LHELabel  = ("externalLHEProducer","")
+LHEHandle = Handle("LHEEventProduct")
+LHELabel = ("externalLHEProducer","")
 
 # genParticles
 if options.isMC and options.semilep is not None:
@@ -839,6 +854,19 @@ nGoodMatchAK8Jet = 0
 
 smearfunc = ROOT.TRandom3()
 
+# -------------------------------                                                                                                               
+# Do printout of LHE information   
+# -------------------------------
+#for run in runs:                                                                                                               
+#    run.getByLabel( LHELabel, LHEHandle )
+#    LHEEventInfo = LHEHandle.product() 
+
+#    test = LHEEventInfo.headers_begin()
+#    while (test != LHEEventInfo.headers_end()):
+#        for line in range(test.lines().size()):
+#            print test.lines().at(line)[0:-1].strip()
+#        test = test + 1
+
 # -------------------------------------------------------------------------------------
 # start looping over events
 # -------------------------------------------------------------------------------------
@@ -965,10 +993,16 @@ for event in events :
         eventWeight_puDown.clear()
         if options.semilep == 1:
             truthChannel.clear()
-    
+            eventWeight_Q2Up.clear()
+            eventWeight_Q2Down.clear()
+            eventWeight_PDF.clear()
+
     weight_nom = 1.0 #event weight
     weight_puUp = 1.0
     weight_puDown = 1.0
+    weight_Q2up = 1.0
+    weight_Q2down = 1.0
+    weight_PDF = 1.0
 
     mttbarGen = -1.0
     
@@ -1279,6 +1313,62 @@ for event in events :
         if not options.fullTruth:
             continue
     nPassNPV += 1
+
+    # -------------------------------
+    # Get Q2 and NNPDF weights
+    # -------------------------------
+    if options.isMC and options.semilep == 1:
+        gotLHE = event.getByLabel( LHELabel, LHEHandle )
+        if not gotLHE:
+            print "Error: couldn't find LHE info"
+            continue
+        LHEEventInfo = LHEHandle.product()
+           
+        #Q^2 up and down
+        for i_lhe in range(0,9):
+            if i_lhe != 5 and i_lhe != 7:
+                Q2wgt = LHEEventInfo.weights()[i_lhe].wgt
+                if ntotal < 10:
+                    print 'Q2 weight ' + str(i_lhe) + ' is ' + str(Q2wgt)
+                Q2wgt_frac = Q2wgt/(LHEEventInfo.weights()[0].wgt)
+                weight_Q2up = max(weight_Q2up, Q2wgt_frac)
+                weight_Q2down = min(weight_Q2down, Q2wgt_frac)
+        if ntotal < 10:
+            print 'Max / min Q2 variation is ' + str(weight_Q2up) + ' (max) / ' + str(weight_Q2down) + ' (min)'
+
+        #NNPDF3 PDF (symmetric)
+        NNPDF3wgtAvg = 0.0
+        NNPDF3wgtRMS = 0.0
+        PDFcentral = 1.0
+        PDFstart = 9
+        PDFend = 109
+
+        for i_lhePDF in range(PDFstart,PDFend):
+            NNPDF3wgt = LHEEventInfo.weights()[i_lhePDF].wgt
+            
+            if ntotal < 10:
+                print 'NNPDF weight ' + str(i_lhePDF) + ' is ' + str(NNPDF3wgt)
+            NNPDF3wgt_frac = NNPDF3wgt/(PDFcentral)
+            NNPDF3wgtAvg += NNPDF3wgt_frac
+        
+        NNPDF3wgtAvg = NNPDF3wgtAvg/100.0
+
+        if ntotal < 10:
+            print 'NNPDF average is ' + str(NNPDF3wgtAvg)
+        
+        for i_lhePDF in range(PDFstart,PDFend):
+            NNPDF3wgt = LHEEventInfo.weights()[i_lhePDF].wgt
+            NNPDF3wgt_frac = NNPDF3wgt/(PDFcentral)
+            NNPDF3wgtRMS += (NNPDF3wgt_frac - NNPDF3wgtAvg)*(NNPDF3wgt_frac - NNPDF3wgtAvg)
+ 
+        weight_PDF = math.sqrt(NNPDF3wgtRMS/99.0)
+        if ntotal < 10:
+            print 'NNPDF std. dev. is ' + str(weight_PDF)
+        if weight_PDF > 1.0:
+            print 'Troubleshooting high PDF weight'
+            for itest in range(PDFstart,PDFend):
+                NNPDF3testwgt = LHEEventInfo.weights()[itest].wgt
+                print 'NNPDF weight ' + str(itest) + ' is ' + str(NNPDF3testwgt)
 
     # -------------------------------
     # Require met filter
@@ -2209,6 +2299,10 @@ for event in events :
     if options.isMC:
         eventWeight_puUp.push_back(weight_puUp)
         eventWeight_puDown.push_back(weight_puDown)
+        if options.semilep == 1:
+            eventWeight_Q2Up.push_back(weight_Q2up)
+            eventWeight_Q2Down.push_back(weight_Q2down)
+            eventWeight_PDF.push_back(weight_PDF)
 
     if passReco :
         recoTree.Fill()
