@@ -344,6 +344,8 @@ eventWeight_puDown     = ROOT.vector('float')()
 eventWeight_Q2Up       = ROOT.vector('float')()
 eventWeight_Q2Down     = ROOT.vector('float')()
 eventWeight_PDF        = ROOT.vector('float')()
+eventWeight_alphaUp    = ROOT.vector('float')()
+eventWeight_alphaDown  = ROOT.vector('float')()
 
 if options.isMC and options.semilep == 1:
     truthChannel       = ROOT.vector('int')()
@@ -477,6 +479,8 @@ if options.isMC:
         recoTree.Branch('eventWeight_Q2Up'   , eventWeight_Q2Up )
         recoTree.Branch('eventWeight_Q2Down' , eventWeight_Q2Down )
         recoTree.Branch('eventWeight_PDF'    , eventWeight_PDF )
+        recoTree.Branch('eventWeight_alphaUp', eventWeight_alphaUp)
+        recoTree.Branch('eventWeight_alphaDown', eventWeight_alphaDown)
         recoTree.Branch('truthChannel'       , truthChannel           )
 
 if options.fullTruth:
@@ -492,6 +496,8 @@ if options.fullTruth:
     trueTree.Branch('eventWeight_Q2Up'       , eventWeight_Q2Up       )
     trueTree.Branch('eventWeight_Q2Down'     , eventWeight_Q2Down     )
     trueTree.Branch('eventWeight_PDF'        , eventWeight_PDF        )
+    trueTree.Branch('eventWeight_alphaUp'    , eventWeight_alphaUp    )
+    trueTree.Branch('eventWeight_alphaDown'  , eventWeight_alphaDown  )
 
 # -------------------------------------------------------------------------------------
 # define all variables to be read from input files
@@ -996,6 +1002,8 @@ for event in events :
             eventWeight_Q2Up.clear()
             eventWeight_Q2Down.clear()
             eventWeight_PDF.clear()
+            eventWeight_alphaUp.clear()
+            eventWeight_alphaDown.clear()
 
     weight_nom = 1.0 #event weight
     weight_puUp = 1.0
@@ -1003,6 +1011,8 @@ for event in events :
     weight_Q2up = 1.0
     weight_Q2down = 1.0
     weight_PDF = 1.0
+    weight_alphaUp = 1.0
+    weight_alphaDown = 1.0
 
     mttbarGen = -1.0
     
@@ -1370,6 +1380,8 @@ for event in events :
                 NNPDF3testwgt = LHEEventInfo.weights()[itest].wgt
                 print 'NNPDF weight ' + str(itest) + ' is ' + str(NNPDF3testwgt)
 
+        weight_alphaUp = LHEEventInfo.weights()[109].wgt
+        weight_alphaDown = LHEEventInfo.weights()[110].wgt
     # -------------------------------
     # Require met filter
     # -------------------------------
@@ -2303,6 +2315,8 @@ for event in events :
             eventWeight_Q2Up.push_back(weight_Q2up)
             eventWeight_Q2Down.push_back(weight_Q2down)
             eventWeight_PDF.push_back(weight_PDF)
+            eventWeight_alphaUp.push_back(weight_alphaUp)
+            eventWeight_alphaDown.push_back(weight_alphaDown)
 
     if passReco :
         recoTree.Fill()
