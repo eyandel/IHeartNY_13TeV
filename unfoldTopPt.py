@@ -356,23 +356,49 @@ if not options.closureTest:
                  hMeas_qcd_WJets_HT600to800,hMeas_qcd_WJets_HT800to1200,hMeas_qcd_WJets_HT1200to2500,hMeas_qcd_WJets_HT2500toInf] :
         hMeas_QCD.Add(hist,-1.0)
 
+    # -------------------------------
+    # Normalize QCD to MC prediction
+    # -------------------------------
+
+    f_QCD_HT500to700   = TFile("histfiles_80X/hists_QCD_HT500to700_"+muOrEl+"_nom"+append+".root")
+    f_QCD_HT700to1000  = TFile("histfiles_80X/hists_QCD_HT700to1000_"+muOrEl+"_nom"+append+".root")
+    f_QCD_HT1000to1500 = TFile("histfiles_80X/hists_QCD_HT1000to1500_"+muOrEl+"_nom"+append+".root")
+    f_QCD_HT1500to2000 = TFile("histfiles_80X/hists_QCD_HT1500to2000_"+muOrEl+"_nom"+append+".root")
+    f_QCD_HT2000toInf  = TFile("histfiles_80X/hists_QCD_HT2000toInf_"+muOrEl+"_nom"+append+".root")
+
+    hNorm_QCD_HT500to700   = f_QCD_HT500to700.Get("ptRecoTop"+options.nbr)
+    hNorm_QCD_HT700to1000  = f_QCD_HT700to1000.Get("ptRecoTop"+options.nbr)
+    hNorm_QCD_HT1000to1500 = f_QCD_HT1000to1500.Get("ptRecoTop"+options.nbr)
+    hNorm_QCD_HT1500to2000 = f_QCD_HT1500to2000.Get("ptRecoTop"+options.nbr)
+    hNorm_QCD_HT2000toInf  = f_QCD_HT2000toInf.Get("ptRecoTop"+options.nbr)
+
+    hNorm_QCD_HT500to700.Scale(32100. * lum / 19665695.)
+    hNorm_QCD_HT700to1000.Scale(6831. * lum / 15547962.)
+    hNorm_QCD_HT1000to1500.Scale(1207. * lum / 5049267.)
+    hNorm_QCD_HT1500to2000.Scale(119.9 * lum / 3939077.)
+    hNorm_QCD_HT2000toInf.Scale(25.24 * lum / 1981228.)
+
+    QCD_norm = 0.0
+
+    for hist in [hNorm_QCD_HT500to700,hNorm_QCD_HT700to1000,hNorm_QCD_HT1000to1500,hNorm_QCD_HT1500to2000,hNorm_QCD_HT2000toInf]:
+        QCD_norm += hist.Integral()
+    
+    hMeas_QCD.Scale(QCD_norm / hMeas_QCD.Integral())
         
-# -------------------------------------------------------------------------------------
-# Scale backgrounds if using posterior normalization
-# -------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------
+    # Scale backgrounds if using posterior normalization
+    # -------------------------------------------------------------------------------------
 
-if options.usePost:
-    hMeas_SingleTop.Scale(0.95) #Note: the SFs are taken from the posterior nuisance parameters for the rates
-    hMeas_WJets.Scale(1.06)
-    hMeas_QCD.Scale(0.89)
-    hMeas_tt_nonsemi.Scale(0.79)
+    if options.usePost:
+        hMeas_SingleTop.Scale(0.95) #TODO
+        hMeas_WJets.Scale(1.06)
+        hMeas_QCD.Scale(0.89)
+        hMeas_tt_nonsemi.Scale(0.79)
 
+    # -------------------------------------------------------------------------------------
+    # subtract backgrounds from the data distribution, but not for closure test!!! 
+    # -------------------------------------------------------------------------------------
 
-# -------------------------------------------------------------------------------------
-# subtract backgrounds from the data distribution, but not for closure test!!! 
-# -------------------------------------------------------------------------------------
-
-if not options.closureTest: 
     for hist in [hMeas_SingleTop, hMeas_WJets, hMeas_QCD, hMeas_tt_nonsemi] :
         hMeas.Add(hist, -1.)
 
