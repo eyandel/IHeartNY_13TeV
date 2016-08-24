@@ -17,7 +17,6 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TF1.h"
-#include "TGraph.h"
 #include "TProfile.h"
 #include "TProfile2D.h"
 #include "TMath.h"
@@ -135,30 +134,80 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   SetPlotStyle();
   TH1::AddDirectory(kFALSE);
   
+  // minimum top pt cut
+  float MINTOPPT = 400.0;
+
   //--------------------------
   // Setup for response matrix
   //--------------------------
   
   gSystem->Load("RooUnfold/libRooUnfold");
+
   const int nptbins = 8;
   float ptbins[nptbins+1] = {0.0,200.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
   TH1F* h_bins = new TH1F("bins", ";;", nptbins, ptbins);
-  
+
+  // additional binnings for unfolding checks 
+  const int nptbins2 = 10;
+  float ptbins2[nptbins2+1] = {0.0,300.0,400.0,450.0,525.0,600.0,700.0,800.0,950.0,1200.0,2000.0};
+  const int nptbins3 = 9;
+  float ptbins3[nptbins3+1] = {300.0,400.0,450.0,525.0,600.0,700.0,800.0,950.0,1200.0,2000.0};
+  const int nptbins4 = 7;
+  float ptbins4[nptbins4+1] = {300.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
+
+  TH1F* h_bins2 = new TH1F("bins2", ";;", nptbins2, ptbins2);
+  TH1F* h_bins3 = new TH1F("bins3", ";;", nptbins3, ptbins3);
+  TH1F* h_bins4 = new TH1F("bins4", ";;", nptbins4, ptbins4);
+
   RooUnfoldResponse response(h_bins, h_bins);
   response.SetName("response_pt");
   TH1F* h_ptGenTop = new TH1F("ptGenTop", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1F* h_ptRecoTop = new TH1F("ptRecoTop", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
 
+  // additional binnings for unfolding checks 
+  RooUnfoldResponse response2(h_bins2, h_bins2);
+  RooUnfoldResponse response3(h_bins3, h_bins3);
+  RooUnfoldResponse response4(h_bins4, h_bins4);
+  response2.SetName("response_pt2");
+  response3.SetName("response_pt3");
+  response4.SetName("response_pt4");
+
+  TH1F* h_ptGenTop2 = new TH1F("ptGenTop2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1F* h_ptGenTop3 = new TH1F("ptGenTop3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1F* h_ptGenTop4 = new TH1F("ptGenTop4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+
+  TH1F* h_ptRecoTop2 = new TH1F("ptRecoTop2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1F* h_ptRecoTop3 = new TH1F("ptRecoTop3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1F* h_ptRecoTop4 = new TH1F("ptRecoTop4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+
+  // reweighted top pt spectra at reco/truth level (using weights based on parton-level top quark pt)
+  TH1F* h_ptGenTopMod  = new TH1F("ptGenTopMod",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1F* h_ptGenTopMod2 = new TH1F("ptGenTopMod2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1F* h_ptGenTopMod3 = new TH1F("ptGenTopMod3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1F* h_ptGenTopMod4 = new TH1F("ptGenTopMod4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1F* h_ptRecoTopMod  = new TH1F("ptRecoTopMod",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1F* h_ptRecoTopMod2 = new TH1F("ptRecoTopMod2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1F* h_ptRecoTopMod3 = new TH1F("ptRecoTopMod3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1F* h_ptRecoTopMod4 = new TH1F("ptRecoTopMod4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+
+  TH1F* h_ptGenTopModDown  = new TH1F("ptGenTopModDown",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1F* h_ptGenTopModDown2 = new TH1F("ptGenTopModDown2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1F* h_ptGenTopModDown3 = new TH1F("ptGenTopModDown3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1F* h_ptGenTopModDown4 = new TH1F("ptGenTopModDown4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1F* h_ptRecoTopModDown  = new TH1F("ptRecoTopModDown",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1F* h_ptRecoTopModDown2 = new TH1F("ptRecoTopModDown2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1F* h_ptRecoTopModDown3 = new TH1F("ptRecoTopModDown3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1F* h_ptRecoTopModDown4 = new TH1F("ptRecoTopModDown4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+
   float LUM = 12358.75;
   if (channel == "el") LUM = 12295.65;
-  
+
   float weight_response = LUM * 831.76 / 182123200.; //lum * xsec / Nevents for PowhegPythia8
-  
+
   // ----------------------------------------------------------------------------------------------------------
   // If running on signal, load truth information for events not passing reco, in order to fill response matrix
   // ----------------------------------------------------------------------------------------------------------
-
-  /*
+  
   if (sample.Contains("fullTruth")){
     TChain* treeTO = new TChain("trueTree");
     treeTO->Add(INDIR + sample + ".root");
@@ -207,8 +256,6 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       float weight = eventWeight_nom_TO->at(0);
       if (systematic == "puUp") weight = eventWeight_puUp_TO->at(0);
       if (systematic == "puDown") weight = eventWeight_puDown_TO->at(0);
-
-      if (weight < 0.0) cout << "ERROR! Initial weight is negative" << endl;
       
       // Do channel selection at parton level
       if ((int)truthChannel_TO->size() == 0){
@@ -221,12 +268,34 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       if (truthChannel_TO->at(0) == 0 && channel == "el") continue;
       if (truthChannel_TO->at(0) == 1 && channel == "mu") continue;
+
       h_ptGenTop->Fill(genTopPt_TO->at(0),weight);
       response.Miss(genTopPt_TO->at(0),weight*weight_response);
+
+      h_ptGenTop2->Fill(genTopPt_TO->at(0),weight);
+      h_ptGenTop3->Fill(genTopPt_TO->at(0),weight);
+      h_ptGenTop4->Fill(genTopPt_TO->at(0),weight);
+      response2.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response3.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response4.Miss(genTopPt_TO->at(0),weight*weight_response);
+
+      float oldpt = genTopPt_TO->at(0);
+      float w_ptup = (1.0 + 0.0008*oldpt);
+      float w_ptdn = (1.0 - 0.0008*oldpt);
+
+      h_ptGenTopMod->Fill(oldpt,weight*w_ptup);
+      h_ptGenTopMod2->Fill(oldpt,weight*w_ptup);
+      h_ptGenTopMod3->Fill(oldpt,weight*w_ptup);
+      h_ptGenTopMod4->Fill(oldpt,weight*w_ptup);
+
+      h_ptGenTopModDown->Fill(oldpt,weight*w_ptdn);
+      h_ptGenTopModDown2->Fill(oldpt,weight*w_ptdn);
+      h_ptGenTopModDown3->Fill(oldpt,weight*w_ptdn);
+      h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);      
+
     }
     treeTO->Delete();
   }
-  */
   
   // -------------------------
   // Load information for reco
@@ -928,9 +997,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     float weight = eventWeight_nom->at(0);
     if (!isData && systematic == "puUp") weight = eventWeight_puUp->at(0);
     if (!isData && systematic == "puDown") weight = eventWeight_puDown->at(0);
-
-    //if (weight < 0.0) cout << "ERROR! Initial weight is negative" << endl;
     
+    float unfold_w_ptup = 1.0;
+    float unfold_w_ptdn = 1.0;
+
     // Look at truth information (TTbar signal only)
     if (isSignal) {
       
@@ -948,7 +1018,6 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       nPassSemiLep += 1;
       
       // Get parton-level info
-      // Note: does not exist for all events -- only for those which have pt(top) > 400 GeV at parton level
       if ((int)genTopPt->size() != 0){
 	nPassParton += 1;
 	passParton = true;
@@ -959,6 +1028,27 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	
 	h_ptGenTop->Fill(genTopPt->at(0),weight);
 	
+	h_ptGenTop2->Fill(genTopPt->at(0),weight);
+	h_ptGenTop3->Fill(genTopPt->at(0),weight);
+	h_ptGenTop4->Fill(genTopPt->at(0),weight);
+
+	float oldpt = genTopPt->at(0);
+	float w_ptup = (1.0 + 0.0008*oldpt);
+	float w_ptdn = (1.0 - 0.0008*oldpt);
+
+	unfold_w_ptup = w_ptup;
+	unfold_w_ptdn = w_ptdn;
+
+	h_ptGenTopMod->Fill(oldpt,weight*w_ptup);
+	h_ptGenTopMod2->Fill(oldpt,weight*w_ptup);
+	h_ptGenTopMod3->Fill(oldpt,weight*w_ptup);
+	h_ptGenTopMod4->Fill(oldpt,weight*w_ptup);
+
+	h_ptGenTopModDown->Fill(oldpt,weight*w_ptdn);
+	h_ptGenTopModDown2->Fill(oldpt,weight*w_ptdn);
+	h_ptGenTopModDown3->Fill(oldpt,weight*w_ptdn);
+	h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);
+
 	if (channel == "mu"){
 	  if ((int)genMuPt->size() == 0) {
 	    cout << "Error: no muon in mu channel!" << endl;
@@ -1031,7 +1121,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     //Construct AK4 and AK8 jet collections, with proper JEC / JER
     std::vector<TLorentzVector> ak4Jets;
     if ((int)ak4jetPt->size() == 0) {
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*weight_response);
+	response2.Miss(genTopPt->at(0),weight*weight_response);
+	response3.Miss(genTopPt->at(0),weight*weight_response);
+	response4.Miss(genTopPt->at(0),weight*weight_response);
+      }
       continue;
     }
     for (int iak4 = 0; iak4 < (int)ak4jetPt->size(); iak4++){
@@ -1058,7 +1153,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     
     std::vector<TLorentzVector> ak8Jets;
     if ((int)ak8jetPt->size() == 0) {
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*weight_response);
+	response2.Miss(genTopPt->at(0),weight*weight_response);
+	response3.Miss(genTopPt->at(0),weight*weight_response);
+	response4.Miss(genTopPt->at(0),weight*weight_response);
+      }
       continue;
     }
     for (int iak8 = 0; iak8 < (int)ak8jetPt->size(); iak8++){
@@ -1092,12 +1192,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // Loop over muons
     // We only expect 0 or 1 muons, but leaving this as a loop for now in case we change something later
     if ((int)muPt->size() != 0) {
-      for (int it = 0; it < (int)muPt->size(); it++){
+      for (int imu = 0; imu < (int)muPt->size(); imu++){
 	float dRclosest = 99.;
 	float ptRelClosest = -1.0;
 	if ((int)ak4Jets.size() != 0){
 	  TLorentzVector muP4;
-	  muP4.SetPtEtaPhiM(muPt->at(it),muEta->at(it),muPhi->at(it),0.105);
+	  muP4.SetPtEtaPhiM(muPt->at(imu),muEta->at(imu),muPhi->at(imu),0.105);
 	  for (int ij = 0; ij < (int)ak4Jets.size(); ij++){
 	    float dRtemp = muP4.DeltaR(ak4Jets.at(ij));
 	    if (dRtemp < dRclosest) {
@@ -1110,16 +1210,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	
 	// Now define 'good' muons.
 	if (iso == "Loose" ||
-	    (!isQCD && iso == "MiniIso10" && muMiniIso->at(it) < 0.10 ) ||
-	    (!isQCD && iso == "MiniIso20" && muMiniIso->at(it) < 0.20 ) ||
-	    (!isQCD && iso == "2DisoPt25" && (muPtRelPt25->at(it) > 45.0 || mudRPt25->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoPt45" && (muPtRelPt45->at(it) > 35.0 || mudRPt45->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoB2G"  && (muPtRelPt15->at(it) > 20.0 || mudRPt15->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoIHNY" && (muPtRelPt25->at(it) > 25.0 || mudRPt25->at(it) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && muMiniIso->at(it) > 0.10 && muMiniIso->at(it) < 0.20)){
-	  if (lepID == "Medium" || (lepID == "Tight" && muTight->at(it))){
-	    goodMu.SetPtEtaPhiM(muPt->at(it),muEta->at(it),muPhi->at(it),0.105);
-	    goodMuMiniIso = muMiniIso->at(it);
+	    (!isQCD && iso == "MiniIso10" && muMiniIso->at(imu) < 0.10 ) ||
+	    (!isQCD && iso == "MiniIso20" && muMiniIso->at(imu) < 0.20 ) ||
+	    (!isQCD && iso == "2DisoPt25" && (muPtRelPt25->at(imu) > 45.0 || mudRPt25->at(imu) > 0.4)) ||
+	    (!isQCD && iso == "2DisoPt45" && (muPtRelPt45->at(imu) > 35.0 || mudRPt45->at(imu) > 0.4)) ||
+	    (!isQCD && iso == "2DisoB2G"  && (muPtRelPt15->at(imu) > 20.0 || mudRPt15->at(imu) > 0.4)) ||
+	    (!isQCD && iso == "2DisoIHNY" && (muPtRelPt25->at(imu) > 25.0 || mudRPt25->at(imu) > 0.5)) ||
+	    (isQCD && iso == "MiniIso10" && muMiniIso->at(imu) > 0.10 && muMiniIso->at(imu) < 0.20)){
+	  if (lepID == "Medium" || (lepID == "Tight" && muTight->at(imu))){
+	    goodMu.SetPtEtaPhiM(muPt->at(imu),muEta->at(imu),muPhi->at(imu),0.105);
+	    goodMuMiniIso = muMiniIso->at(imu);
 	    nGoodMu += 1;
 	  }
 	}		  
@@ -1135,12 +1235,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // Loop over electrons
     // We only expect 0 or 1 electrons, but leaving this as a loop for now in case we change something later
     if ((int)elPt->size() != 0) {
-      for (int it = 0; it < (int)elPt->size(); it++){
+      for (int iel = 0; iel < (int)elPt->size(); iel++){
 	float dRclosest = 99.;
 	float ptRelClosest = -1.0;
 	if ((int)ak4Jets.size() != 0){
 	  TLorentzVector elP4;
-	  elP4.SetPtEtaPhiM(elPt->at(it),elEta->at(it),elPhi->at(it),0.0);
+	  elP4.SetPtEtaPhiM(elPt->at(iel),elEta->at(iel),elPhi->at(iel),0.0);
 	  for (int ij = 0; ij < (int)ak4Jets.size(); ij++){
 	    float dRtemp = elP4.DeltaR(ak4Jets.at(ij));
 	    if (dRtemp < dRclosest) {
@@ -1153,16 +1253,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	
 	// Now define 'good' electrons
 	if (iso == "Loose" ||
-	    (!isQCD && iso == "MiniIso10" && elMiniIso->at(it) < 0.10 ) ||
-	    (!isQCD && iso == "MiniIso20" && elMiniIso->at(it) < 0.20 ) ||
-	    (!isQCD && iso == "2DisoPt25" && (elPtRelPt25->at(it) > 25.0 || eldRPt25->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoPt45" && (elPtRelPt45->at(it) > 25.0 || eldRPt45->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoB2G"  && (elPtRelPt15->at(it) > 20.0 || eldRPt15->at(it) > 0.4)) ||
-	    (!isQCD && iso == "2DisoIHNY" && (elPtRelPt25->at(it) > 25.0 || eldRPt25->at(it) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && elMiniIso->at(it) > 0.10 && elMiniIso->at(it) < 0.20)){
-	  if (lepID == "Medium" || (lepID == "Tight" && elTight->at(it))){
-	    goodEl.SetPtEtaPhiM(elPt->at(it),elEta->at(it),elPhi->at(it),0.0);
-	    goodElMiniIso = elMiniIso->at(it);
+	    (!isQCD && iso == "MiniIso10" && elMiniIso->at(iel) < 0.10 ) ||
+	    (!isQCD && iso == "MiniIso20" && elMiniIso->at(iel) < 0.20 ) ||
+	    (!isQCD && iso == "2DisoPt25" && (elPtRelPt25->at(iel) > 25.0 || eldRPt25->at(iel) > 0.4)) ||
+	    (!isQCD && iso == "2DisoPt45" && (elPtRelPt45->at(iel) > 25.0 || eldRPt45->at(iel) > 0.4)) ||
+	    (!isQCD && iso == "2DisoB2G"  && (elPtRelPt15->at(iel) > 20.0 || eldRPt15->at(iel) > 0.4)) ||
+	    (!isQCD && iso == "2DisoIHNY" && (elPtRelPt25->at(iel) > 25.0 || eldRPt25->at(iel) > 0.5)) ||
+	    (isQCD && iso == "MiniIso10" && elMiniIso->at(iel) > 0.10 && elMiniIso->at(iel) < 0.20)){
+	  if (lepID == "Medium" || (lepID == "Tight" && elTight->at(iel))){
+	    goodEl.SetPtEtaPhiM(elPt->at(iel),elEta->at(iel),elPhi->at(iel),0.0);
+	    goodElMiniIso = elMiniIso->at(iel);
 	    nGoodEl += 1;
 	  }
 	}
@@ -1170,7 +1270,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     }
     
     // Isolation studies
-    if (!isData && (int)ak4Jets.size() > 1 && (int)ak8Jets.size() != 0 && ak8Jets.at(0).Perp() > 400.){//Loose jet 'preselection' -- same as regular preselection but no hemisphere requirement
+    if (!isData && (int)ak4Jets.size() > 1 && (int)ak8Jets.size() != 0 && ak8Jets.at(0).Perp() > MINTOPPT){//Loose jet 'preselection' -- same as regular preselection but no hemisphere requirement
       float MiniIsoCuts[30] = {0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29};
       float PtRelCuts[6] = {20.,25.,30.,35.,40.,45.};
       float dRCuts[4] = {0.4,0.45,0.4,0.55};
@@ -1264,11 +1364,21 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     }    
     else {
       if (channel == "mu" && !(nGoodMu == 1 && nMuForVeto == 1 && nElForVeto == 0)) {
-	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+	if (passParton && isSignal) {
+	  response.Miss(genTopPt->at(0),weight*weight_response);
+	  response2.Miss(genTopPt->at(0),weight*weight_response);
+	  response3.Miss(genTopPt->at(0),weight*weight_response);
+	  response4.Miss(genTopPt->at(0),weight*weight_response);
+	}
 	continue;
       }
       if (channel == "el" && !(nGoodEl == 1 && nElForVeto == 1 && nMuForVeto == 0)) {
-	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+	if (passParton && isSignal) {
+	  response.Miss(genTopPt->at(0),weight*weight_response);
+	  response2.Miss(genTopPt->at(0),weight*weight_response);
+	  response3.Miss(genTopPt->at(0),weight*weight_response);
+	  response4.Miss(genTopPt->at(0),weight*weight_response);
+	}
 	continue;
       }
     }
@@ -1305,7 +1415,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       if (dphi_jetmet > 3.14159) dphi_jetmet = std::abs(2*3.14159 - dphi_jetmet);
       
       if ( std::abs(dphi_emet-1.5) > 1.5 * metPt->at(0) / 75.0 || std::abs(dphi_jetmet-1.5) > 1.5 * metPt->at(0) / 75.0) {
-	if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+	if (passParton && isSignal) {
+	  response.Miss(genTopPt->at(0),weight*weight_response);
+	  response2.Miss(genTopPt->at(0),weight*weight_response);
+	  response3.Miss(genTopPt->at(0),weight*weight_response);
+	  response4.Miss(genTopPt->at(0),weight*weight_response);
+	}
 	continue;
       }
     } // End triangular cut
@@ -1314,7 +1429,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     
     // Require at least two jets
     if ((int)ak4Jets.size() < 2) {
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*weight_response);
+	response2.Miss(genTopPt->at(0),weight*weight_response);
+	response3.Miss(genTopPt->at(0),weight*weight_response);
+	response4.Miss(genTopPt->at(0),weight*weight_response);
+      }
       continue;
     }
     passStep2 += 1;
@@ -1336,7 +1456,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     
     // Require at least one leptonic jet
     if (nLepJet < 1) {
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*weight_response);
+	response2.Miss(genTopPt->at(0),weight*weight_response);
+	response3.Miss(genTopPt->at(0),weight*weight_response);
+	response4.Miss(genTopPt->at(0),weight*weight_response);
+      }
       continue;
     }
     passStep3 += 1;
@@ -1346,7 +1471,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     int itopJetCand = -1;
     int nHadJet = 0;
     for (int it = 0; it < (int)ak8Jets.size(); it++){
-      if (ak8Jets.at(it).Perp() < 400.) continue;
+      if (ak8Jets.at(it).Perp() < MINTOPPT) continue;
       float dRtemp = refLep.DeltaR(ak8Jets.at(it));
       if (doHemiCuts && dRtemp < 3.1415 / 2.) continue;
       nHadJet += 1;
@@ -1358,14 +1483,24 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     
     // Require at least one hadronic jet
     if (nHadJet < 1) {
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*weight_response);
+	response2.Miss(genTopPt->at(0),weight*weight_response);
+	response3.Miss(genTopPt->at(0),weight*weight_response);
+	response4.Miss(genTopPt->at(0),weight*weight_response);
+      }
       continue;
     }
     passStep4 += 1;
     
     // Require MET > 35 GeV
     if (metPt->at(0) < metCut) {
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*weight_response);
+	response2.Miss(genTopPt->at(0),weight*weight_response);
+	response3.Miss(genTopPt->at(0),weight*weight_response);
+	response4.Miss(genTopPt->at(0),weight*weight_response);
+      }
       continue;
     }
     passStep5 += 1;
@@ -1525,16 +1660,49 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 
     if (passTopTag && passBtag){
       h_ptRecoTop->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+
+      h_ptRecoTopMod->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopModDown->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+
       if (isSignal){
-	if (passParton) response.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
-	else response.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	if (passParton) {
+	  response.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response2.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response3.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response4.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	}
+	else {
+	  response.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response2.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response3.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response4.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	}
       }
     }
     else if (passTopTag){
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response2.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response3.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response4.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+      }
     }
     else{
-      if (passParton && isSignal) response.Miss(genTopPt->at(0),weight*weight_response);
+      if (passParton && isSignal) {
+	response.Miss(genTopPt->at(0),weight*weight_response);
+	response2.Miss(genTopPt->at(0),weight*weight_response);
+	response3.Miss(genTopPt->at(0),weight*weight_response);
+	response4.Miss(genTopPt->at(0),weight*weight_response);
+      }
     }
 
     // ----------------------------
@@ -1791,6 +1959,24 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_ptGenTop->Write();
     response.Write();
 
+    h_ptGenTop2->Write();
+    h_ptGenTop3->Write();
+    h_ptGenTop4->Write();
+
+    h_ptGenTopMod->Write();
+    h_ptGenTopMod2->Write();
+    h_ptGenTopMod3->Write();
+    h_ptGenTopMod4->Write();
+    h_ptGenTopModDown->Write();
+    h_ptGenTopModDown2->Write();
+    h_ptGenTopModDown3->Write();
+    h_ptGenTopModDown4->Write();
+
+    response2.Write();
+    response3.Write();
+    response4.Write();
+
+
     /*
     h_genAK4jetPt->Write();
     h_genAK4jetEta->Write();
@@ -1809,6 +1995,19 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   }
 
   h_ptRecoTop->Write();
+
+  h_ptRecoTop2->Write();
+  h_ptRecoTop3->Write();
+  h_ptRecoTop4->Write();
+
+  h_ptRecoTopMod->Write();
+  h_ptRecoTopMod2->Write();
+  h_ptRecoTopMod3->Write();
+  h_ptRecoTopMod4->Write();
+  h_ptRecoTopModDown->Write();
+  h_ptRecoTopModDown2->Write();
+  h_ptRecoTopModDown3->Write();
+  h_ptRecoTopModDown4->Write();
 
   h_metPtPre->Write();
   h_htPre->Write();
@@ -2034,6 +2233,38 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ptGenTop->Delete();
   h_ptRecoTop->Delete();
   response.Delete();
+
+
+  h_ptGenTop2->Delete();
+  h_ptGenTop3->Delete();
+  h_ptGenTop4->Delete();
+
+  h_ptRecoTop2->Delete();
+  h_ptRecoTop3->Delete();
+  h_ptRecoTop4->Delete();
+
+  h_ptGenTopMod->Delete();
+  h_ptGenTopMod2->Delete();
+  h_ptGenTopMod3->Delete();
+  h_ptGenTopMod4->Delete();
+  h_ptGenTopModDown->Delete();
+  h_ptGenTopModDown2->Delete();
+  h_ptGenTopModDown3->Delete();
+  h_ptGenTopModDown4->Delete();
+
+  h_ptRecoTopMod->Delete();
+  h_ptRecoTopMod2->Delete();
+  h_ptRecoTopMod3->Delete();
+  h_ptRecoTopMod4->Delete();
+  h_ptRecoTopModDown->Delete();
+  h_ptRecoTopModDown2->Delete();
+  h_ptRecoTopModDown3->Delete();
+  h_ptRecoTopModDown4->Delete();
+
+  response2.Delete();
+  response3.Delete();
+  response4.Delete();
+
 
   /*
   h_ngenAK4jet->Delete();
