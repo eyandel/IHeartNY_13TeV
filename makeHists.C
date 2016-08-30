@@ -743,6 +743,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // histograms
   // ----------------------------------------------------------------------------------------------------------------
 
+  TH1F* h_puWeight                = new TH1F("puWeight"     ,";PU weight;Events / 0.1"                    ,20,0.0,2.0);
+  TH1F* h_lepSF                   = new TH1F("lepSF"        ,";Lepton SF;Events / 0.01"                   ,60,0.5,1.1);
+
   TH1F* h_genTopPt                = new TH1F("genTopPt"     ,";top quark p_{T} (GeV);Events / 20 GeV"     ,60,0.0,1200.);
   TH1F* h_genTopEta               = new TH1F("genTopEta"    ,";top quark #eta;Events / 0.1"               ,50,-2.5,2.5);
   TH1F* h_genTopPhi               = new TH1F("genTopPhi"    ,";top quark #phi;Events / 0.1"               ,70,-3.5,3.5);
@@ -1216,7 +1219,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	    (!isQCD && iso == "2DisoPt45" && (muPtRelPt45->at(imu) > 35.0 || mudRPt45->at(imu) > 0.4)) ||
 	    (!isQCD && iso == "2DisoB2G"  && (muPtRelPt15->at(imu) > 20.0 || mudRPt15->at(imu) > 0.4)) ||
 	    (!isQCD && iso == "2DisoIHNY" && (muPtRelPt25->at(imu) > 25.0 || mudRPt25->at(imu) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && muMiniIso->at(imu) > 0.10 && muMiniIso->at(imu) < 0.20)){
+	    (isQCD && iso == "MiniIso10" && muMiniIso->at(imu) > 0.10 && muMiniIso->at(imu) < 0.20) ||
+	    (isQCD && iso == "MiniIso20" && muMiniIso->at(imu) > 0.20 && muMiniIso->at(imu) < 0.30)){
 	  if (lepID == "Medium" || (lepID == "Tight" && muTight->at(imu))){
 	    goodMu.SetPtEtaPhiM(muPt->at(imu),muEta->at(imu),muPhi->at(imu),0.105);
 	    goodMuMiniIso = muMiniIso->at(imu);
@@ -1259,7 +1263,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	    (!isQCD && iso == "2DisoPt45" && (elPtRelPt45->at(iel) > 25.0 || eldRPt45->at(iel) > 0.4)) ||
 	    (!isQCD && iso == "2DisoB2G"  && (elPtRelPt15->at(iel) > 20.0 || eldRPt15->at(iel) > 0.4)) ||
 	    (!isQCD && iso == "2DisoIHNY" && (elPtRelPt25->at(iel) > 25.0 || eldRPt25->at(iel) > 0.5)) ||
-	    (isQCD && iso == "MiniIso10" && elMiniIso->at(iel) > 0.10 && elMiniIso->at(iel) < 0.20)){
+	    (isQCD && iso == "MiniIso10" && elMiniIso->at(iel) > 0.10 && elMiniIso->at(iel) < 0.20) ||
+	    (isQCD && iso == "MiniIso20" && elMiniIso->at(iel) > 0.20 && elMiniIso->at(iel) < 0.30)){
 	  if (lepID == "Medium" || (lepID == "Tight" && elTight->at(iel))){
 	    goodEl.SetPtEtaPhiM(elPt->at(iel),elEta->at(iel),elPhi->at(iel),0.0);
 	    goodElMiniIso = elMiniIso->at(iel);
@@ -1508,6 +1513,20 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // ----------------------------
     // Fill preselection histograms
     // ----------------------------
+    if (!isData){
+      if (channel == "mu"){
+	if (systematic == "lepUp") h_lepSF->Fill(getMuonSF(refLep.Eta(),h_muID,h_muTrig,"up"));
+	else if (systematic == "lepDown") h_lepSF->Fill(getMuonSF(refLep.Eta(),h_muID,h_muTrig,"down"));
+	else h_lepSF->Fill(getMuonSF(refLep.Eta(),h_muID,h_muTrig,"nom"));
+      }
+      if (channel == "el"){
+        if (systematic == "lepUp") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up"));
+        else if (systematic == "lepDown") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down"));
+        else h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom"));
+      }
+    }
+    h_puWeight->Fill(eventWeight_nom->at(0));
+
     h_metPtPre->Fill(metPt->at(0),weight);
     h_htPre->Fill(ht->at(0),weight);
     h_htLepPre->Fill(metPt->at(0)+refLep.Perp(),weight);
@@ -1946,6 +1965,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // * * * * * * D R A W   A N D   S A V E   P L O T S * * * * * * 
   // -------------------------------------------------------------------------------------------
 
+  h_lepSF->Write();
+  h_puWeight->Write();
 
   if (isSignal){
     h_genTopPt->Write();
@@ -2221,6 +2242,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   delete fout;
 
   // Do cleanup (messy, but can't see another option currently)
+  h_lepSF->Delete();
+  h_puWeight->Delete();
 
   h_genTopPt->Delete();
   h_genTopEta->Delete();
