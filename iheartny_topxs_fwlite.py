@@ -533,8 +533,8 @@ metFilterBitsLabel  = ("METUserData", "triggerBitTree")
 HBHEfilterHandle    = Handle("bool")
 HBHEfilterLabel     = ("HBHENoiseFilterResultProducer", "HBHENoiseFilterResult")
 
-#LHEHandle = Handle("LHERunInfoProduct")
-#LHELabel  = ("externalLHEProducer","")
+#LHERunHandle = Handle("LHERunInfoProduct")
+#LHERunLabel  = ("externalLHEProducer","")
 LHEHandle = Handle("LHEEventProduct")
 LHELabel = ("externalLHEProducer","")
 
@@ -808,6 +808,7 @@ h_NPV_noweight   = ROOT.TH1F("h_NPV_noweight"  , "", 50,0,50 )
 h_NPV            = ROOT.TH1F("h_NPV"           , "", 50,0,50 )
 h_muPrescale     = ROOT.TH1F("h_muPrescale"    , "", 50,0,50 )
 h_elPrescale     = ROOT.TH1F("h_elPrescale"    , "", 50,0,50 )
+h_cutflow        = ROOT.TH1F("h_cutflow"       , "", 8,0.5,8.5 )
 
 # -------------------------------------------------------------------------------------
 # Get pileup weights
@@ -827,9 +828,9 @@ ntotal = 0       # total number of events
 
 # Event quality
 nPassNPV = 0
+nPassLHE = 0
 nPassMetFilter = 0
 nPassRho = 0
-nPassSemiLep = 0
 
 nPassParton = 0
 
@@ -864,11 +865,11 @@ smearfunc = ROOT.TRandom3()
 # Do printout of LHE information   
 # -------------------------------
 #for run in runs:                                                                                                               
-#    run.getByLabel( LHELabel, LHEHandle )
-#    LHEEventInfo = LHEHandle.product() 
+#    run.getByLabel( LHERunLabel, LHERunHandle )
+#    LHERunInfo = LHERunHandle.product() 
 
-#    test = LHEEventInfo.headers_begin()
-#    while (test != LHEEventInfo.headers_end()):
+#    test = LHERunInfo.headers_begin()
+#    while (test != LHERunInfo.headers_end()):
 #        for line in range(test.lines().size()):
 #            print test.lines().at(line)[0:-1].strip()
 #        test = test + 1
@@ -1322,7 +1323,8 @@ for event in events :
         passReco = False
         if not options.fullTruth:
             continue
-    nPassNPV += 1
+    else :
+        nPassNPV += 1
 
     # -------------------------------
     # Get Q2 and NNPDF weights
@@ -1330,58 +1332,51 @@ for event in events :
     if options.isMC and options.semilep == 1:
         gotLHE = event.getByLabel( LHELabel, LHEHandle )
         if not gotLHE:
-            print "Error: couldn't find LHE info"
-            continue
-        LHEEventInfo = LHEHandle.product()
+            passReco = False
+            if not options.fullTruth:
+                continue
+        else :
+            LHEEventInfo = LHEHandle.product()
            
-        #Q^2 up and down
-        for i_lhe in range(0,9):
-            if i_lhe != 5 and i_lhe != 7:
-                Q2wgt = LHEEventInfo.weights()[i_lhe].wgt
-                if ntotal < 10:
-                    print 'Q2 weight ' + str(i_lhe) + ' is ' + str(Q2wgt)
-                Q2wgt_frac = Q2wgt/(LHEEventInfo.weights()[0].wgt)
-                weight_Q2up = max(weight_Q2up, Q2wgt_frac)
-                weight_Q2down = min(weight_Q2down, Q2wgt_frac)
-        if ntotal < 10:
-            print 'Max / min Q2 variation is ' + str(weight_Q2up) + ' (max) / ' + str(weight_Q2down) + ' (min)'
+            if len(LHEEventInfo.weights()) < 111: #Some events have an incomplete LHE weight vector...
+                passReco = False
+                if not options.fullTruth:
+                    continue
+            else :
+                nPassLHE += 1
 
-        #NNPDF3 PDF (symmetric)
-        NNPDF3wgtAvg = 0.0
-        NNPDF3wgtRMS = 0.0
-        PDFcentral = 1.0
-        PDFstart = 9
-        PDFend = 109
+                #Q^2 up and down
+                for i_lhe in range(0,9):
+                    if i_lhe != 5 and i_lhe != 7:
+                        Q2wgt = LHEEventInfo.weights()[i_lhe].wgt
+                        Q2wgt_frac = Q2wgt/(LHEEventInfo.weights()[0].wgt)
+                        weight_Q2up = max(weight_Q2up, Q2wgt_frac)
+                        weight_Q2down = min(weight_Q2down, Q2wgt_frac)
 
-        for i_lhePDF in range(PDFstart,PDFend):
-            NNPDF3wgt = LHEEventInfo.weights()[i_lhePDF].wgt
-            
-            if ntotal < 10:
-                print 'NNPDF weight ' + str(i_lhePDF) + ' is ' + str(NNPDF3wgt)
-            NNPDF3wgt_frac = NNPDF3wgt/(PDFcentral)
-            NNPDF3wgtAvg += NNPDF3wgt_frac
+                #NNPDF3 PDF (symmetric)
+                NNPDF3wgtAvg = 0.0
+                NNPDF3wgtRMS = 0.0
+                PDFcentral = 1.0
+                PDFstart = 9
+                PDFend = 109
+
+                for i_lhePDF in range(PDFstart,PDFend):
+                    NNPDF3wgt = LHEEventInfo.weights()[i_lhePDF].wgt
+                    NNPDF3wgt_frac = NNPDF3wgt/(PDFcentral)
+                    NNPDF3wgtAvg += NNPDF3wgt_frac
         
-        NNPDF3wgtAvg = NNPDF3wgtAvg/100.0
-
-        if ntotal < 10:
-            print 'NNPDF average is ' + str(NNPDF3wgtAvg)
+                NNPDF3wgtAvg = NNPDF3wgtAvg/100.0
         
-        for i_lhePDF in range(PDFstart,PDFend):
-            NNPDF3wgt = LHEEventInfo.weights()[i_lhePDF].wgt
-            NNPDF3wgt_frac = NNPDF3wgt/(PDFcentral)
-            NNPDF3wgtRMS += (NNPDF3wgt_frac - NNPDF3wgtAvg)*(NNPDF3wgt_frac - NNPDF3wgtAvg)
+                for i_lhePDF in range(PDFstart,PDFend):
+                    NNPDF3wgt = LHEEventInfo.weights()[i_lhePDF].wgt
+                    NNPDF3wgt_frac = NNPDF3wgt/(PDFcentral)
+                    NNPDF3wgtRMS += (NNPDF3wgt_frac - NNPDF3wgtAvg)*(NNPDF3wgt_frac - NNPDF3wgtAvg)
  
-        weight_PDF = math.sqrt(NNPDF3wgtRMS/99.0)
-        if ntotal < 10:
-            print 'NNPDF std. dev. is ' + str(weight_PDF)
-        if weight_PDF > 1.0:
-            print 'Troubleshooting high PDF weight'
-            for itest in range(PDFstart,PDFend):
-                NNPDF3testwgt = LHEEventInfo.weights()[itest].wgt
-                print 'NNPDF weight ' + str(itest) + ' is ' + str(NNPDF3testwgt)
+                weight_PDF = math.sqrt(NNPDF3wgtRMS/99.0)
 
-        weight_alphaUp = LHEEventInfo.weights()[109].wgt
-        weight_alphaDown = LHEEventInfo.weights()[110].wgt
+                weight_alphaUp = LHEEventInfo.weights()[109].wgt
+                weight_alphaDown = LHEEventInfo.weights()[110].wgt
+
     # -------------------------------
     # Require met filter
     # -------------------------------
@@ -1398,27 +1393,28 @@ for event in events :
         if not options.fullTruth:
             continue
 
-    filterNameStrings = metFilterNameHandle.product()
-    filterBits = metFilterBitsHandle.product()
+    else :
+        filterNameStrings = metFilterNameHandle.product()
+        filterBits = metFilterBitsHandle.product()
 
-    hbheFilt = HBHEfilterHandle.product()[0]
+        hbheFilt = HBHEfilterHandle.product()[0]
 
-    for itrig in xrange(0, len(filterNameStrings) ) :
-        if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 1:
-            if options.debug :
-                print 'MET filter: ' + filterNameStrings[itrig]
-            metFilt = True
+        for itrig in xrange(0, len(filterNameStrings) ) :
+            if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 1:
+                if options.debug :
+                    print 'MET filter: ' + filterNameStrings[itrig]
+                metFilt = True
 
-        if "HBHE" in filterNameStrings[itrig] and filterBits[itrig] == 1: #Basically OR of our HBHE filter and the one stored in METUserData
-            if options.debug :
-                print 'MET filter: ' + filterNameStrings[itrig]
-            hbheFilt = True
+            if "HBHE" in filterNameStrings[itrig] and filterBits[itrig] == 1: #Basically OR of our HBHE filter and the one stored in METUserData
+                if options.debug :
+                    print 'MET filter: ' + filterNameStrings[itrig]
+                hbheFilt = True
 
-    if hbheFilt == False or metFilt == False :
-        passReco = False
-        if not options.fullTruth:
-            continue
-    nPassMetFilter += 1
+        if hbheFilt == False or metFilt == False :
+            passReco = False
+            if not options.fullTruth:
+                continue
+        nPassMetFilter += 1
                 
     # -------------------------------
     # Require a trigger if MC
@@ -1473,8 +1469,9 @@ for event in events :
         print "Event has no rho values."
         if not options.fullTruth :
             continue
-    rho = rhoHandle.product()[0]
-    nPassRho += 1
+    else :
+        rho = rhoHandle.product()[0]
+        nPassRho += 1
     
     # -------------------------------------------------------------------------------------
     # get electrons
@@ -2328,12 +2325,22 @@ for event in events :
 # END OF LOOPING OVER EVENTS!!!
 # -------------------------------------------------------------------------------------
 
+h_cutflow.Fill(1,ntotal)
+h_cutflow.Fill(2,nPassNPV)
+h_cutflow.Fill(3,nPassMetFilter)
+h_cutflow.Fill(4,nPassRho)
+h_cutflow.Fill(5,nPassLep)
+h_cutflow.Fill(6,nPassAK4jet)
+h_cutflow.Fill(7,nPassAK8jet)
+h_cutflow.Fill(8,nEventsPass)
+
 print 'Total Events:    ' + str(ntotal)
 print '-------------------------------'
 print 'Pass nPV:        ' + str(nPassNPV)
+if options.semilep == 1:
+    print 'Pass LHE:        ' + str(nPassLHE)
 print 'Pass MET filter: ' + str(nPassMetFilter)
 print 'Pass rho:        ' + str(nPassRho)
-print 'Pass semilep:    ' + str(nPassSemiLep)
 print '-------------------------------'
 print 'Pass parton:     ' + str(nPassParton)
 print '-------------------------------'
