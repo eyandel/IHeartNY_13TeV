@@ -103,7 +103,7 @@ void runMakeHists(TString toMake = "prefit"){
     makeHists("skimTrees_80X/","histfiles_80X","Data_el","el",true,false,"Tight","MiniIso10",true,35.0,true,false,"nom",0,false);
     
     makeHists("skimTrees_80X/","histfiles_80X","Data_mu","mu",true,false,"Medium","MiniIso10",true,35.0,true,true,"nom",0,false); //QCD
-    makeHists("skimTrees_80X/","histfiles_80X","Data_el","el",true,false,"Tight","MiniIso10",true,35.0,true,true,"nom",0,false);
+    makeHists("skimTrees_80X/","histfiles_80X","Data_el","el",true,false,"Medium","MiniIso10",true,35.0,true,true,"nom",0,false);
     
     makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Medium","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF); //Odd (for unfolding closure)
     makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF);
@@ -115,14 +115,14 @@ void runMakeHists(TString toMake = "prefit"){
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Medium","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF); //Signal
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF);
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF); //QCD
-      makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF);
+      makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF);
       
       //run other MCs
       for (int jj = 0; jj < nBKG; jj ++){
 	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"mu",false,false,"Medium","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF); //Signal
 	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"el",false,false,"Tight","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF);    
 	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"mu",false,false,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF); //QCD
-	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"el",false,false,"Tight","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF);    
+	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"el",false,false,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF);    
       }
     }
   }
