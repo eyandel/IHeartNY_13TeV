@@ -145,7 +145,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 
   const int nptbins = 8;
   float ptbins[nptbins+1] = {0.0,200.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
-  TH1F* h_bins = new TH1F("bins", ";;", nptbins, ptbins);
+  TH1D* h_bins = new TH1D("bins", ";;", nptbins, ptbins);
 
   // additional binnings for unfolding checks 
   const int nptbins2 = 10;
@@ -155,14 +155,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   const int nptbins4 = 7;
   float ptbins4[nptbins4+1] = {300.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
 
-  TH1F* h_bins2 = new TH1F("bins2", ";;", nptbins2, ptbins2);
-  TH1F* h_bins3 = new TH1F("bins3", ";;", nptbins3, ptbins3);
-  TH1F* h_bins4 = new TH1F("bins4", ";;", nptbins4, ptbins4);
+  TH1D* h_bins2 = new TH1D("bins2", ";;", nptbins2, ptbins2);
+  TH1D* h_bins3 = new TH1D("bins3", ";;", nptbins3, ptbins3);
+  TH1D* h_bins4 = new TH1D("bins4", ";;", nptbins4, ptbins4);
 
   RooUnfoldResponse response(h_bins, h_bins);
   response.SetName("response_pt");
-  TH1F* h_ptGenTop = new TH1F("ptGenTop", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
-  TH1F* h_ptRecoTop = new TH1F("ptRecoTop", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1D* h_ptGenTop = new TH1D("ptGenTop", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1D* h_ptRecoTop = new TH1D("ptRecoTop", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
 
   // additional binnings for unfolding checks 
   RooUnfoldResponse response2(h_bins2, h_bins2);
@@ -172,42 +172,42 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   response3.SetName("response_pt3");
   response4.SetName("response_pt4");
 
-  TH1F* h_ptGenTop2 = new TH1F("ptGenTop2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
-  TH1F* h_ptGenTop3 = new TH1F("ptGenTop3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
-  TH1F* h_ptGenTop4 = new TH1F("ptGenTop4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptGenTop2 = new TH1D("ptGenTop2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1D* h_ptGenTop3 = new TH1D("ptGenTop3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1D* h_ptGenTop4 = new TH1D("ptGenTop4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
 
-  TH1F* h_ptRecoTop2 = new TH1F("ptRecoTop2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
-  TH1F* h_ptRecoTop3 = new TH1F("ptRecoTop3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
-  TH1F* h_ptRecoTop4 = new TH1F("ptRecoTop4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptRecoTop2 = new TH1D("ptRecoTop2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1D* h_ptRecoTop3 = new TH1D("ptRecoTop3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1D* h_ptRecoTop4 = new TH1D("ptRecoTop4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
 
   // reweighted top pt spectra at reco/truth level (using weights based on parton-level top quark pt)
-  TH1F* h_ptGenTopMod  = new TH1F("ptGenTopMod",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
-  TH1F* h_ptGenTopMod2 = new TH1F("ptGenTopMod2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
-  TH1F* h_ptGenTopMod3 = new TH1F("ptGenTopMod3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
-  TH1F* h_ptGenTopMod4 = new TH1F("ptGenTopMod4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
-  TH1F* h_ptRecoTopMod  = new TH1F("ptRecoTopMod",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
-  TH1F* h_ptRecoTopMod2 = new TH1F("ptRecoTopMod2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
-  TH1F* h_ptRecoTopMod3 = new TH1F("ptRecoTopMod3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
-  TH1F* h_ptRecoTopMod4 = new TH1F("ptRecoTopMod4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptGenTopMod  = new TH1D("ptGenTopMod",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1D* h_ptGenTopMod2 = new TH1D("ptGenTopMod2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1D* h_ptGenTopMod3 = new TH1D("ptGenTopMod3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1D* h_ptGenTopMod4 = new TH1D("ptGenTopMod4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptRecoTopMod  = new TH1D("ptRecoTopMod",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1D* h_ptRecoTopMod2 = new TH1D("ptRecoTopMod2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1D* h_ptRecoTopMod3 = new TH1D("ptRecoTopMod3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1D* h_ptRecoTopMod4 = new TH1D("ptRecoTopMod4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
 
-  TH1F* h_ptGenTopModDown  = new TH1F("ptGenTopModDown",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
-  TH1F* h_ptGenTopModDown2 = new TH1F("ptGenTopModDown2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
-  TH1F* h_ptGenTopModDown3 = new TH1F("ptGenTopModDown3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
-  TH1F* h_ptGenTopModDown4 = new TH1F("ptGenTopModDown4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
-  TH1F* h_ptRecoTopModDown  = new TH1F("ptRecoTopModDown",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
-  TH1F* h_ptRecoTopModDown2 = new TH1F("ptRecoTopModDown2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
-  TH1F* h_ptRecoTopModDown3 = new TH1F("ptRecoTopModDown3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
-  TH1F* h_ptRecoTopModDown4 = new TH1F("ptRecoTopModDown4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptGenTopModDown  = new TH1D("ptGenTopModDown",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1D* h_ptGenTopModDown2 = new TH1D("ptGenTopModDown2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1D* h_ptGenTopModDown3 = new TH1D("ptGenTopModDown3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1D* h_ptGenTopModDown4 = new TH1D("ptGenTopModDown4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptRecoTopModDown  = new TH1D("ptRecoTopModDown",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
+  TH1D* h_ptRecoTopModDown2 = new TH1D("ptRecoTopModDown2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
+  TH1D* h_ptRecoTopModDown3 = new TH1D("ptRecoTopModDown3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
+  TH1D* h_ptRecoTopModDown4 = new TH1D("ptRecoTopModDown4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
 
   float LUM = 12358.75;
   if (channel == "el") LUM = 12295.65;
 
-  float weight_response = LUM * 831.76 / 182123200.; //lum * xsec / Nevents for PowhegPythia8
+  double weight_response = LUM * 831.76 / 182123200.; //lum * xsec / Nevents for PowhegPythia8
 
   // ----------------------------------------------------------------------------------------------------------
   // If running on signal, load truth information for events not passing reco, in order to fill response matrix
   // ----------------------------------------------------------------------------------------------------------
-  
+
   if (sample.Contains("fullTruth")){
     TChain* treeTO = new TChain("trueTree");
     treeTO->Add(INDIR + sample + ".root");
@@ -225,6 +225,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     vector<float>* eventWeight_nom_TO = 0;
     vector<float>* eventWeight_puUp_TO = 0;
     vector<float>* eventWeight_puDown_TO = 0;
+    vector<float>* eventWeight_Q2Up_TO = 0;
+    vector<float>* eventWeight_Q2Down_TO = 0;
+    vector<float>* eventWeight_PDF_TO = 0;
+    vector<float>* eventWeight_alphaUp_TO = 0;
+    vector<float>* eventWeight_alphaDown_TO = 0;
+    
     TBranch* b_truthChannel_TO;
     TBranch* b_genTopPt_TO;
     TBranch* b_genTopEta_TO;
@@ -233,15 +239,25 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     TBranch* b_eventWeight_nom_TO;
     TBranch* b_eventWeight_puUp_TO;
     TBranch* b_eventWeight_puDown_TO;
+    TBranch* b_eventWeight_Q2Up_TO;
+    TBranch* b_eventWeight_Q2Down_TO;
+    TBranch* b_eventWeight_PDF_TO;
+    TBranch* b_eventWeight_alphaUp_TO;
+    TBranch* b_eventWeight_alphaDown_TO;
     
-    treeTO->SetBranchAddress("truthChannel"           , &truthChannel_TO        , &b_truthChannel_TO        );     
-    treeTO->SetBranchAddress("genTopPt"               , &genTopPt_TO            , &b_genTopPt_TO            );
-    treeTO->SetBranchAddress("genTopEta"              , &genTopEta_TO           , &b_genTopEta_TO           );
-    treeTO->SetBranchAddress("genTopPhi"              , &genTopPhi_TO           , &b_genTopPhi_TO           );
-    treeTO->SetBranchAddress("genTTbarMass"           , &genTTbarMass_TO        , &b_genTTbarMass_TO        );
-    treeTO->SetBranchAddress("eventWeight_nom"      , &eventWeight_nom_TO     , &b_eventWeight_nom_TO     );
-    treeTO->SetBranchAddress("eventWeight_puUp"     , &eventWeight_puUp_TO    , &b_eventWeight_puUp_TO    );
-    treeTO->SetBranchAddress("eventWeight_puDown"   , &eventWeight_puDown_TO  , &b_eventWeight_puDown_TO  );
+    treeTO->SetBranchAddress("truthChannel"          , &truthChannel_TO          , &b_truthChannel_TO          );     
+    treeTO->SetBranchAddress("genTopPt"              , &genTopPt_TO              , &b_genTopPt_TO              );
+    treeTO->SetBranchAddress("genTopEta"             , &genTopEta_TO             , &b_genTopEta_TO             );
+    treeTO->SetBranchAddress("genTopPhi"             , &genTopPhi_TO             , &b_genTopPhi_TO             );
+    treeTO->SetBranchAddress("genTTbarMass"          , &genTTbarMass_TO          , &b_genTTbarMass_TO          );
+    treeTO->SetBranchAddress("eventWeight_nom"       , &eventWeight_nom_TO       , &b_eventWeight_nom_TO       );
+    treeTO->SetBranchAddress("eventWeight_puUp"      , &eventWeight_puUp_TO      , &b_eventWeight_puUp_TO      );
+    treeTO->SetBranchAddress("eventWeight_puDown"    , &eventWeight_puDown_TO    , &b_eventWeight_puDown_TO    );
+    treeTO->SetBranchAddress("eventWeight_Q2Up"      , &eventWeight_Q2Up_TO      , &b_eventWeight_Q2Up_TO      );
+    treeTO->SetBranchAddress("eventWeight_Q2Down"    , &eventWeight_Q2Down_TO    , &b_eventWeight_Q2Down_TO    );
+    treeTO->SetBranchAddress("eventWeight_PDF"       , &eventWeight_PDF_TO       , &b_eventWeight_PDF_TO       );
+    treeTO->SetBranchAddress("eventWeight_alphaUp"   , &eventWeight_alphaUp_TO   , &b_eventWeight_alphaUp_TO   );
+    treeTO->SetBranchAddress("eventWeight_alphaDown" , &eventWeight_alphaDown_TO , &b_eventWeight_alphaDown_TO );
     
     for (int i=0; i<treeTO->GetEntries(); i++) {
       
@@ -254,9 +270,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
 
       float weight = eventWeight_nom_TO->at(0);
-      if (systematic == "puUp") weight = eventWeight_puUp_TO->at(0);
-      if (systematic == "puDown") weight = eventWeight_puDown_TO->at(0);
-      
+
+      if (systematic == "puUp")    weight = eventWeight_puUp_TO->at(0);
+      if (systematic == "puDown")  weight = eventWeight_puDown_TO->at(0);
+      if (systematic == "Q2Up")    weight *= eventWeight_Q2Up_TO->at(0);
+      if (systematic == "Q2Down")  weight *= eventWeight_Q2Down_TO->at(0);
+      if (systematic == "PDFUp")   weight *= (1.0 + eventWeight_PDF_TO->at(0));
+      if (systematic == "PDFDown") weight *= (1.0 - eventWeight_PDF_TO->at(0));
+      if (systematic == "ASUp")    weight *= eventWeight_alphaUp_TO->at(0);
+      if (systematic == "ASDown")  weight *= eventWeight_alphaDown_TO->at(0);
+
       // Do channel selection at parton level
       if ((int)truthChannel_TO->size() == 0){
 	cout << "Error: no truthChannel information!" << endl;
@@ -291,7 +314,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptGenTopModDown->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown2->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown3->Fill(oldpt,weight*w_ptdn);
-      h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);      
+      h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);
 
     }
     treeTO->Delete();
@@ -319,7 +342,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // ---------------------------------------------------------------------------------------------------------------
   // The following histfiles will be used in the analysis
   TFile* f_muID = TFile::Open("MuonID_Z_RunBCD_prompt80X_7p65.root","read");
-  TH1F* h_muID = (TH1F*) f_muID->Get("MC_NUM_MediumID_DEN_genTracks_PAR_eta/eta_ratio")->Clone();
+  TH1F* h_muID;
+  if (lepID == "Medium") h_muID = (TH1F*) f_muID->Get("MC_NUM_MediumID_DEN_genTracks_PAR_eta/eta_ratio")->Clone();
+  else h_muID = (TH1F*) f_muID->Get("MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_eta/eta_ratio")->Clone();
   f_muID->Close();
   delete f_muID;
 
@@ -334,7 +359,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   delete f_muTrig;
 
   TFile* f_elSF = TFile::Open("scaleFactors.root");
-  TH2F* h_elID = (TH2F*) f_elSF->Get("GsfElectronToTight")->Clone();
+  TH2F* h_elID;
+  if (lepID == "Medium") h_elID = (TH2F*) f_elSF->Get("GsfElectronToMedium")->Clone();
+  else h_elID = (TH2F*) f_elSF->Get("GsfElectronToTight")->Clone();
   TH2F* h_elIso = (TH2F*) f_elSF->Get("MVAVLooseElectronToMini")->Clone();
   f_elSF->Close();
   delete f_elSF;
@@ -452,6 +479,11 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   vector<float>* eventWeight_nom       = 0;
   vector<float>* eventWeight_puUp      = 0;
   vector<float>* eventWeight_puDown    = 0;
+  vector<float>* eventWeight_Q2Up      = 0;
+  vector<float>* eventWeight_Q2Down    = 0;
+  vector<float>* eventWeight_PDF       = 0;
+  vector<float>* eventWeight_alphaUp   = 0;
+  vector<float>* eventWeight_alphaDown = 0;
   vector<int>*   truthChannel          = 0;
 
   // BRANCHES
@@ -550,7 +582,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TBranch* b_eventWeight_nom       ;
   TBranch* b_eventWeight_puUp      ;
   TBranch* b_eventWeight_puDown    ;
-  TBranch* b_truthChannel            ;
+  TBranch* b_eventWeight_Q2Up      ;
+  TBranch* b_eventWeight_Q2Down    ;
+  TBranch* b_eventWeight_PDF       ;
+  TBranch* b_eventWeight_alphaUp   ;
+  TBranch* b_eventWeight_alphaDown ;
+  TBranch* b_truthChannel          ;
 
   tree->SetBranchAddress("metPt"                  , &metPt               , &b_metPt               );
   tree->SetBranchAddress("metPhi"                 , &metPhi              , &b_metPhi              );
@@ -629,28 +666,33 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   tree->SetBranchAddress("eventWeight_nom"            , &eventWeight_nom         , &b_eventWeight_nom         );
   
   if (!isData){
-    tree->SetBranchAddress("eventWeight_puUp"       , &eventWeight_puUp    , &b_eventWeight_puUp    );
-    tree->SetBranchAddress("eventWeight_puDown"     , &eventWeight_puDown  , &b_eventWeight_puDown  );
-    tree->SetBranchAddress("ak4jetPtJERup"          , &ak4jetPtJERup       , &b_ak4jetPtJERup       );
-    tree->SetBranchAddress("ak4jetPtJERdown"        , &ak4jetPtJERdown     , &b_ak4jetPtJERdown     );
-    tree->SetBranchAddress("ak4jetEtaJERup"         , &ak4jetEtaJERup      , &b_ak4jetEtaJERup      );
-    tree->SetBranchAddress("ak4jetEtaJERdown"       , &ak4jetEtaJERdown    , &b_ak4jetEtaJERdown    );
-    tree->SetBranchAddress("ak4jetPhiJERup"         , &ak4jetPhiJERup      , &b_ak4jetPhiJERup      );
-    tree->SetBranchAddress("ak4jetPhiJERdown"       , &ak4jetPhiJERdown    , &b_ak4jetPhiJERdown    );
-    tree->SetBranchAddress("ak4jetMassJERup"        , &ak4jetMassJERup     , &b_ak4jetMassJERup     );
-    tree->SetBranchAddress("ak4jetMassJERdown"      , &ak4jetMassJERdown   , &b_ak4jetMassJERdown   );
-    tree->SetBranchAddress("ak4jetHadronFlavour"    , &ak4jetHadronFlavour , &b_ak4jetHadronFlavour );
-    tree->SetBranchAddress("ak8jetPtJERup"          , &ak8jetPtJERup       , &b_ak8jetPtJERup       );
-    tree->SetBranchAddress("ak8jetPtJERdown"        , &ak8jetPtJERdown     , &b_ak8jetPtJERdown     );
-    tree->SetBranchAddress("ak8jetEtaJERup"         , &ak8jetEtaJERup      , &b_ak8jetEtaJERup      );
-    tree->SetBranchAddress("ak8jetEtaJERdown"       , &ak8jetEtaJERdown    , &b_ak8jetEtaJERdown    );
-    tree->SetBranchAddress("ak8jetPhiJERup"         , &ak8jetPhiJERup      , &b_ak8jetPhiJERup      );
-    tree->SetBranchAddress("ak8jetPhiJERdown"       , &ak8jetPhiJERdown    , &b_ak8jetPhiJERdown    );
-    tree->SetBranchAddress("ak8jetMassJERup"        , &ak8jetMassJERup     , &b_ak8jetMassJERup     );
-    tree->SetBranchAddress("ak8jetMassJERdown"      , &ak8jetMassJERdown   , &b_ak8jetMassJERdown   );
+    tree->SetBranchAddress("eventWeight_puUp"       , &eventWeight_puUp      , &b_eventWeight_puUp      );
+    tree->SetBranchAddress("eventWeight_puDown"     , &eventWeight_puDown    , &b_eventWeight_puDown    );
+    tree->SetBranchAddress("ak4jetPtJERup"          , &ak4jetPtJERup         , &b_ak4jetPtJERup         );
+    tree->SetBranchAddress("ak4jetPtJERdown"        , &ak4jetPtJERdown       , &b_ak4jetPtJERdown       );
+    tree->SetBranchAddress("ak4jetEtaJERup"         , &ak4jetEtaJERup        , &b_ak4jetEtaJERup        );
+    tree->SetBranchAddress("ak4jetEtaJERdown"       , &ak4jetEtaJERdown      , &b_ak4jetEtaJERdown      );
+    tree->SetBranchAddress("ak4jetPhiJERup"         , &ak4jetPhiJERup        , &b_ak4jetPhiJERup        );
+    tree->SetBranchAddress("ak4jetPhiJERdown"       , &ak4jetPhiJERdown      , &b_ak4jetPhiJERdown      );
+    tree->SetBranchAddress("ak4jetMassJERup"        , &ak4jetMassJERup       , &b_ak4jetMassJERup       );
+    tree->SetBranchAddress("ak4jetMassJERdown"      , &ak4jetMassJERdown     , &b_ak4jetMassJERdown     );
+    tree->SetBranchAddress("ak4jetHadronFlavour"    , &ak4jetHadronFlavour   , &b_ak4jetHadronFlavour   );
+    tree->SetBranchAddress("ak8jetPtJERup"          , &ak8jetPtJERup         , &b_ak8jetPtJERup         );
+    tree->SetBranchAddress("ak8jetPtJERdown"        , &ak8jetPtJERdown       , &b_ak8jetPtJERdown       );
+    tree->SetBranchAddress("ak8jetEtaJERup"         , &ak8jetEtaJERup        , &b_ak8jetEtaJERup        );
+    tree->SetBranchAddress("ak8jetEtaJERdown"       , &ak8jetEtaJERdown      , &b_ak8jetEtaJERdown      );
+    tree->SetBranchAddress("ak8jetPhiJERup"         , &ak8jetPhiJERup        , &b_ak8jetPhiJERup        );
+    tree->SetBranchAddress("ak8jetPhiJERdown"       , &ak8jetPhiJERdown      , &b_ak8jetPhiJERdown      );
+    tree->SetBranchAddress("ak8jetMassJERup"        , &ak8jetMassJERup       , &b_ak8jetMassJERup       );
+    tree->SetBranchAddress("ak8jetMassJERdown"      , &ak8jetMassJERdown     , &b_ak8jetMassJERdown     );
   
     if (isSignal){
       tree->SetBranchAddress("truthChannel"           , &truthChannel        , &b_truthChannel        );     
+      tree->SetBranchAddress("eventWeight_Q2Up"       , &eventWeight_Q2Up      , &b_eventWeight_Q2Up      );
+      tree->SetBranchAddress("eventWeight_Q2Down"     , &eventWeight_Q2Down    , &b_eventWeight_Q2Down    );
+      tree->SetBranchAddress("eventWeight_PDF"        , &eventWeight_PDF       , &b_eventWeight_PDF       );
+      tree->SetBranchAddress("eventWeight_alphaUp"    , &eventWeight_alphaUp   , &b_eventWeight_alphaUp   );
+      tree->SetBranchAddress("eventWeight_alphaDown"  , &eventWeight_alphaDown , &b_eventWeight_alphaDown );
     }
   }
   
@@ -742,6 +784,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // ----------------------------------------------------------------------------------------------------------------
   // histograms
   // ----------------------------------------------------------------------------------------------------------------
+
+  TH1F* h_nTrueLepBJet            = new TH1F("nTrueLepBJet" ,";Number of true b jets in lepton hemisphere;Events", 5,-0.5,4.5);
 
   TH1F* h_puWeight                = new TH1F("puWeight"     ,";PU weight;Events / 0.1"                    ,20,0.0,2.0);
   TH1F* h_lepSF                   = new TH1F("lepSF"        ,";Lepton SF;Events / 0.01"                   ,60,0.5,1.1);
@@ -976,6 +1020,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   int n1b = 0;
   int n1t = 0;
   int n1t1b = 0;
+
+  int nTrueClose = 0;
+  int nTrueLead = 0;
+  int nLeadClose = 0;
+  int nTrueLeadClose = 0;
+  int nCloseTag = 0;
+  int nCloseTrueTag = 0;
+  int nLeadTag = 0;
+  int nLeadTrueTag = 0;
+  int nLeadCloseTag = 0;
+  int nLeadCloseTrueTag = 0;
   
   float noIsoCount = 0.;
   float MiniIsoCounts[30] = {0.};
@@ -1000,7 +1055,13 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     float weight = eventWeight_nom->at(0);
     if (!isData && systematic == "puUp") weight = eventWeight_puUp->at(0);
     if (!isData && systematic == "puDown") weight = eventWeight_puDown->at(0);
-    
+    if (isSignal && systematic == "Q2Up") weight *= eventWeight_Q2Up->at(0);
+    if (isSignal && systematic == "Q2Down") weight *= eventWeight_Q2Down->at(0);
+    if (isSignal && systematic == "PDFUp") weight *= (1.0 + eventWeight_PDF->at(0));
+    if (isSignal && systematic == "PDFDown") weight *= (1.0 - eventWeight_PDF->at(0));
+    if (isSignal && systematic == "ASUp") weight *= eventWeight_alphaUp->at(0);
+    if (isSignal && systematic == "ASDown") weight *= eventWeight_alphaDown->at(0);
+
     float unfold_w_ptup = 1.0;
     float unfold_w_ptdn = 1.0;
 
@@ -1024,6 +1085,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       if ((int)genTopPt->size() != 0){
 	nPassParton += 1;
 	passParton = true;
+	
 	h_genTopPt->Fill(genTopPt->at(0),weight);
 	h_genTopEta->Fill(genTopEta->at(0),weight);
 	h_genTopPhi->Fill(genTopPhi->at(0),weight);
@@ -1132,6 +1194,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       continue;
     }
+
     for (int iak4 = 0; iak4 < (int)ak4jetPt->size(); iak4++){
       TLorentzVector jetP4;
       if (systematic == "JECUp" && !isData){
@@ -1153,7 +1216,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       ak4Jets.push_back(jetP4);
     }
-    
+
     std::vector<TLorentzVector> ak8Jets;
     if ((int)ak8jetPt->size() == 0) {
       if (passParton && isSignal) {
@@ -1164,6 +1227,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       continue;
     }
+
     for (int iak8 = 0; iak8 < (int)ak8jetPt->size(); iak8++){
       TLorentzVector jetP4;
       if (systematic == "JECUp" && !isData){
@@ -1185,7 +1249,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
       ak8Jets.push_back(jetP4);
     }
-    
+
     // Get (and count / categorize) muons
     TLorentzVector goodMu;
     float goodMuMiniIso = 0.;
@@ -1229,7 +1293,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	}		  
       } //End muon loop
     }
-    
+
     // Get (and count / categorize) electrons
     TLorentzVector goodEl;
     float goodElMiniIso = 0.;
@@ -1273,7 +1337,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	}
       }
     }
-    
+
     // Isolation studies
     if (!isData && (int)ak4Jets.size() > 1 && (int)ak8Jets.size() != 0 && ak8Jets.at(0).Perp() > MINTOPPT){//Loose jet 'preselection' -- same as regular preselection but no hemisphere requirement
       float MiniIsoCuts[30] = {0.0,0.01,0.02,0.03,0.04,0.05,0.06,0.07,0.08,0.09,0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29};
@@ -1387,7 +1451,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	continue;
       }
     }
-    
+
     TLorentzVector refLep;
     float refLepMiniIso;
     float lepQ;
@@ -1406,7 +1470,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       refLepMiniIso = goodElMiniIso;
       lepQ = elCharge->at(0);
       if (!isData) {
-	if (systematic == "lepUp") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up");
+      	if (systematic == "lepUp") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up");
 	else if (systematic == "lepDown") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down");
 	else weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom");
       }
@@ -1429,7 +1493,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	continue;
       }
     } // End triangular cut
-    
+
     passStep1 += 1;
     
     // Require at least two jets
@@ -1443,11 +1507,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       continue;
     }
     passStep2 += 1;
-    
+
     // Define leptonic jets (AK4 jets with dR(jet,lep) < pi/2) and b jet candidate (leptonic jet closest to lepton)
     float bJetCandDR = 99.;
-    int ibJetCand = -1;
+    float bJetCandPt = 0.;
+    int ibJetClose = -1;
+    int ibJetPt = -1;
     int nLepJet = 0;
+    int nTrueBJet = 0;
     for (int it = 0; it < (int)ak4Jets.size(); it++){
       float dRtemp = refLep.DeltaR(ak4Jets.at(it));
       if (doHemiCuts && dRtemp > 3.1415 / 2.) continue;
@@ -1455,10 +1522,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       nLepJet += 1;
       if (dRtemp < bJetCandDR) {
 	bJetCandDR = dRtemp;
-	ibJetCand = it;
+	ibJetClose = it;
+      }
+      if (ak4Jets.at(it).Perp() > bJetCandPt){
+	bJetCandPt = ak4Jets.at(it).Perp();
+	ibJetPt = it;
+      }
+      if (isSignal && ak4jetHadronFlavour->at(it) == 5){
+	nTrueBJet += 1;
       }
     }
-    
+
     // Require at least one leptonic jet
     if (nLepJet < 1) {
       if (passParton && isSignal) {
@@ -1470,7 +1544,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       continue;
     }
     passStep3 += 1;
-
+      
     // Define hadronic jets (AK8 jets with dR(jet,lep) > pi/2) and top jet candidate (hadronic jet with highest pt)
     float topJetCandPt = 0.;
     int itopJetCand = -1;
@@ -1509,6 +1583,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       continue;
     }
     passStep5 += 1;
+
+    if (isSignal){
+      h_nTrueLepBJet->Fill(nTrueBJet);
+      if (ak4jetHadronFlavour->at(ibJetClose) == 5) nTrueClose += 1;
+      if (ak4jetHadronFlavour->at(ibJetPt) == 5) nTrueLead += 1;
+      if (ibJetClose == ibJetPt) nLeadClose += 1;
+      if ((ibJetClose == ibJetPt) && ak4jetHadronFlavour->at(ibJetClose) == 5) nTrueLeadClose += 1;
+    }
     
     // ----------------------------
     // Fill preselection histograms
@@ -1532,12 +1614,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_htLepPre->Fill(metPt->at(0)+refLep.Perp(),weight);
     h_nAK4jetPre->Fill((int)ak4Jets.size(),weight);
     h_nBjetPre->Fill(nLepJet,weight);
-    h_ak4jetPtPre->Fill(ak4Jets.at(ibJetCand).Perp(),weight);
-    h_ak4jetEtaPre->Fill(ak4Jets.at(ibJetCand).Eta(),weight);
-    h_ak4jetPhiPre->Fill(ak4Jets.at(ibJetCand).Phi(),weight);
-    h_ak4jetMassPre->Fill(ak4Jets.at(ibJetCand).M(),weight);
-    h_ak4jetCSVPre->Fill(ak4jetCSV->at(ibJetCand),weight);
-    h_ak4jetVtxMassPre->Fill(ak4jetVtxMass->at(ibJetCand),weight);
+    h_ak4jetPtPre->Fill(ak4Jets.at(ibJetPt).Perp(),weight);
+    h_ak4jetEtaPre->Fill(ak4Jets.at(ibJetPt).Eta(),weight);
+    h_ak4jetPhiPre->Fill(ak4Jets.at(ibJetPt).Phi(),weight);
+    h_ak4jetMassPre->Fill(ak4Jets.at(ibJetPt).M(),weight);
+    h_ak4jetCSVPre->Fill(ak4jetCSV->at(ibJetPt),weight);
+    h_ak4jetVtxMassPre->Fill(ak4jetVtxMass->at(ibJetPt),weight);
     h_nAK8jetPre->Fill((int)ak8Jets.size(),weight);
     h_nTjetPre->Fill(nHadJet,weight);
     h_ak8jetPtPre->Fill(ak8Jets.at(itopJetCand).Perp(),weight);
@@ -1574,9 +1656,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_lepAbsEtaPre->Fill(abs(refLep.Eta()),weight);
     h_lepSignEtaPre->Fill(lepQ*abs(refLep.Eta()),weight);
     h_lepPhiPre->Fill(refLep.Phi(),weight);
-    h_lepBJetdRPre->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight);
+    h_lepBJetdRPre->Fill(refLep.DeltaR(ak4Jets.at(ibJetPt)),weight);
     h_lepTJetdRPre->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight);
-    h_lepBJetPtRelPre->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight);
+    h_lepBJetPtRelPre->Fill(refLep.Perp(ak4Jets.at(ibJetPt).Vect()),weight);
     h_lepMiniIsoPre->Fill(refLepMiniIso,weight);
     if (channel == "mu" && nGoodMu > 1) h_leadLepPtPre->Fill(muPt->at(0),weight);
     else if (channel == "el" && nGoodEl > 1) h_leadLepPtPre->Fill(elPt->at(0),weight);
@@ -1619,50 +1701,66 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     double btagSF = 1.0;
     double btagSF_up = 1.0;
     double btagSF_down = 1.0;
-    if (ak4jetCSV->at(ibJetCand) > minCSV) {
+
+    if (isSignal){
+      if (ak4jetCSV->at(ibJetClose) > minCSV) {
+	if (ak4jetVtxMass->at(ibJetClose) > 0.0){
+	  nCloseTag += 1;
+	  if (ibJetClose == ibJetPt) {
+	    nLeadCloseTag += 1;
+	    if (ak4jetHadronFlavour->at(ibJetClose) == 5) nLeadCloseTrueTag += 1;
+	  }
+	  if (ak4jetHadronFlavour->at(ibJetClose) == 5) nCloseTrueTag += 1;
+	}
+      }
+    }
+    
+    if (ak4jetCSV->at(ibJetPt) > minCSV) {
       nPassCSV += 1;
-      if (ak4jetVtxMass->at(ibJetCand) > 0.0){
+      if (ak4jetVtxMass->at(ibJetPt) > 0.0){
 	nPassBtag += 1;
+	if (isSignal) nLeadTag += 1;
 	passBtag = true;
 	if (!isData){
-	  if (ak4jetHadronFlavour->at(ibJetCand) == 5){
-	    if (ak4Jets.at(ibJetCand).Perp() < 670.0){ //ptMax = 670 for b/c 
-	      btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp()); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp());
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp());
+	  if (ak4jetHadronFlavour->at(ibJetPt) == 5){
+	    if (isSignal) nLeadTrueTag += 1;
+	    if (ak4Jets.at(ibJetPt).Perp() < 670.0){ //ptMax = 670 for b/c 
+	      btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
+	      btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	      btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
 	    }
 	    else{
-	      btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetCand).Eta(), 670.0); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetCand).Eta(), 670.0);
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetCand).Eta(), 670.0);
+	      btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 670.0); 
+	      btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 670.0);
+	      btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 670.0);
 	      btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
 	      btagSF_down = btagSF - 2*(btagSF - btagSF_down);
 	    }
 	  }
-	  else if (ak4jetHadronFlavour->at(ibJetCand) == 4){
-	    if (ak4Jets.at(ibJetCand).Perp() < 670.0){ //ptMax = 670 for b/c 
-	      btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp()); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp());
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp());
+	  else if (ak4jetHadronFlavour->at(ibJetPt) == 4){
+	    if (ak4Jets.at(ibJetPt).Perp() < 670.0){ //ptMax = 670 for b/c 
+	      btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
+	      btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	      btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
 	    }
 	    else{
-	      btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetCand).Eta(), 670.0); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetCand).Eta(), 670.0);
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetCand).Eta(), 670.0);
+	      btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 670.0); 
+	      btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 670.0);
+	      btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 670.0);
 	      btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
 	      btagSF_down = btagSF - 2*(btagSF - btagSF_down);
 	    }
 	  }
 	  else {
-	    if (ak4Jets.at(ibJetCand).Perp() < 1000.0){ //ptMax = 1000 for l 
-	      btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp()); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp());
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetCand).Eta(), ak4Jets.at(ibJetCand).Perp());
+	    if (ak4Jets.at(ibJetPt).Perp() < 1000.0){ //ptMax = 1000 for l 
+	      btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
+	      btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	      btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
 	    }
 	    else{
-	      btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetCand).Eta(), 1000.0); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetCand).Eta(), 1000.0);
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetCand).Eta(), 1000.0);
+	      btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0); 
+	      btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0);
+	      btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0);
 	      btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
 	      btagSF_down = btagSF - 2*(btagSF - btagSF_down);
 	    }
@@ -1734,12 +1832,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_htLep1b->Fill(metPt->at(0)+refLep.Perp(),weight*btagSF);
       h_nAK4jet1b->Fill((int)ak4Jets.size(),weight*btagSF);
       h_nBjet1b->Fill(nLepJet,weight*btagSF);
-      h_ak4jetPt1b->Fill(ak4Jets.at(ibJetCand).Perp(),weight*btagSF);
-      h_ak4jetEta1b->Fill(ak4Jets.at(ibJetCand).Eta(),weight*btagSF);
-      h_ak4jetPhi1b->Fill(ak4Jets.at(ibJetCand).Phi(),weight*btagSF);
-      h_ak4jetMass1b->Fill(ak4Jets.at(ibJetCand).M(),weight*btagSF);
-      h_ak4jetCSV1b->Fill(ak4jetCSV->at(ibJetCand),weight*btagSF);
-      h_ak4jetVtxMass1b->Fill(ak4jetVtxMass->at(ibJetCand),weight*btagSF);
+      h_ak4jetPt1b->Fill(ak4Jets.at(ibJetPt).Perp(),weight*btagSF);
+      h_ak4jetEta1b->Fill(ak4Jets.at(ibJetPt).Eta(),weight*btagSF);
+      h_ak4jetPhi1b->Fill(ak4Jets.at(ibJetPt).Phi(),weight*btagSF);
+      h_ak4jetMass1b->Fill(ak4Jets.at(ibJetPt).M(),weight*btagSF);
+      h_ak4jetCSV1b->Fill(ak4jetCSV->at(ibJetPt),weight*btagSF);
+      h_ak4jetVtxMass1b->Fill(ak4jetVtxMass->at(ibJetPt),weight*btagSF);
       h_nAK8jet1b->Fill((int)ak8Jets.size(),weight*btagSF);
       h_nTjet1b->Fill(nHadJet,weight*btagSF);
       h_ak8jetPt1b->Fill(ak8Jets.at(itopJetCand).Perp(),weight*btagSF);
@@ -1776,9 +1874,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_lepAbsEta1b->Fill(abs(refLep.Eta()),weight*btagSF);
       h_lepSignEta1b->Fill(lepQ*abs(refLep.Eta()),weight*btagSF);
       h_lepPhi1b->Fill(refLep.Phi(),weight*btagSF);
-      h_lepBJetdR1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*btagSF);
+      h_lepBJetdR1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetPt)),weight*btagSF);
       h_lepTJetdR1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*btagSF);
-      h_lepBJetPtRel1b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight*btagSF);
+      h_lepBJetPtRel1b->Fill(refLep.Perp(ak4Jets.at(ibJetPt).Vect()),weight*btagSF);
       h_lepMiniIso1b->Fill(refLepMiniIso,weight*btagSF);
       n1b += 1;
     }
@@ -1793,12 +1891,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_htLep1t->Fill(metPt->at(0)+refLep.Perp(),weight*toptagSF);
       h_nAK4jet1t->Fill((int)ak4Jets.size(),weight*toptagSF);
       h_nBjet1t->Fill(nLepJet,weight*toptagSF);
-      h_ak4jetPt1t->Fill(ak4Jets.at(ibJetCand).Perp(),weight*toptagSF);
-      h_ak4jetEta1t->Fill(ak4Jets.at(ibJetCand).Eta(),weight*toptagSF);
-      h_ak4jetPhi1t->Fill(ak4Jets.at(ibJetCand).Phi(),weight*toptagSF);
-      h_ak4jetMass1t->Fill(ak4Jets.at(ibJetCand).M(),weight*toptagSF);
-      h_ak4jetCSV1t->Fill(ak4jetCSV->at(ibJetCand),weight*toptagSF);
-      h_ak4jetVtxMass1t->Fill(ak4jetVtxMass->at(ibJetCand),weight*toptagSF);
+      h_ak4jetPt1t->Fill(ak4Jets.at(ibJetPt).Perp(),weight*toptagSF);
+      h_ak4jetEta1t->Fill(ak4Jets.at(ibJetPt).Eta(),weight*toptagSF);
+      h_ak4jetPhi1t->Fill(ak4Jets.at(ibJetPt).Phi(),weight*toptagSF);
+      h_ak4jetMass1t->Fill(ak4Jets.at(ibJetPt).M(),weight*toptagSF);
+      h_ak4jetCSV1t->Fill(ak4jetCSV->at(ibJetPt),weight*toptagSF);
+      h_ak4jetVtxMass1t->Fill(ak4jetVtxMass->at(ibJetPt),weight*toptagSF);
       h_nAK8jet1t->Fill((int)ak8Jets.size(),weight*toptagSF);
       h_nTjet1t->Fill(nHadJet,weight*toptagSF);
       h_ak8jetPt1t->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF);
@@ -1835,9 +1933,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_lepAbsEta1t->Fill(abs(refLep.Eta()),weight*toptagSF);
       h_lepSignEta1t->Fill(lepQ*abs(refLep.Eta()),weight*toptagSF);
       h_lepPhi1t->Fill(refLep.Phi(),weight*toptagSF);
-      h_lepBJetdR1t->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*toptagSF);
+      h_lepBJetdR1t->Fill(refLep.DeltaR(ak4Jets.at(ibJetPt)),weight*toptagSF);
       h_lepTJetdR1t->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*toptagSF);
-      h_lepBJetPtRel1t->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight*toptagSF);
+      h_lepBJetPtRel1t->Fill(refLep.Perp(ak4Jets.at(ibJetPt).Vect()),weight*toptagSF);
       h_lepMiniIso1t->Fill(refLepMiniIso,weight*toptagSF);
       n1t += 1;
     }
@@ -1852,12 +1950,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_htLep1t1b->Fill(metPt->at(0)+refLep.Perp(),weight*btagSF*toptagSF);
       h_nAK4jet1t1b->Fill((int)ak4Jets.size(),weight*btagSF*toptagSF);
       h_nBjet1t1b->Fill(nLepJet,weight*btagSF*toptagSF);
-      h_ak4jetPt1t1b->Fill(ak4Jets.at(ibJetCand).Perp(),weight*btagSF*toptagSF);
-      h_ak4jetEta1t1b->Fill(ak4Jets.at(ibJetCand).Eta(),weight*btagSF*toptagSF);
-      h_ak4jetPhi1t1b->Fill(ak4Jets.at(ibJetCand).Phi(),weight*btagSF*toptagSF);
-      h_ak4jetMass1t1b->Fill(ak4Jets.at(ibJetCand).M(),weight*btagSF*toptagSF);
-      h_ak4jetCSV1t1b->Fill(ak4jetCSV->at(ibJetCand),weight*btagSF*toptagSF);
-      h_ak4jetVtxMass1t1b->Fill(ak4jetVtxMass->at(ibJetCand),weight*btagSF*toptagSF);
+      h_ak4jetPt1t1b->Fill(ak4Jets.at(ibJetPt).Perp(),weight*btagSF*toptagSF);
+      h_ak4jetEta1t1b->Fill(ak4Jets.at(ibJetPt).Eta(),weight*btagSF*toptagSF);
+      h_ak4jetPhi1t1b->Fill(ak4Jets.at(ibJetPt).Phi(),weight*btagSF*toptagSF);
+      h_ak4jetMass1t1b->Fill(ak4Jets.at(ibJetPt).M(),weight*btagSF*toptagSF);
+      h_ak4jetCSV1t1b->Fill(ak4jetCSV->at(ibJetPt),weight*btagSF*toptagSF);
+      h_ak4jetVtxMass1t1b->Fill(ak4jetVtxMass->at(ibJetPt),weight*btagSF*toptagSF);
       h_nAK8jet1t1b->Fill((int)ak8Jets.size(),weight*btagSF*toptagSF);
       h_nTjet1t1b->Fill(nHadJet,weight*btagSF*toptagSF);
       h_ak8jetPt1t1b->Fill(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF);
@@ -1894,9 +1992,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_lepAbsEta1t1b->Fill(abs(refLep.Eta()),weight*btagSF*toptagSF);
       h_lepSignEta1t1b->Fill(lepQ*abs(refLep.Eta()),weight*btagSF*toptagSF);
       h_lepPhi1t1b->Fill(refLep.Phi(),weight*btagSF*toptagSF);
-      h_lepBJetdR1t1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetCand)),weight*btagSF*toptagSF);
+      h_lepBJetdR1t1b->Fill(refLep.DeltaR(ak4Jets.at(ibJetPt)),weight*btagSF*toptagSF);
       h_lepTJetdR1t1b->Fill(refLep.DeltaR(ak8Jets.at(itopJetCand)),weight*btagSF*toptagSF);
-      h_lepBJetPtRel1t1b->Fill(refLep.Perp(ak4Jets.at(ibJetCand).Vect()),weight*btagSF*toptagSF);
+      h_lepBJetPtRel1t1b->Fill(refLep.Perp(ak4Jets.at(ibJetPt).Vect()),weight*btagSF*toptagSF);
       h_lepMiniIso1t1b->Fill(refLepMiniIso,weight*btagSF*toptagSF);
       n1t1b += 1;
     }
@@ -1947,7 +2045,20 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   cout << nPassTau32Cut << " pass Tau32 cut" << endl;
   cout << nPassTopTag << " pass max CSV cut" << endl;
   cout << endl;
-  
+  if (isSignal){
+    cout << "B-tagging troubleshoot: " << endl;
+    cout << "Number of events w/ close jet true b: " << nTrueClose << endl;
+    cout << "Number of events w/ lead jet true b: " << nTrueLead << endl;
+    cout << "Number of events w/ close jet and lead jet same: " << nLeadClose << endl;
+    cout << "Number of events w/ close jet and lead jet same, and true b: " << nTrueLeadClose << endl;
+    cout << "Number of b-tagged events w/ close jet: " << nCloseTag << endl;
+    cout << "Number of b-tagged events w/ close jet true b: " << nCloseTrueTag << endl;
+    cout << "Number of b-tagged events w/ lead jet: " << nLeadTag << endl;
+    cout << "Number of b-tagged events w/ lead jet true b: " << nLeadTrueTag << endl;
+    cout << "Number of b-tagged events w/ lead jet and close jet same: " << nLeadCloseTag << endl;
+    cout << "Number of b-tagged events w/ lead jet and close jet same, true b: " << nLeadCloseTrueTag << endl;
+  }
+    
   // -------------------------------------------------------------------------------------------
   // output file for histograms
   // -------------------------------------------------------------------------------------------
@@ -1965,6 +2076,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // * * * * * * D R A W   A N D   S A V E   P L O T S * * * * * * 
   // -------------------------------------------------------------------------------------------
 
+  h_nTrueLepBJet->Write();
+  
   h_lepSF->Write();
   h_puWeight->Write();
 
@@ -2242,6 +2355,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   delete fout;
 
   // Do cleanup (messy, but can't see another option currently)
+  h_nTrueLepBJet->Delete();
+  
   h_lepSF->Delete();
   h_puWeight->Delete();
 
@@ -2256,7 +2371,6 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ptGenTop->Delete();
   h_ptRecoTop->Delete();
   response.Delete();
-
 
   h_ptGenTop2->Delete();
   h_ptGenTop3->Delete();

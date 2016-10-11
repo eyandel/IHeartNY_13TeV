@@ -82,22 +82,25 @@ void runMakePlots(TString toPlot = "final"){
   }
 
   if (toPlot == "all" || toPlot == "final"){
+
+    bool unBlind = true;
+    
     for (int ii = 0; ii < 2; ii++){
       for (int jj = 0; jj < nregion; jj++){
 	for (int kk = 0; kk < nhist; kk++){
-	  makePlots("histfiles_80X/","histfiles_80X/",channels[ii],hists[kk],regions[jj],false,false,false);
+	  makePlots("histfiles_80X/","histfiles_80X/",channels[ii],hists[kk],regions[jj],false,unBlind,false);
 	}
       }
     }
     
-    makePlots("histfiles_80X/","histfiles_80X/","mu","nAK4jet","Pre",false,false,false);
-    makePlots("histfiles_80X/","histfiles_80X/","el","nAK4jet","Pre",false,false,false);
-    makePlots("histfiles_80X/","histfiles_80X/","mu","nBjet","Pre",false,false,false);
-    makePlots("histfiles_80X/","histfiles_80X/","el","nBjet","Pre",false,false,false);
-    makePlots("histfiles_80X/","histfiles_80X/","mu","nAK8jet","Pre",false,false,false);
-    makePlots("histfiles_80X/","histfiles_80X/","el","nAK8jet","Pre",false,false,false);
-    makePlots("histfiles_80X/","histfiles_80X/","mu","nTjet","Pre",false,false,false);
-    makePlots("histfiles_80X/","histfiles_80X/","el","nTjet","Pre",false,false,false);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","nAK4jet","Pre",false,unBlind,false);
+    makePlots("histfiles_80X/","histfiles_80X/","el","nAK4jet","Pre",false,unBlind,false);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","nBjet","Pre",false,unBlind,false);
+    makePlots("histfiles_80X/","histfiles_80X/","el","nBjet","Pre",false,unBlind,false);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","nAK8jet","Pre",false,unBlind,false);
+    makePlots("histfiles_80X/","histfiles_80X/","el","nAK8jet","Pre",false,unBlind,false);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","nTjet","Pre",false,unBlind,false);
+    makePlots("histfiles_80X/","histfiles_80X/","el","nTjet","Pre",false,unBlind,false);
     
     cout << endl << "Finished with regular plots!" << endl << endl;
 
@@ -123,17 +126,17 @@ void runMakePlots(TString toPlot = "final"){
 
     cout << endl << "Finished making shape comparisons!" << endl << endl;
     
-    //makeCombineInputs("histfiles_80X/","histfiles_80X/");
+    makeCombineInputs("histfiles_80X/","histfiles_80X/");
     
-    //cout << endl << "Finished making combine inputs!" << endl << endl;
+    cout << endl << "Finished making combine inputs!" << endl << endl;
 
-    makeTable("histfiles_80X/","histfiles_80X/","mu",true,true,false);
+    makeTable("histfiles_80X/","histfiles_80X/","mu",true,true,unBlind);
     cout << endl;
-    makeTable("histfiles_80X/","histfiles_80X/","el",true,true,false);
+    makeTable("histfiles_80X/","histfiles_80X/","el",true,true,unBlind);
     cout << endl;
-    makeTable("histfiles_80X/","histfiles_80X/","mu",false,false,false);
+    makeTable("histfiles_80X/","histfiles_80X/","mu",false,false,unBlind);
     cout << endl;
-    makeTable("histfiles_80X/","histfiles_80X/","el",false,false,false);
+    makeTable("histfiles_80X/","histfiles_80X/","el",false,false,unBlind);
   }
 
   if (toPlot == "post"){
@@ -164,23 +167,44 @@ void runMakePlots(TString toPlot = "final"){
     combineResults("mu","muB","post");
     combineResults("mu","muC","pre");
     combineResults("mu","muC","post");
+    combineResults("mu","muD","pre");
+    combineResults("mu","muD","post");
+    combineResults("mu","muE","pre");
+    combineResults("mu","muE","post");
+    combineResults("mu","muF","pre");
+    combineResults("mu","muF","post");
+    combineResults("mu","muG","pre");
+    combineResults("mu","muG","post");
+    combineResults("mu","muH","pre");
+    combineResults("mu","muH","post");
     combineResults("el","elA","pre");
     combineResults("el","elA","post");
     combineResults("el","elB","pre");
     combineResults("el","elB","post");
     combineResults("el","elC","pre");
     combineResults("el","elC","post");
-    combineResults("mu","combA","pre");
-    combineResults("mu","combA","post");
-    combineResults("mu","combB","pre");
-    combineResults("mu","combB","post");
-    combineResults("mu","combC","pre");
-    combineResults("mu","combC","post");
-    combineResults("el","combA","pre");
-    combineResults("el","combA","post");
-    combineResults("el","combB","pre");
-    combineResults("el","combB","post");
-    combineResults("el","combC","pre");
-    combineResults("el","combC","post");
-  }  
+    combineResults("el","elD","pre");
+    combineResults("el","elD","post");
+    combineResults("el","elE","pre");
+    combineResults("el","elE","post");
+    combineResults("el","elF","pre");
+    combineResults("el","elF","post");
+    combineResults("el","elG","pre");
+    combineResults("el","elG","post");
+    combineResults("el","elH","pre");
+    combineResults("el","elH","post");
+    combineResults("mu","mu1","pre");
+    combineResults("mu","mu1","post");
+    combineResults("el","el1","pre");
+    combineResults("el","el1","post");
+
+  }
+
+  if (toPlot == "troubleshoot"){
+    for (int ii = 0; ii < 2; ii++){
+      for (int jj = 0; jj < nhist; jj++){
+	troubleshootQCD("histfiles_80X/",hists[jj],channels[ii]);
+      }
+    }
+  }
 }
