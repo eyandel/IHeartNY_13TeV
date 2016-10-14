@@ -723,8 +723,11 @@ void makeCombineInputs(TString DIR, TString DIRqcd) {
     for (int jj = 0; jj < nhist; jj++){
       for (int kk = 0; kk < nsys; kk++){
 	TString append = "";
-	if (sysnames[kk] != "nom") append = "_" + sysnames[kk];
-      
+	if (sysnames[kk] == "lepUp") append = "_"+channels[ii]+"SFUp";
+	else if (sysnames[kk] == "lepDown") append = "_"+channels[ii]+"SFDown";
+	else if (sysnames[kk] != "nom") append = "_" + sysnames[kk];
+	else append = "";	  
+	  
 	// get histograms
 	SummedHist* wjets = getWJets( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk], false );
 	SummedHist* singletop = getSingleTop( DIR, histnames[jj], regions[jj], channels[ii], false, sysnames[kk], false );
