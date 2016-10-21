@@ -475,12 +475,13 @@ recoTree.Branch('eventWeight_nom'           , eventWeight_nom           )
 if options.isMC:
     recoTree.Branch('eventWeight_puUp'          , eventWeight_puUp          )
     recoTree.Branch('eventWeight_puDown'        , eventWeight_puDown        )
-    if options.semilep == 1:
+    if options.semilep is not None:
         recoTree.Branch('eventWeight_Q2Up'   , eventWeight_Q2Up )
         recoTree.Branch('eventWeight_Q2Down' , eventWeight_Q2Down )
         recoTree.Branch('eventWeight_PDF'    , eventWeight_PDF )
         recoTree.Branch('eventWeight_alphaUp', eventWeight_alphaUp)
         recoTree.Branch('eventWeight_alphaDown', eventWeight_alphaDown)
+    if options.semilep == 1:
         recoTree.Branch('truthChannel'       , truthChannel           )
 
 if options.fullTruth:
@@ -647,6 +648,12 @@ electronDzHandle          = Handle("std::vector<float>")
 electronDzLabel           = ( "electrons" , "elDz" )
 electronMiniIsoHandle     = Handle("std::vector<float>")
 electronMiniIsoLabel      = ( "electrons" , "elMiniIso" )
+electronSCEtaHandle       = Handle("std::vector<float>")
+electronSCEtaLabel        = ( "electrons" , "elSCEta")
+electronMissHitsHandle    = Handle("std::vector<float>")
+electronMissHitsLabel     = ( "electrons" , "elmissHits")
+electronConVetoHandle     = Handle("std::vector<float>")
+electronConVetoLabel      = ( "electrons" , "elhasMatchedConVeto")
 
 elKeyHandle = Handle("std::vector<std::vector<int> >")
 elKeyLabel = ( "electronKeys" )
@@ -998,13 +1005,14 @@ for event in events :
         ak8jetMassJERdown.clear()
         eventWeight_puUp.clear()
         eventWeight_puDown.clear()
-        if options.semilep == 1:
-            truthChannel.clear()
+        if options.semilep is not None:
             eventWeight_Q2Up.clear()
             eventWeight_Q2Down.clear()
             eventWeight_PDF.clear()
             eventWeight_alphaUp.clear()
             eventWeight_alphaDown.clear()
+        if options.semilep == 1:
+            truthChannel.clear()
 
     weight_nom = 1.0 #event weight
     weight_puUp = 1.0
@@ -1053,7 +1061,7 @@ for event in events :
         
         if genParticlesPtHandle.isValid() == False :
             continue
-        
+
         genParticlesPt  = genParticlesPtHandle.product()
         genParticlesEta = genParticlesEtaHandle.product()
         genParticlesPhi = genParticlesPhiHandle.product()
@@ -1329,7 +1337,7 @@ for event in events :
     # -------------------------------
     # Get Q2 and NNPDF weights
     # -------------------------------
-    if options.isMC and options.semilep == 1:
+    if options.isMC and options.semilep is not None:
         gotLHE = event.getByLabel( LHELabel, LHEHandle )
         if not gotLHE:
             passReco = False
@@ -1380,9 +1388,12 @@ for event in events :
     # -------------------------------
     # Require met filter
     # -------------------------------
-    
-    metFilt = False
-    hbheFilt = False
+
+    # Set false later if any filter fails -- for HBHE check both METUserData and separate HBHE filter
+    metFilt = True
+    hbheFilt = True
+    #metFilt = False
+    #hbheFilt = False
 
     gotName = event.getByLabel( metFilterNameLabel, metFilterNameHandle )
     gotBits = event.getByLabel( metFilterBitsLabel, metFilterBitsHandle )
@@ -1400,24 +1411,25 @@ for event in events :
         hbheFilt = HBHEfilterHandle.product()[0]
 
         for itrig in xrange(0, len(filterNameStrings) ) :
-            if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 1:
+            if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 0:
                 if options.debug :
-                    print 'MET filter: ' + filterNameStrings[itrig]
-                metFilt = True
+                    print 'MET filter fails: ' + filterNameStrings[itrig]
+                metFilt = False
 
-            if "HBHE" in filterNameStrings[itrig] and filterBits[itrig] == 1: #Basically OR of our HBHE filter and the one stored in METUserData
+            if "HBHE" in filterNameStrings[itrig] and filterBits[itrig] == 0:
                 if options.debug :
-                    print 'MET filter: ' + filterNameStrings[itrig]
-                hbheFilt = True
+                    print 'MET filter fails: ' + filterNameStrings[itrig]
+                hbheFilt = False
 
         if hbheFilt == False or metFilt == False :
             passReco = False
             if not options.fullTruth:
                 continue
-        nPassMetFilter += 1
+        else :
+            nPassMetFilter += 1
                 
     # -------------------------------
-    # Require a trigger if MC
+    # Require a trigger if data
     # -------------------------------
 
     passMuTrig = True
@@ -1426,7 +1438,7 @@ for event in events :
     if not options.isMC :    # 80X does not have trigger stored for MC
         passMuTrig = False
         passElTrig = False
-        prescale = 1.0
+        prescale = 1.0       # We expect trigger prescales to be 1.0, but will store prescale just in case
             
         event.getByLabel( trigNameLabel, trigNameHandle )
         event.getByLabel( trigBitsLabel, trigBitsHandle )
@@ -1436,9 +1448,8 @@ for event in events :
         triggerBits = trigBitsHandle.product()
         triggerPrescales = trigPrescalesHandle.product()
     
-        trigToRun = None
         for itrig in xrange(0, len(triggerBits) ) :
-            if triggerBits[itrig] != 1 :
+            if triggerBits[itrig] != 1 : #Only looking for passing triggers
                 continue
             trigName = triggerNames[itrig]
             if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
@@ -1454,9 +1465,9 @@ for event in events :
         weight_puUp = weight_puUp * prescale 
         weight_puDown = weight_puDown * prescale
 
-        if options.muOrEl is "mu" and not passMuTrig:
+        if (options.muOrEl is "mu") and not passMuTrig: #Note: since this is for data only, it is already 'not options.fullTruth'
             continue
-        if options.muOrEl is "el" and not passElTrig:
+        if (options.muOrEl is "el") and not passElTrig:
             continue
     
     # -------------------------------------------------------------------------------------
@@ -1513,6 +1524,12 @@ for event in events :
         electronDzs = electronDzHandle.product()
         event.getByLabel (electronMiniIsoLabel, electronMiniIsoHandle)
         electronMiniIsos = electronMiniIsoHandle.product()
+        event.getByLabel (electronSCEtaLabel, electronSCEtaHandle)
+        electronSCEtas = electronSCEtaHandle.product()
+        event.getByLabel (electronMissHitsLabel, electronMissHitsHandle)
+        electronMissingHits = electronMissHitsHandle.product()
+        event.getByLabel (electronConVetoLabel, electronConVetoHandle)
+        isElectronConVeto = electronConVetoHandle.product()
 
         event.getByLabel (elKeyLabel, elKeyHandle)
         elKeys = elKeyHandle.product()
@@ -1526,7 +1543,7 @@ for event in events :
                 continue
             nEleRaw += 1.0
             manualEisMedium = False
-            if abs( electronEta ) <= 1.479 :
+            if abs( electronSCEtas[ielectronPt] ) <= 1.479 :
                 if abs(electronDEtaIns[ielectronPt]) < 0.0103 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.0336 :
                         if electronFull5x5siees[ielectronPt] < 0.0101 :
@@ -1534,7 +1551,9 @@ for event in events :
                                 if abs(electronD0s[ielectronPt]) < 0.0118 :
                                     if abs(electronDzs[ielectronPt]) <  0.373 :
                                         if electronooEmooPs[ielectronPt] <  0.0174 :
-                                            manualEisMedium = True
+                                            if electronMissingHits[ielectronPt] <= 2 :
+                                                if not isElectronConVeto[ielectronPt] :
+                                                    manualEisMedium = True
             else :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00733 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.114 :
@@ -1543,10 +1562,12 @@ for event in events :
                                 if abs(electronD0s[ielectronPt]) < 0.0739 :
                                     if abs(electronDzs[ielectronPt]) <  0.602 :
                                         if electronooEmooPs[ielectronPt] <  0.0898 :
-                                            manualEisMedium = True
+                                            if electronMissingHits[ielectronPt] <= 1 :
+                                                if not isElectronConVeto[ielectronPt] :
+                                                    manualEisMedium = True
                                             
             manualEisTight = False
-            if abs( electronEta ) <= 1.479 :
+            if abs( electronSCEtas[ielectronPt] ) <= 1.479 :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00926 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.0336 :
                         if electronFull5x5siees[ielectronPt] < 0.0101 :
@@ -1554,7 +1575,9 @@ for event in events :
                                 if abs(electronD0s[ielectronPt]) < 0.0111 :
                                     if abs(electronDzs[ielectronPt]) <  0.0466 :
                                         if electronooEmooPs[ielectronPt] <  0.012 :
-                                            manualEisTight = True
+                                            if electronMissingHits[ielectronPt] <= 2:
+                                                if not isElectronConVeto[ielectronPt] :
+                                                    manualEisTight = True
             else :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00724 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.0918 :
@@ -1563,7 +1586,9 @@ for event in events :
                                 if abs(electronD0s[ielectronPt]) < 0.0351 :
                                     if abs(electronDzs[ielectronPt]) <  0.417 :
                                         if electronooEmooPs[ielectronPt] <  0.00999 :
-                                            manualEisTight = True
+                                            if electronMissingHits[ielectronPt] <= 1:
+                                                if not isElectronConVeto[ielectronPt]:
+                                                    manualEisTight = True
                                             
             eIsTight = isElectronTight[ielectronPt]
             eIsMedium = isElectronMedium[ielectronPt]
@@ -1696,7 +1721,7 @@ for event in events :
                 muTight.push_back(0)
                 
     # -------------------------------------------------------------------------------------
-    # check that we have at least one lepton candidate
+    # check that we have exactly one lepton candidate
     # -------------------------------------------------------------------------------------
 
     if not ((passMuTrig and len(muCand) == 1 and len(elCand) == 0) or (passElTrig and len(elCand) == 1 and len(muCand) == 0)):
@@ -1874,6 +1899,7 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
+                rescaledAK4 = False
                 if ak4MatchedGenJetPts[ijet] > 0:
                     genJetP4 = ROOT.TLorentzVector()
                     genJetP4.SetPtEtaPhiE(ak4MatchedGenJetPts[ijet],ak4MatchedGenJetEtas[ijet],ak4MatchedGenJetPhis[ijet],ak4MatchedGenJetEnergys[ijet])
@@ -1887,15 +1913,20 @@ for event in events :
                         jetP4_JERdown = jetP4 - genJetP4
                         jetP4_JERdown *= ak4JERSFdowns[ijet]
                         jetP4_JERdown += genJetP4
-                    else:
-                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
+                        rescaledAK4 = True
+                
+                if not rescaledAK4:
+                    if ak4JERSFnoms[ijet] > 1.0:
+                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet])))
+                    if ak4JERSFups[ijet] > 1.0:
                         jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
+                    else :
+                        jetP4_JERup = jetP4
+                    if ak4JERSFdowns[ijet] > 1.0:
                         jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)*ak4JERs[ijet]))
-                else:
-                    jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
-                    jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
-                    jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)*ak4JERs[ijet]))
-
+                    else:
+                        jetP4_JERdown = jetP4
+                
             metv -= jetP4
 
             if jetP4.Perp() > 15. and abs(jetP4.Eta()) < 3.0:
@@ -2202,10 +2233,11 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
+                rescaledAK8 = False
                 if ak8MatchedGenJetPts[ijet] > 0:
                     AK8genJetP4 = ROOT.TLorentzVector()
                     AK8genJetP4.SetPtEtaPhiE(ak8MatchedGenJetPts[ijet],ak8MatchedGenJetEtas[ijet],ak8MatchedGenJetPhis[ijet],ak8MatchedGenJetEnergys[ijet])
-                    if AK8jetP4.DeltaR(AK8genJetP4) < 0.2 and abs(AK8jetP4.Perp() - AK8genJetP4.Perp()) < (3 * ak8JERs[ijet] * AK8jetP4.Perp()) : # Do matching requirement
+                    if AK8jetP4.DeltaR(AK8genJetP4) < 0.4 and abs(AK8jetP4.Perp() - AK8genJetP4.Perp()) < (3 * ak8JERs[ijet] * AK8jetP4.Perp()) : # Do matching requirement
                         AK8jetP4 -= AK8genJetP4
                         AK8jetP4 *= ak8JERSFnoms[ijet]
                         AK8jetP4 += AK8genJetP4
@@ -2215,15 +2247,19 @@ for event in events :
                         AK8jetP4_JERdown = AK8jetP4 - AK8genJetP4
                         AK8jetP4_JERdown *= ak8JERSFdowns[ijet]
                         AK8jetP4_JERdown += AK8genJetP4
+                        rescaledAK8 = True
 
-                    else:
+                if not rescaledAK8:
+                    if ak8JERSFnoms[ijet] > 1.0:
                         AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)*ak8JERs[ijet]))
+                    if ak8JERSFups[ijet] > 1.0:
                         AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)*ak8JERs[ijet]))
+                    else:
+                        AK8jetP4_JERup = AK8jetP4
+                    if ak8JERSFdowns[ijet] > 1.0:
                         AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)*ak8JERs[ijet]))
-                else:
-                    AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)*ak8JERs[ijet]))
-                    AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)*ak8JERs[ijet]))
-                    AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)*ak8JERs[ijet]))
+                    else:
+                        AK8jetP4_JERdown = AK8jetP4
 
             metv -= AK8jetP4
 
@@ -2308,7 +2344,7 @@ for event in events :
     if options.isMC:
         eventWeight_puUp.push_back(weight_puUp)
         eventWeight_puDown.push_back(weight_puDown)
-        if options.semilep == 1:
+        if options.semilep is not None:
             eventWeight_Q2Up.push_back(weight_Q2up)
             eventWeight_Q2Down.push_back(weight_Q2down)
             eventWeight_PDF.push_back(weight_PDF)

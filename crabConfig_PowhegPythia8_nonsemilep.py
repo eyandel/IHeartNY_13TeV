@@ -17,7 +17,7 @@ config.section_("Data")
 config.Data.inputDataset = '/TT_TuneCUETP8M1_13TeV-powheg-pythia8/asparker-RunIISpring16MiniAODv2_B2GAnaFW_80x_V2p0-9c09e10dd1f806cf9fdf5818b1c7d288/USER'
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 2
+config.Data.unitsPerJob = 1
 #config.Data.totalUnits = 1000
 config.Data.ignoreLocality = True
 config.Data.publication = False
