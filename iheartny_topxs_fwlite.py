@@ -1917,7 +1917,7 @@ for event in events :
                 
                 if not rescaledAK4:
                     if ak4JERSFnoms[ijet] > 1.0:
-                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet])))
+                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
                     if ak4JERSFups[ijet] > 1.0:
                         jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
                     else :
