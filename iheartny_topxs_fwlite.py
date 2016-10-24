@@ -871,12 +871,14 @@ for run in runs:
     filterNameStrings = metFilterNameHandle.product()
     for name in filterNameStrings:
         print name
-    gotTrigName = run.getByLabel( trigNameLabel, trigNameHandle )
-    if not gotTrigName:
-        print 'Error! no trigger names in run info'
-    triggerNameStrings = trigNameHandle.product()
-    for name in triggerNameStrings:
-        print name
+
+    if not options.isMC: # At this point, B2G ntuples still don't have accurate trigger information for MC
+        gotTrigName = run.getByLabel( trigNameLabel, trigNameHandle )
+        if not gotTrigName:
+            print 'Error! no trigger names in run info'
+        triggerNameStrings = trigNameHandle.product()
+        for name in triggerNameStrings:
+            print name
 
 
 # -------------------------------------------------------------------------------------
@@ -1370,41 +1372,49 @@ for event in events :
         nPassMetFilter += 1
                 
     # -------------------------------
-    # Require a trigger if MC
+    # Require a trigger if data
     # -------------------------------
+    # Note: for B2GEDMNtuples produced using non-'reHLT' or 'withHLT' samples, 
+    # there is a triggerNameTree and triggerBitsTree stored.  However it is apparently 
+    # incorrect. If B2G starts running from reHLT or withHLT samples, or updates from 80X, 
+    # we can add back the trigger information for MC.
 
-    passMuTrig = False
-    passElTrig = False
-    prescale = 1.0
+    passMuTrig = True
+    passElTrig = True
+
+    if not options.isMC:
+        passMuTrig = False
+        passElTrig = False
+        prescale = 1.0
     
-    event.getByLabel( trigBitsLabel, trigBitsHandle )
-    event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
+        event.getByLabel( trigBitsLabel, trigBitsHandle )
+        event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
     
-    triggerBits = trigBitsHandle.product()
-    triggerPrescales = trigPrescalesHandle.product()
+        triggerBits = trigBitsHandle.product()
+        triggerPrescales = trigPrescalesHandle.product()
     
-    trigToRun = None
-    for itrig in xrange(0, len(triggerBits) ) :
-        if triggerBits[itrig] != 1 :
-            continue
-        trigName = triggerNameStrings[itrig]
-        if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
-            passElTrig = True
-            prescale = prescale * triggerPrescales[itrig]
-            h_elPrescale.Fill(triggerPrescales[itrig])
-        if "HLT_Mu45_eta2p1" in trigName :
-            passMuTrig = True
-            prescale = prescale * triggerPrescales[itrig]
-            h_muPrescale.Fill(triggerPrescales[itrig])
+        trigToRun = None
+        for itrig in xrange(0, len(triggerBits) ) :
+            if triggerBits[itrig] != 1 :
+                continue
+            trigName = triggerNameStrings[itrig]
+            if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
+                passElTrig = True
+                prescale = prescale * triggerPrescales[itrig]
+                h_elPrescale.Fill(triggerPrescales[itrig])
+            if "HLT_Mu45_eta2p1" in trigName :
+                passMuTrig = True
+                prescale = prescale * triggerPrescales[itrig]
+                h_muPrescale.Fill(triggerPrescales[itrig])
             
-    weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
-    weight_puUp = weight_puUp * prescale 
-    weight_puDown = weight_puDown * prescale
-
-    if options.muOrEl is "mu" and not passMuTrig:
-        continue
-    if options.muOrEl is "el" and not passElTrig:
-        continue
+        weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
+        weight_puUp = weight_puUp * prescale 
+        weight_puDown = weight_puDown * prescale
+        
+        if options.muOrEl is "mu" and not passMuTrig:
+            continue
+        if options.muOrEl is "el" and not passElTrig:
+            continue
     
     # -------------------------------------------------------------------------------------
     # read event rho value
