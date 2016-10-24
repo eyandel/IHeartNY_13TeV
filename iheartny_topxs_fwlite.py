@@ -440,7 +440,7 @@ if options.isMC:
 recoTree.Branch('ak8jetPt'               , ak8jetPt               )
 recoTree.Branch('ak8jetEta'              , ak8jetEta              )
 recoTree.Branch('ak8jetPhi'              , ak8jetPhi              )
-recoTree.Branch('ak8jetMass'             , ak8jetMass             )
+recoTree.Branch('ak8jetMass'             , ak8jetMass          )
 recoTree.Branch('ak8jetMassPruned'       , ak8jetMassPruned       )
 recoTree.Branch('ak8jetMassFiltered'     , ak8jetMassFiltered     )
 recoTree.Branch('ak8jetMassTrimmed'      , ak8jetMassTrimmed      )
@@ -505,7 +505,7 @@ if options.fullTruth:
 # -------------------------------------------------------------------------------------
 
 events = Events (files)
-#runs = Runs ( files)
+runs = Runs ( files)
 
 jetname = "CHS"
 if options.usePuppi:
@@ -531,8 +531,10 @@ metFilterNameHandle = Handle( "std::vector<std::string>")
 metFilterNameLabel  = ("METUserData", "triggerNameTree")
 metFilterBitsHandle = Handle( "std::vector<float>")
 metFilterBitsLabel  = ("METUserData", "triggerBitTree")
-HBHEfilterHandle    = Handle("bool")
-HBHEfilterLabel     = ("HBHENoiseFilterResultProducer", "HBHENoiseFilterResult")
+BadChargedCandidateFilterHandle    = Handle("bool")
+BadChargedCandidateFilterLabel     = ("BadChargedCandidateFilter", "")
+BadPFMuonFilterHandle = Handle("bool")
+BadPFMuonFilterLabel = ("BadPFMuonFilter","")
 
 #LHERunHandle = Handle("LHERunInfoProduct")
 #LHERunLabel  = ("externalLHEProducer","")
@@ -541,26 +543,8 @@ LHELabel = ("externalLHEProducer","")
 
 # genParticles
 if options.isMC and options.semilep is not None:
-    genParticlesPtHandle     = Handle("std::vector<float>")
-    genParticlesPtLabel      = ("genPart", "genPartPt")
-    genParticlesEtaHandle    = Handle("std::vector<float>")
-    genParticlesEtaLabel     = ("genPart", "genPartEta")
-    genParticlesPhiHandle    = Handle("std::vector<float>")
-    genParticlesPhiLabel     = ("genPart", "genPartPhi")
-    genParticlesMassHandle   = Handle("std::vector<float>")
-    genParticlesMassLabel    = ("genPart", "genPartMass")
-    genParticlesPdgIdHandle  = Handle("std::vector<float>")
-    genParticlesPdgIdLabel   = ("genPart", "genPartID")
-    genParticlesStatusHandle = Handle("std::vector<float>")
-    genParticlesStatusLabel  = ("genPart", "genPartStatus")
-    genParticlesMom0StatusHandle = Handle("std::vector<float>")
-    genParticlesMom0StatusLabel  = ("genPart", "genPartMom0Status")
-    genParticlesMom0IDHandle     = Handle("std::vector<float>")
-    genParticlesMom0IDLabel      = ("genPart", "genPartMom0ID")
-    genParticlesDau0IDHandle     = Handle("std::vector<float>")
-    genParticlesDau0IDLabel      = ("genPart", "genPartDau0ID")
-    genParticlesDau1IDHandle     = Handle("std::vector<float>")
-    genParticlesDau1IDLabel      = ("genPart", "genPartDau1ID")
+    genParticlesHandle     = Handle("std::vector<reco::GenParticle>")
+    genParticlesLabel      = ("filteredPrunedGenParticles", "")
     
     ## only have AK8 gen jets currently (in addition to gen jets matched to AK4/AK8 reco jets)
     ak8GenJetPtHandle   = Handle("std::vector<float>")
@@ -569,8 +553,8 @@ if options.isMC and options.semilep is not None:
     ak8GenJetEtaLabel   = ("genJetsAK8", "genJetsAK8Eta")
     ak8GenJetPhiHandle  = Handle("std::vector<float>")
     ak8GenJetPhiLabel   = ("genJetsAK8", "genJetsAK8Phi")
-    ak8GenJetMassHandle = Handle("std::vector<float>")
-    ak8GenJetMassLabel  = ("genJetsAK8", "genJetsAK8Mass")
+    ak8GenJetEHandle    = Handle("std::vector<float>")
+    ak8GenJetELabel     = ("genJetsAK8", "genJetsAK8E")
     
 metHandle    = Handle("std::vector<float>")
 metLabel     = ("metFull", "metFullPt")
@@ -635,17 +619,13 @@ electronLooseLabel        = ("electrons" , "elvidLoose" )
 electronfull5x5sieeHandle = Handle("std::vector<float>")
 electronfull5x5sieeLabel  = ( "electrons" , "elfull5x5siee")
 electrondEtaInHandle      = Handle("std::vector<float>")
-electrondEtaInLabel       = ( "electrons" , "eldEtaIn" )
+electrondEtaInLabel       = ( "electrons" , "eldEtaInSeed" )
 electrondPhiInHandle      = Handle("std::vector<float>")
 electrondPhiInLabel       = ( "electrons" , "eldPhiIn" )
 electronHoEHandle         = Handle("std::vector<float>")
 electronHoELabel          = ( "electrons" , "elHoE" )
 electronooEmooPHandle     = Handle("std::vector<float>")
 electronooEmooPLabel      = ( "electrons" , "elooEmooP")
-electronD0Handle          = Handle("std::vector<float>")
-electronD0Label           = ( "electrons" , "elD0" )
-electronDzHandle          = Handle("std::vector<float>")
-electronDzLabel           = ( "electrons" , "elDz" )
 electronMiniIsoHandle     = Handle("std::vector<float>")
 electronMiniIsoLabel      = ( "electrons" , "elMiniIso" )
 electronSCEtaHandle       = Handle("std::vector<float>")
@@ -654,6 +634,10 @@ electronMissHitsHandle    = Handle("std::vector<float>")
 electronMissHitsLabel     = ( "electrons" , "elmissHits")
 electronConVetoHandle     = Handle("std::vector<float>")
 electronConVetoLabel      = ( "electrons" , "elhasMatchedConVeto")
+electronMediumNoIsoHandle = Handle("std::vector<float>")
+electronMediumNoIsoLabel  = ( "electrons" , "elvidMediumnoiso")
+electronTightNoIsoHandle  = Handle("std::vector<float>")
+electronTightNoIsoLabel   = ( "electrons" , "elvidTightnoiso")
 
 elKeyHandle = Handle("std::vector<std::vector<int> >")
 elKeyLabel = ( "electronKeys" )
@@ -665,8 +649,8 @@ ak4JetEtaHandle  = Handle( "std::vector<float>" )
 ak4JetEtaLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"Eta")
 ak4JetPhiHandle  = Handle( "std::vector<float>" )
 ak4JetPhiLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"Phi")
-ak4JetMassHandle = Handle( "std::vector<float>" )
-ak4JetMassLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"Mass")
+ak4JetEHandle = Handle( "std::vector<float>" )
+ak4JetELabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"E")
 ak4JetCSVHandle  = Handle( "std::vector<float>" )
 ak4JetCSVLabel   = ("jetsAK4"+jetname, "jetAK4"+jetname+"CSVv2")
 ak4JetVtxMassHandle = Handle( "std::vector<float>" )
@@ -674,16 +658,16 @@ ak4JetVtxMassLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"SV0mass")
 ak4JetAreaHandle = Handle( "std::vector<float>" )
 ak4JetAreaLabel  = ("jetsAK4"+jetname, "jetAK4"+jetname+"jetArea")
 
-ak4JetNeuHadEnergyHandle = Handle("std::vector<float>")
-ak4JetNeuHadEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralHadronEnergy")
-ak4JetNeuEmEnergyHandle = Handle("std::vector<float>")
-ak4JetNeuEmEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralEmEnergy")
-ak4JetChHadEnergyHandle = Handle("std::vector<float>")
-ak4JetChHadEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedHadronEnergy")
-ak4JetChEmEnergyHandle = Handle("std::vector<float>")
-ak4JetChEmEnergyLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedEmEnergy")
-ak4JetNumDaughterHandle = Handle("std::vector<float>")
-ak4JetNumDaughterLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"numberOfDaughters")
+ak4JetNeuHadEnergyFracHandle = Handle("std::vector<float>")
+ak4JetNeuHadEnergyFracLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralHadronEnergyFrac")
+ak4JetNeuEmEnergyFracHandle = Handle("std::vector<float>")
+ak4JetNeuEmEnergyFracLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralEmEnergyFrac")
+ak4JetChHadEnergyFracHandle = Handle("std::vector<float>")
+ak4JetChHadEnergyFracLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedHadronEnergyFrac")
+ak4JetChEmEnergyFracHandle = Handle("std::vector<float>")
+ak4JetChEmEnergyFracLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedEmEnergyFrac")
+ak4JetNeuMultiHandle = Handle("std::vector<float>")
+ak4JetNeuMultiLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"neutralMultiplicity")
 ak4JetChMultiHandle = Handle("std::vector<float>")
 ak4JetChMultiLabel = ("jetsAK4"+jetname , "jetAK4"+jetname+"chargedMultiplicity")
 
@@ -720,10 +704,8 @@ ak8JetEtaHandle  = Handle( "std::vector<float>" )
 ak8JetEtaLabel   = ("jetsAK8"+jetname, "jetAK8"+jetname+"Eta")
 ak8JetPhiHandle  = Handle( "std::vector<float>" )
 ak8JetPhiLabel   = ("jetsAK8"+jetname, "jetAK8"+jetname+"Phi")
-ak8JetYHandle    = Handle( "std::vector<float>" )
-ak8JetYLabel     = ("jetsAK8"+jetname, "jetAK8"+jetname+"Y" )
-ak8JetMassHandle = Handle( "std::vector<float>" )
-ak8JetMassLabel  = ("jetsAK8"+jetname, "jetAK8"+jetname+"Mass")
+ak8JetEHandle = Handle( "std::vector<float>" )
+ak8JetELabel  = ("jetsAK8"+jetname, "jetAK8"+jetname+"E")
 ak8JetTrimMassHandle = Handle("std::vector<float>")
 ak8JetTrimMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"trimmedMass" )
 ak8JetPrunMassHandle = Handle("std::vector<float>")
@@ -752,24 +734,22 @@ sjSoftDropEtaHandle             = Handle( "std::vector<float>")
 sjSoftDropEtaLabel              = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Eta")
 sjSoftDropPhiHandle             = Handle( "std::vector<float>")
 sjSoftDropPhiLabel              = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Phi")
-sjSoftDropMassHandle            = Handle( "std::vector<float>")
-sjSoftDropMassLabel             = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Mass")
-sjSoftDropYHandle               = Handle( "std::vector<float>")
-sjSoftDropYLabel                = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"Y")
+sjSoftDropEHandle            = Handle( "std::vector<float>")
+sjSoftDropELabel             = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"E")
 sjSoftDropCSVHandle           = Handle( "std::vector<float>")
 sjSoftDropCSVLabel            = ("subjetsAK8"+jetname, "subjetAK8"+jetname+"CSVv2")
 
 # JETID variables
-ak8JetNeuHadEnergyHandle = Handle("std::vector<float>")
-ak8JetNeuHadEnergyLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"neutralHadronEnergy")
-ak8JetNeuEmEnergyHandle = Handle("std::vector<float>")
-ak8JetNeuEmEnergyLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"neutralEmEnergy")
-ak8JetChHadEnergyHandle = Handle("std::vector<float>")
-ak8JetChHadEnergyLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"chargedHadronEnergy")
-ak8JetChEmEnergyHandle = Handle("std::vector<float>")
-ak8JetChEmEnergyLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"chargedEmEnergy")
-ak8JetNumDaughterHandle = Handle("std::vector<float>")
-ak8JetNumDaughterLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"numberOfDaughters")
+ak8JetNeuHadEnergyFracHandle = Handle("std::vector<float>")
+ak8JetNeuHadEnergyFracLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"neutralHadronEnergyFrac")
+ak8JetNeuEmEnergyFracHandle = Handle("std::vector<float>")
+ak8JetNeuEmEnergyFracLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"neutralEmEnergyFrac")
+ak8JetChHadEnergyFracHandle = Handle("std::vector<float>")
+ak8JetChHadEnergyFracLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"chargedHadronEnergyFrac")
+ak8JetChEmEnergyFracHandle = Handle("std::vector<float>")
+ak8JetChEmEnergyFracLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"chargedEmEnergyFrac")
+ak8JetNeuMultiHandle = Handle("std::vector<float>")
+ak8JetNeuMultiLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"neutralMultiplicity")
 ak8JetChMultiHandle = Handle("std::vector<float>")
 ak8JetChMultiLabel = ("jetsAK8"+jetname , "jetAK8"+jetname+"chargedMultiplicity")
 
@@ -833,6 +813,13 @@ if options.isMC and options.puFile is not None:
 
 ntotal = 0       # total number of events
 
+# Parton level checks
+nMuChParton = 0
+nElChParton = 0
+nDilepParton = 0
+nHadParton = 0
+nTauOnlyParton = 0
+
 # Event quality
 nPassNPV = 0
 nPassLHE = 0
@@ -854,6 +841,10 @@ nMediumNotManualEl = 0.0
 nManualNotMediumEl = 0.0
 nTightNotManualEl = 0.0
 nManualNotTightEl = 0.0
+nMediumNoIsoNotManualEl = 0.0
+nManualNotMediumNoIsoEl = 0.0
+nTightNoIsoNotManualEl = 0.0
+nManualNotTightNoIsoEl = 0.0
 nEleRaw = 0.0
 nLooseNotManualMu = 0.0
 nManualNotLooseMu = 0.0
@@ -869,17 +860,24 @@ nGoodMatchAK8Jet = 0
 smearfunc = ROOT.TRandom3()
 
 # -------------------------------                                                                                                               
-# Do printout of LHE information   
+# Get MET filter names   
 # -------------------------------
-#for run in runs:                                                                                                               
-#    run.getByLabel( LHERunLabel, LHERunHandle )
-#    LHERunInfo = LHERunHandle.product() 
+filterNameStrings = []
+triggerNameStrings = []
+for run in runs:
+    gotName = run.getByLabel( metFilterNameLabel, metFilterNameHandle )
+    if not gotName:
+        print 'Error! no MET filter in run info'
+    filterNameStrings = metFilterNameHandle.product()
+    for name in filterNameStrings:
+        print name
+    gotTrigName = run.getByLabel( trigNameLabel, trigNameHandle )
+    if not gotTrigName:
+        print 'Error! no trigger names in run info'
+    triggerNameStrings = trigNameHandle.product()
+    for name in triggerNameStrings:
+        print name
 
-#    test = LHERunInfo.headers_begin()
-#    while (test != LHERunInfo.headers_end()):
-#        for line in range(test.lines().size()):
-#            print test.lines().at(line)[0:-1].strip()
-#        test = test + 1
 
 # -------------------------------------------------------------------------------------
 # start looping over events
@@ -1040,100 +1038,90 @@ for event in events :
 
     if options.isMC and options.semilep is not None :
 
-        topQuarks = []
         genMuons = []
         genElectrons = []
-        hadTop = None
-        lepTop = None
         isSemiLeptonicGen = True
         isMuon = False
         isElectron = False
         
-        event.getByLabel( genParticlesPtLabel, genParticlesPtHandle )
-        event.getByLabel( genParticlesEtaLabel, genParticlesEtaHandle )
-        event.getByLabel( genParticlesPhiLabel, genParticlesPhiHandle )
-        event.getByLabel( genParticlesMassLabel, genParticlesMassHandle )
-        event.getByLabel( genParticlesPdgIdLabel, genParticlesPdgIdHandle )
-        event.getByLabel( genParticlesStatusLabel, genParticlesStatusHandle )
-        event.getByLabel( genParticlesMom0IDLabel, genParticlesMom0IDHandle)
-        event.getByLabel( genParticlesDau0IDLabel, genParticlesDau0IDHandle)
-        event.getByLabel( genParticlesDau1IDLabel, genParticlesDau1IDHandle)
-        
-        if genParticlesPtHandle.isValid() == False :
+        event.getByLabel( genParticlesLabel, genParticlesHandle )
+                
+        if genParticlesHandle.isValid() == False :
             continue
+        if options.debug:
+            print 'Got gen particles!'
 
-        genParticlesPt  = genParticlesPtHandle.product()
-        genParticlesEta = genParticlesEtaHandle.product()
-        genParticlesPhi = genParticlesPhiHandle.product()
-        genParticlesMass   = genParticlesMassHandle.product()
-        genParticlesPdgId  = genParticlesPdgIdHandle.product()
-        genParticlesStatus = genParticlesStatusHandle.product()
-        genParticlesMom0ID = genParticlesMom0IDHandle.product()
-        genParticlesDau0ID = genParticlesDau0IDHandle.product()
-        genParticlesDau1ID = genParticlesDau1IDHandle.product()
+        genParticles  = genParticlesHandle.product()
         
         p4Top = ROOT.TLorentzVector()
         p4Antitop = ROOT.TLorentzVector()
-        topDecay = 0        # 0 = hadronic, 1 = leptonic
-        antitopDecay = 0    # 0 = hadronic, 1 = leptonic
-        tauToEl = False
-        tauToMu = False
-        
-        # loop over gen particles
-        for igen in xrange( len(genParticlesPt) ) :
-            
-            # Find tops -- |pdgID| = 6, status 62 (Pythia8)
-            if genParticlesPdgId[igen] == 6 and genParticlesStatus[igen] == 62 :
-                p4Top.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )                    
-            if genParticlesPdgId[igen] == -6 and genParticlesStatus[igen] == 62:
-                p4Antitop.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
-            
-            # If there is an antilepton (e+, mu+, tau+) in the W+ decay then the top is leptonic
-            if ( genParticlesPdgId[igen] == -11 or genParticlesPdgId[igen] == -13 or genParticlesPdgId[igen] == -15) :
-                if genParticlesMom0ID[igen] == 24 :
-                    topDecay = 1
-            # If there is an lepton (e-, mu-, tau-) in the W- decay then the antitop is leptonic
-            if ( genParticlesPdgId[igen] == 11 or genParticlesPdgId[igen] == 13 or genParticlesPdgId[igen] == 15) :
-                if genParticlesMom0ID[igen] == -24 :
-                    antitopDecay = 1
-            
-            # Special checks for ttbar -> tau+jets -> e/mu+jets decay chain
-            if (abs(genParticlesPdgId[igen]) == 15 and abs(genParticlesMom0ID[igen]) == 24 and (abs(genParticlesDau0ID[igen]) == 11 or abs(genParticlesDau1ID[igen]) == 11)) :
-                tauToEl = True
-                if options.debug :
-                    print 'Tau decay to electron'
-            if (abs(genParticlesPdgId[igen]) == 15 and abs(genParticlesMom0ID[igen]) == 24 and (abs(genParticlesDau0ID[igen]) == 13 or abs(genParticlesDau1ID[igen]) == 13)) :
-                tauToMu = True
-                if options.debug :
-                    print 'Tau decay to muon'
+        nPromptLepton = 0
 
-            # Get muon
-            if (abs(genParticlesPdgId[igen]) == 13 and (abs(genParticlesMom0ID[igen]) == 24 or (abs(genParticlesMom0ID[igen]) == 15 and tauToMu))) :
-                isMuon = True
-                p4Muon = ROOT.TLorentzVector()
-                p4Muon.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
-                genMuons.append(p4Muon)
-                if options.debug :
-                    if abs(genParticlesMom0ID[igen]) == 15 and tauToMu :
-                        print 'Got muon from tau'
+        if options.debug :
+            print 'There are ' + str(len(genParticles)) + ' particles.'
+
+        # loop over gen particles
+        for genParticle in genParticles :
+            
+            if options.debug and genParticle.isHardProcess():
+                print 'Gen particle with ID ' + str(genParticle.pdgId()) + ' and status ' + str(genParticle.status())
+            # Find tops -- |pdgID| = 6, isLastCopy
+            if genParticle.pdgId() == 6 and genParticle.isLastCopy() :
+                p4Top.SetPtEtaPhiM( genParticle.pt(), genParticle.eta(), genParticle.phi(), genParticle.mass() )                    
+            if genParticle.pdgId() == -6 and genParticle.isLastCopy():
+                p4Antitop.SetPtEtaPhiM( genParticle.pt(), genParticle.eta(), genParticle.phi(), genParticle.mass() )
+            
+            # Find prompt leptons
+            if (abs(genParticle.pdgId()) == 11 or abs(genParticle.pdgId()) == 13) and genParticle.isPromptFinalState():
+                nPromptLepton += 1
+                if options.debug:
+                    print 'Found prompt mu/el'
+            if abs(genParticle.pdgId()) == 15 and genParticle.isPromptDecayed() :
+                nPromptLepton += 1
+                if options.debug:
+                    print 'Found prompt tau'
+
+            # Find good muons / electrons
+            if abs(genParticle.pdgId()) == 11 : 
+                if genParticle.isPromptFinalState() or genParticle.isDirectPromptTauDecayProductFinalState():
+                    if options.debug and genParticle.isDirectPromptTauDecayProductFinalState():
+                        print 'Found el from tau'
+                    isElectron = True
+                    p4Electron = ROOT.TLorentzVector()
+                    p4Electron.SetPtEtaPhiM( genParticle.pt(), genParticle.eta(), genParticle.phi(), genParticle.mass() )
+                    genElectrons.append(p4Electron)
+
+            if abs(genParticle.pdgId()) == 13 :
+                if genParticle.isPromptFinalState() or genParticle.isDirectPromptTauDecayProductFinalState():
+                    if options.debug and genParticle.isDirectPromptTauDecayProductFinalState() :
+                        print 'Found mu from tau'
+                    isMuon = True
+                    p4Muon = ROOT.TLorentzVector()
+                    p4Muon.SetPtEtaPhiM( genParticle.pt(), genParticle.eta(), genParticle.phi(), genParticle.mass() )
+                    genMuons.append(p4Muon)
                 
-            if (abs(genParticlesPdgId[igen]) == 11 and (abs(genParticlesMom0ID[igen]) == 24 or (abs(genParticlesMom0ID[igen]) == 15 and tauToEl))) :
-                isElectron = True
-                p4Electron = ROOT.TLorentzVector()
-                p4Electron.SetPtEtaPhiM( genParticlesPt[igen], genParticlesEta[igen], genParticlesPhi[igen], genParticlesMass[igen] )
-                genElectrons.append(p4Electron)
-                if options.debug :
-                    if abs(genParticlesMom0ID[igen]) == 15 and tauToEl :
-                        print 'Got electron from tau'
-                
-        topQuarks.append( GenTopQuark( 6, p4Top, topDecay) )
-        topQuarks.append( GenTopQuark( -6, p4Antitop, antitopDecay) )
-        
-        if (topDecay + antitopDecay == 1) and (isMuon == True) and (isElectron == False) :
+        if (nPromptLepton == 1) and (isMuon == True) and (isElectron == False) :
+            nMuChParton += 1
+            if options.debug :
+                print 'Event in muon channel'
             isSemiLeptonicGen = True
-        elif (topDecay + antitopDecay == 1) and (isMuon == False) and (isElectron == True) :
+        elif (nPromptLepton == 1) and (isMuon == False) and (isElectron == True) :
+            nElChParton += 1
+            if options.debug :
+                print 'Event in electron channel'
             isSemiLeptonicGen = True
         else :
+            if nPromptLepton == 0:
+                nHadParton += 1
+            if nPromptLepton == 2:
+                nDilepParton += 1
+            if nPromptLepton == 1 and (isMuon == False) and (isElectron == False) :
+                nTauOnlyParton += 1
+            if options.debug :
+                print 'Event not semileptonic'
+                print 'nPromptLepton = ' + str(nPromptLepton)
+                print 'isMuon = ' + str(isMuon)
+                print 'isElectron = ' + str(isElectron)
             isSemiLeptonicGen = False
 
         if options.semilep > 0 and isSemiLeptonicGen == False:
@@ -1149,24 +1137,18 @@ for event in events :
                 truthChannel.push_back(1)
             else:
                 truthChannel.push_back(2)
-        
-        if topDecay == 0 :
-            hadTop = topQuarks[0]
-            lepTop = topQuarks[1]
-        else :
-            hadTop = topQuarks[1]
-            lepTop = topQuarks[0]
 
-        ttbarGen = hadTop.p4 + lepTop.p4
+        ttbarGen = p4Top + p4Antitop
 
         # ------------------------------------------------------------
         # Store parton-level information 
         # ------------------------------------------------------------
         
         nPassParton += 1
-        genTopPt.push_back(hadTop.p4.Perp())
-        genTopEta.push_back(hadTop.p4.Eta())
-        genTopPhi.push_back(hadTop.p4.Phi())
+        #NOTE! Lines below should be fixed, make better definition of which top to use at parton level
+        genTopPt.push_back(p4Top.Perp())
+        genTopEta.push_back(p4Top.Eta())
+        genTopPhi.push_back(p4Top.Phi())
         genTTbarMass.push_back(ttbarGen.M())
         
         if len(genMuons) != 0:
@@ -1185,46 +1167,25 @@ for event in events :
         
     if options.isMC and options.semilep is not None :
 
-        # Get AK4 gen jet information
-        #genBJets = []
-        #event.getByLabel( ak4MatchedGenJetPtLabel, ak4MatchedGenJetPtHandle )
-        #if ak4MatchedGenJetPtHandle.isValid() :
-        #    event.getByLabel( ak4MatchedGenJetEtaLabel, ak4MatchedGenJetEtaHandle )
-        #    event.getByLabel( ak4MatchedGenJetPhiLabel, ak4MatchedGenJetPhiHandle )
-        #    event.getByLabel( ak4MatchedGenJetEnergyLabel, ak4MatchedGenJetEnergyHandle )
-        #    
-        #    ak4GenJetPt   = ak4MatchedGenJetPtHandle.product()
-        #    ak4GenJetEta  = ak4MatchedGenJetEtaHandle.product()
-        #    ak4GenJetPhi  = ak4MatchedGenJetPhiHandle.product()
-        #    ak4GenJetE    = ak4MatchedGenJetEnergyHandle.product()
-        #
-        #    # loop over AK4 gen jets
-        #    if len(ak4GenJetPt) != 0:
-        #        for iak4 in xrange( len(ak4GenJetPt) ) :
-        #            if ak4GenJetPt[iak4] > MIN_JET_PT and abs(ak4GenJetEta[iak4]) < MAX_JET_ETA :
-        #                p4 = ROOT.TLorentzVector()
-        #                p4.SetPtEtaPhiE( ak4GenJetPt[iak4], ak4GenJetEta[iak4], ak4GenJetPhi[iak4], ak4GenJetE[iak4] )
-        #                genBJets.append(p4)
-
         # Get AK8 gen jet information
         genTops = []
         event.getByLabel( ak8GenJetPtLabel, ak8GenJetPtHandle )
         if ak8GenJetPtHandle.isValid() :
             event.getByLabel( ak8GenJetEtaLabel, ak8GenJetEtaHandle )
             event.getByLabel( ak8GenJetPhiLabel, ak8GenJetPhiHandle )
-            event.getByLabel( ak8GenJetMassLabel, ak8GenJetMassHandle )
+            event.getByLabel( ak8GenJetELabel, ak8GenJetEHandle )
             
             ak8GenJetPt   = ak8GenJetPtHandle.product()
             ak8GenJetEta  = ak8GenJetEtaHandle.product()
             ak8GenJetPhi  = ak8GenJetPhiHandle.product()
-            ak8GenJetMass = ak8GenJetMassHandle.product()
+            ak8GenJetE    = ak8GenJetEHandle.product()
                 
             # loop over AK8 gen jets
             if len(ak8GenJetPt) != 0:
                 for iak8 in xrange( len(ak8GenJetPt) ) :
-                    if abs(ak8GenJetEta[iak8]) < MAX_JET_ETA and ak8GenJetMass[iak8] > MIN_TOP_MASS and ak8GenJetMass[iak8] < MAX_TOP_MASS: # no pt cut
-                        p4 = ROOT.TLorentzVector()
-                        p4.SetPtEtaPhiM( ak8GenJetPt[iak8], ak8GenJetEta[iak8], ak8GenJetPhi[iak8], ak8GenJetMass[iak8] )
+                    p4 = ROOT.TLorentzVector()
+                    p4.SetPtEtaPhiE( ak8GenJetPt[iak8], ak8GenJetEta[iak8], ak8GenJetPhi[iak8], ak8GenJetE[iak8] )
+                    if abs(ak8GenJetEta[iak8]) < MAX_JET_ETA and p4.M() > MIN_TOP_MASS and p4.M() < MAX_TOP_MASS: # no pt cut                              
                         genTops.append(p4)
 
         # -------------------------------------------------------------------------------------
@@ -1247,22 +1208,6 @@ for event in events :
 
         if len(genTops) >= 1 and (len(partMu) + len(partEl)) >= 1:
             nPassParticle += 1
-            #if options.fullTruth:
-            #    genAK8jetPt.push_back(genTops[0].Perp())
-            #    genAK8jetEta.push_back(genTops[0].Eta())
-            #    genAK8jetPhi.push_back(genTops[0].Phi())
-            #    genAK8jetMass.push_back(genTops[0].M())
-            #    if len(partMu) != 0:
-            #        partMuPt.push_back(partMu[0].Perp())
-            #    if len(partEl) != 0:
-            #        partElPt.push_back(partEl[0].Perp())
-
-            ##else :
-            #for ibjet in genBJets :
-            #    genAK4jetPt.push_back(ibjet.Perp())
-            #    genAK4jetEta.push_back(ibjet.Eta())
-            #    genAK4jetPhi.push_back(ibjet.Phi())
-            #    genAK4jetMass.push_back(ibjet.M())
 
             for itjet in genTops :
                 genAK8jetPt.push_back(itjet.Perp())
@@ -1388,87 +1333,78 @@ for event in events :
     # -------------------------------
     # Require met filter
     # -------------------------------
-
-    # Set false later if any filter fails -- for HBHE check both METUserData and separate HBHE filter
+    
     metFilt = True
-    hbheFilt = True
-    #metFilt = False
-    #hbheFilt = False
-
-    gotName = event.getByLabel( metFilterNameLabel, metFilterNameHandle )
     gotBits = event.getByLabel( metFilterBitsLabel, metFilterBitsHandle )
-    gotHBHE = event.getByLabel( HBHEfilterLabel, HBHEfilterHandle )
 
-    if gotName == False or gotBits == False  :
+    if gotBits == False  :
+        print 'No MET filter bits!'
+        metFilt = False
         passReco = False
         if not options.fullTruth:
             continue
 
     else :
-        filterNameStrings = metFilterNameHandle.product()
         filterBits = metFilterBitsHandle.product()
 
-        hbheFilt = HBHEfilterHandle.product()[0]
-
         for itrig in xrange(0, len(filterNameStrings) ) :
-            if any(s in filterNameStrings[itrig] for s in ("globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 0:
+            if any(s in filterNameStrings[itrig] for s in ("HBHENoiseFilter","HBHENoiseIsoFilter","globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[itrig] == 0:
                 if options.debug :
                     print 'MET filter fails: ' + filterNameStrings[itrig]
                 metFilt = False
 
-            if "HBHE" in filterNameStrings[itrig] and filterBits[itrig] == 0:
-                if options.debug :
-                    print 'MET filter fails: ' + filterNameStrings[itrig]
-                hbheFilt = False
+    # Now check additional MET filters
+    event.getByLabel(BadChargedCandidateFilterLabel, BadChargedCandidateFilterHandle)
+    badChargedCandidateFilter = BadChargedCandidateFilterHandle.product()
+    event.getByLabel(BadPFMuonFilterLabel, BadPFMuonFilterHandle)
+    badPFMuonFilter = BadPFMuonFilterHandle.product()
+    
+    if not (badChargedCandidateFilter and badPFMuonFilter):
+        metFilt = False
 
-        if hbheFilt == False or metFilt == False :
-            passReco = False
-            if not options.fullTruth:
-                continue
-        else :
-            nPassMetFilter += 1
+    if metFilt == False :
+        passReco = False
+        if not options.fullTruth:
+            continue
+    else :
+        nPassMetFilter += 1
                 
     # -------------------------------
-    # Require a trigger if data
+    # Require a trigger if MC
     # -------------------------------
 
-    passMuTrig = True
-    passElTrig = True
+    passMuTrig = False
+    passElTrig = False
+    prescale = 1.0
     
-    if not options.isMC :    # 80X does not have trigger stored for MC
-        passMuTrig = False
-        passElTrig = False
-        prescale = 1.0       # We expect trigger prescales to be 1.0, but will store prescale just in case
+    event.getByLabel( trigBitsLabel, trigBitsHandle )
+    event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
+    
+    triggerBits = trigBitsHandle.product()
+    triggerPrescales = trigPrescalesHandle.product()
+    
+    trigToRun = None
+    for itrig in xrange(0, len(triggerBits) ) :
+        if triggerBits[itrig] != 1 :
+            continue
+        trigName = triggerNameStrings[itrig]
+        if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
+            passElTrig = True
+            prescale = prescale * triggerPrescales[itrig]
+            h_elPrescale.Fill(triggerPrescales[itrig])
+        if "HLT_Mu45_eta2p1" in trigName :
+            passMuTrig = True
+            prescale = prescale * triggerPrescales[itrig]
+            h_muPrescale.Fill(triggerPrescales[itrig])
             
-        event.getByLabel( trigNameLabel, trigNameHandle )
-        event.getByLabel( trigBitsLabel, trigBitsHandle )
-        event.getByLabel( trigPrescalesLabel, trigPrescalesHandle )
-    
-        triggerNames = trigNameHandle.product()
-        triggerBits = trigBitsHandle.product()
-        triggerPrescales = trigPrescalesHandle.product()
-    
-        for itrig in xrange(0, len(triggerBits) ) :
-            if triggerBits[itrig] != 1 : #Only looking for passing triggers
-                continue
-            trigName = triggerNames[itrig]
-            if "HLT_Ele45_CaloIdVT_GsfTrkIdT_PFJet200_PFJet50" in trigName :
-                passElTrig = True
-                prescale = prescale * triggerPrescales[itrig]
-                h_elPrescale.Fill(triggerPrescales[itrig])
-            if "HLT_Mu45_eta2p1" in trigName :
-                passMuTrig = True
-                prescale = prescale * triggerPrescales[itrig]
-                h_muPrescale.Fill(triggerPrescales[itrig])
-            
-        weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
-        weight_puUp = weight_puUp * prescale 
-        weight_puDown = weight_puDown * prescale
+    weight_nom = weight_nom * prescale #Currently prescale has both mu and el prescales if both triggers fired
+    weight_puUp = weight_puUp * prescale 
+    weight_puDown = weight_puDown * prescale
 
-        if (options.muOrEl is "mu") and not passMuTrig: #Note: since this is for data only, it is already 'not options.fullTruth'
-            continue
-        if (options.muOrEl is "el") and not passElTrig:
-            continue
+    if options.muOrEl is "mu" and not passMuTrig:
+        continue
+    if options.muOrEl is "el" and not passElTrig:
+        continue
     
     # -------------------------------------------------------------------------------------
     # read event rho value
@@ -1518,10 +1454,6 @@ for event in events :
         electronHoEs = electronHoEHandle.product()
         event.getByLabel (electronooEmooPLabel, electronooEmooPHandle)
         electronooEmooPs = electronooEmooPHandle.product()
-        event.getByLabel (electronD0Label, electronD0Handle)
-        electronD0s = electronD0Handle.product()
-        event.getByLabel (electronDzLabel, electronDzHandle)
-        electronDzs = electronDzHandle.product()
         event.getByLabel (electronMiniIsoLabel, electronMiniIsoHandle)
         electronMiniIsos = electronMiniIsoHandle.product()
         event.getByLabel (electronSCEtaLabel, electronSCEtaHandle)
@@ -1530,6 +1462,10 @@ for event in events :
         electronMissingHits = electronMissHitsHandle.product()
         event.getByLabel (electronConVetoLabel, electronConVetoHandle)
         isElectronConVeto = electronConVetoHandle.product()
+        event.getByLabel (electronMediumNoIsoLabel, electronMediumNoIsoHandle)
+        isElectronMediumNoIso = electronMediumNoIsoHandle.product()
+        event.getByLabel (electronTightNoIsoLabel, electronTightNoIsoHandle)
+        isElectronTightNoIso = electronTightNoIsoHandle.product()
 
         event.getByLabel (elKeyLabel, elKeyHandle)
         elKeys = elKeyHandle.product()
@@ -1544,54 +1480,48 @@ for event in events :
             nEleRaw += 1.0
             manualEisMedium = False
             if abs( electronSCEtas[ielectronPt] ) <= 1.479 :
-                if abs(electronDEtaIns[ielectronPt]) < 0.0103 :
-                    if abs(electronDPhiIns[ielectronPt] ) < 0.0336 :
-                        if electronFull5x5siees[ielectronPt] < 0.0101 :
-                            if electronHoEs[ielectronPt] <  0.0876 :
-                                if abs(electronD0s[ielectronPt]) < 0.0118 :
-                                    if abs(electronDzs[ielectronPt]) <  0.373 :
-                                        if electronooEmooPs[ielectronPt] <  0.0174 :
-                                            if electronMissingHits[ielectronPt] <= 2 :
-                                                if not isElectronConVeto[ielectronPt] :
-                                                    manualEisMedium = True
+                if abs(electronDEtaIns[ielectronPt]) < 0.00311 :
+                    if abs(electronDPhiIns[ielectronPt] ) < 0.103 :
+                        if electronFull5x5siees[ielectronPt] < 0.00998 :
+                            if electronHoEs[ielectronPt] <  0.253 :
+                                if electronooEmooPs[ielectronPt] <  0.134 :
+                                    if electronMissingHits[ielectronPt] <= 1:
+                                        if not isElectronConVeto[ielectronPt] :
+                                            manualEisMedium = True
             else :
-                if abs(electronDEtaIns[ielectronPt]) < 0.00733 :
-                    if abs(electronDPhiIns[ielectronPt] ) < 0.114 :
-                        if electronFull5x5siees[ielectronPt] < 0.0283 :
-                            if electronHoEs[ielectronPt] <  0.0678 :
-                                if abs(electronD0s[ielectronPt]) < 0.0739 :
-                                    if abs(electronDzs[ielectronPt]) <  0.602 :
-                                        if electronooEmooPs[ielectronPt] <  0.0898 :
-                                            if electronMissingHits[ielectronPt] <= 1 :
-                                                if not isElectronConVeto[ielectronPt] :
-                                                    manualEisMedium = True
+                if abs(electronDEtaIns[ielectronPt]) < 0.00609 :
+                    if abs(electronDPhiIns[ielectronPt] ) < 0.045 :
+                        if electronFull5x5siees[ielectronPt] < 0.0298 :
+                            if electronHoEs[ielectronPt] <  0.0878 :
+                                if electronooEmooPs[ielectronPt] <  0.13 :
+                                    if electronMissingHits[ielectronPt] <= 1:
+                                        if not isElectronConVeto[ielectronPt] :
+                                            manualEisMedium = True
                                             
             manualEisTight = False
             if abs( electronSCEtas[ielectronPt] ) <= 1.479 :
-                if abs(electronDEtaIns[ielectronPt]) < 0.00926 :
-                    if abs(electronDPhiIns[ielectronPt] ) < 0.0336 :
-                        if electronFull5x5siees[ielectronPt] < 0.0101 :
-                            if electronHoEs[ielectronPt] <  0.0597 :
-                                if abs(electronD0s[ielectronPt]) < 0.0111 :
-                                    if abs(electronDzs[ielectronPt]) <  0.0466 :
-                                        if electronooEmooPs[ielectronPt] <  0.012 :
-                                            if electronMissingHits[ielectronPt] <= 2:
-                                                if not isElectronConVeto[ielectronPt] :
-                                                    manualEisTight = True
+                if abs(electronDEtaIns[ielectronPt]) < 0.00308 :
+                    if abs(electronDPhiIns[ielectronPt] ) < 0.0816 :
+                        if electronFull5x5siees[ielectronPt] < 0.00998 :
+                            if electronHoEs[ielectronPt] <  0.0414 :
+                                if electronooEmooPs[ielectronPt] <  0.0129 :
+                                    if electronMissingHits[ielectronPt] <= 1:
+                                        if not isElectronConVeto[ielectronPt]:
+                                            manualEisTight = True
             else :
-                if abs(electronDEtaIns[ielectronPt]) < 0.00724 :
-                    if abs(electronDPhiIns[ielectronPt] ) < 0.0918 :
-                        if electronFull5x5siees[ielectronPt] < 0.0279 :
-                            if electronHoEs[ielectronPt] <  0.0615 :
-                                if abs(electronD0s[ielectronPt]) < 0.0351 :
-                                    if abs(electronDzs[ielectronPt]) <  0.417 :
-                                        if electronooEmooPs[ielectronPt] <  0.00999 :
-                                            if electronMissingHits[ielectronPt] <= 1:
-                                                if not isElectronConVeto[ielectronPt]:
-                                                    manualEisTight = True
+                if abs(electronDEtaIns[ielectronPt]) < 0.00605 :
+                    if abs(electronDPhiIns[ielectronPt] ) < 0.0394 :
+                        if electronFull5x5siees[ielectronPt] < 0.0292 :
+                            if electronHoEs[ielectronPt] <  0.0641 :
+                                if electronooEmooPs[ielectronPt] <  0.0129 :
+                                    if electronMissingHits[ielectronPt] <= 1:
+                                        if not isElectronConVeto[ielectronPt] :
+                                            manualEisTight = True
                                             
             eIsTight = isElectronTight[ielectronPt]
             eIsMedium = isElectronMedium[ielectronPt]
+            eIsTightNoIso = isElectronTightNoIso[ielectronPt]
+            eIsMediumNoIso = isElectronMediumNoIso[ielectronPt]
             
             if eIsMedium and not manualEisMedium :
                 nMediumNotManualEl += 1.0
@@ -1601,6 +1531,31 @@ for event in events :
                 nTightNotManualEl += 1.0
             if manualEisTight and not eIsTight :
                 nManualNotTightEl += 1.0
+
+            if manualEisMedium and not eIsMediumNoIso :
+                print 'Medium manual cuts do not match no iso'
+                print 'electron abs(eta): ' + str(abs(electronSCEtas[ielectronPt]))
+                print 'full5x5_sigmaIetaIeta: ' + str(electronFull5x5siees[ielectronPt])
+                print 'abs(dEtaInSeed): ' + str(abs(electronDEtaIns[ielectronPt]))
+                print 'abs(dPhiIn): ' + str(abs(electronDPhiIns[ielectronPt]))
+                print 'H/E: '+ str(electronHoEs[ielectronPt])
+                print 'abs(1/E-1/p): ' + str(electronooEmooPs[ielectronPt])
+                print 'expected missing inner hits: ' + str(electronMissingHits[ielectronPt])
+                nManualNotMediumNoIsoEl += 1.0
+            if manualEisTight and not eIsTightNoIso :
+                print 'Tight manual cuts do not match no iso'
+                print 'electron abs(eta): ' + str(abs(electronSCEtas[ielectronPt]))
+                print 'full5x5_sigmaIetaIeta: ' + str(electronFull5x5siees[ielectronPt])
+                print 'abs(dEtaInSeed): ' + str(abs(electronDEtaIns[ielectronPt]))
+                print 'abs(dPhiIn): ' + str(abs(electronDPhiIns[ielectronPt]))
+                print 'H/E: '+ str(electronHoEs[ielectronPt])
+                print 'abs(1/E-1/p): ' + str(electronooEmooPs[ielectronPt])
+                print 'expected missing inner hits: ' + str(electronMissingHits[ielectronPt])
+                nManualNotTightNoIsoEl += 1.0
+            if eIsMediumNoIso and not manualEisMedium :
+                nMediumNoIsoNotManual += 1.0
+            if eIsTightNoIso and not manualEisTight :
+                nTightNoIsoNotManual += 1.0
 
             if not manualEisMedium :
                 continue
@@ -1721,7 +1676,7 @@ for event in events :
                 muTight.push_back(0)
                 
     # -------------------------------------------------------------------------------------
-    # check that we have exactly one lepton candidate
+    # check that we have at least one lepton candidate
     # -------------------------------------------------------------------------------------
 
     if not ((passMuTrig and len(muCand) == 1 and len(elCand) == 0) or (passElTrig and len(elCand) == 1 and len(muCand) == 0)):
@@ -1758,8 +1713,8 @@ for event in events :
         ak4JetEtas = ak4JetEtaHandle.product()
         event.getByLabel (ak4JetPhiLabel, ak4JetPhiHandle)
         ak4JetPhis = ak4JetPhiHandle.product()
-        event.getByLabel (ak4JetMassLabel, ak4JetMassHandle)
-        ak4JetMasss = ak4JetMassHandle.product()
+        event.getByLabel (ak4JetELabel, ak4JetEHandle)
+        ak4JetEs = ak4JetEHandle.product()
         event.getByLabel (ak4JetCSVLabel, ak4JetCSVHandle)
         ak4JetCSVs = ak4JetCSVHandle.product()
         event.getByLabel (ak4JetVtxMassLabel, ak4JetVtxMassHandle)
@@ -1768,18 +1723,18 @@ for event in events :
         ak4JetAreas = ak4JetAreaHandle.product()
 
         # variables needed for jet ID 
-        event.getByLabel( ak4JetNeuHadEnergyLabel, ak4JetNeuHadEnergyHandle )
-        event.getByLabel( ak4JetNeuEmEnergyLabel, ak4JetNeuEmEnergyHandle )
-        event.getByLabel( ak4JetChHadEnergyLabel, ak4JetChHadEnergyHandle )
-        event.getByLabel( ak4JetChEmEnergyLabel, ak4JetChEmEnergyHandle )
-        event.getByLabel( ak4JetNumDaughterLabel, ak4JetNumDaughterHandle )
+        event.getByLabel( ak4JetNeuHadEnergyFracLabel, ak4JetNeuHadEnergyFracHandle )
+        event.getByLabel( ak4JetNeuEmEnergyFracLabel, ak4JetNeuEmEnergyFracHandle )
+        event.getByLabel( ak4JetChHadEnergyFracLabel, ak4JetChHadEnergyFracHandle )
+        event.getByLabel( ak4JetChEmEnergyFracLabel, ak4JetChEmEnergyFracHandle )
+        event.getByLabel( ak4JetNeuMultiLabel, ak4JetNeuMultiHandle )
         event.getByLabel( ak4JetChMultiLabel, ak4JetChMultiHandle )
 
-        ak4JetNeuHadEnergys = ak4JetNeuHadEnergyHandle.product()
-        ak4JetNeuEmEnergys = ak4JetNeuEmEnergyHandle.product()
-        ak4JetChHadEnergys = ak4JetChHadEnergyHandle.product()
-        ak4JetChEmEnergys = ak4JetChEmEnergyHandle.product()
-        ak4JetNumDaughters = ak4JetNumDaughterHandle.product()
+        ak4JetNeuHadEnergyFracs = ak4JetNeuHadEnergyFracHandle.product()
+        ak4JetNeuEmEnergyFracs = ak4JetNeuEmEnergyFracHandle.product()
+        ak4JetChHadEnergyFracs = ak4JetChHadEnergyFracHandle.product()
+        ak4JetChEmEnergyFracs = ak4JetChEmEnergyFracHandle.product()
+        ak4JetNeuMultis = ak4JetNeuMultiHandle.product()
         ak4JetChMultis = ak4JetChMultiHandle.product()
 
         # applied JEC
@@ -1828,17 +1783,17 @@ for event in events :
 
             # jet IDs must be calculated prior to JECs, so remove them 
             jetP4Pre = ROOT.TLorentzVector()
-            jetP4Pre.SetPtEtaPhiM( ak4JetPts[ijet], ak4JetEtas[ijet], ak4JetPhis[ijet], ak4JetMasss[ijet] )
+            jetP4Pre.SetPtEtaPhiE( ak4JetPts[ijet], ak4JetEtas[ijet], ak4JetPhis[ijet], ak4JetEs[ijet] )
 
             # get the raw jet energy
             jetP4Raw = jetP4Pre * ak4JetJECs[ijet]
 
             # calculate the neutral/charged hadron/em energy fractions
-            nhf = ak4JetNeuHadEnergys[ijet] / jetP4Raw.E()
-            nef = ak4JetNeuEmEnergys[ijet] / jetP4Raw.E()
-            chf = ak4JetChHadEnergys[ijet] / jetP4Raw.E()
-            cef = ak4JetChEmEnergys[ijet] / jetP4Raw.E()
-            nconstituents = ak4JetNumDaughters[ijet]
+            nhf = ak4JetNeuHadEnergyFracs[ijet]
+            nef = ak4JetNeuEmEnergyFracs[ijet]
+            chf = ak4JetChHadEnergyFracs[ijet]
+            cef = ak4JetChEmEnergyFracs[ijet]
+            nconstituents = ak4JetNeuMultis[ijet] + ak4JetChMultis[ijet]
             nchmult = ak4JetChMultis[ijet] 
 
             # require loose jet ID
@@ -1852,10 +1807,13 @@ for event in events :
             for ilep in xrange( len(lepCand) ) :
                 if lepCand[ilep].DeltaR(jetP4Raw) < 0.4 :
                     # check jet daughters close to the lepton
-                    pfcands = int(ak4JetNumDaughters[ijet])
-                    for ipf in range(0, pfcands) :
+                    #pfcands = int(nconstituents)
+                    #for ipf in range(0, pfcands) :
+                    ak4daughters = ak4JetKeys[ijet]
+                    for daughterKey in ak4daughters :
                         # if jet daughter matches lepton, remove lepton p4 from (raw) jet p4
-                        if ak4JetKeys[ijet][ipf] in lepCandKey[ilep]: 
+                        #if ak4JetKeys[ijet][ipf] in lepCandKey[ilep]: 
+                        if daughterKey in lepCandKey[ilep]:
                             if options.debug:
                                 print 'Event {0:d}, removing lepton with pt/eta/phi = {1:6.2f},{2:6.2f},{3:6.2f} from AK4 jet with pt/eta/phi = {4:6.2f},{5:6.2f},{6:6.2f}'.format(ntotal,lepCand[ilep].Perp(),lepCand[ilep].Eta(),lepCand[ilep].Phi(),jetP4Raw.Perp(), jetP4Raw.Eta(), jetP4Raw.Phi())
                             if lepCand[ilep].E() > jetP4Raw.E() :
@@ -1899,7 +1857,6 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
-                rescaledAK4 = False
                 if ak4MatchedGenJetPts[ijet] > 0:
                     genJetP4 = ROOT.TLorentzVector()
                     genJetP4.SetPtEtaPhiE(ak4MatchedGenJetPts[ijet],ak4MatchedGenJetEtas[ijet],ak4MatchedGenJetPhis[ijet],ak4MatchedGenJetEnergys[ijet])
@@ -1913,20 +1870,15 @@ for event in events :
                         jetP4_JERdown = jetP4 - genJetP4
                         jetP4_JERdown *= ak4JERSFdowns[ijet]
                         jetP4_JERdown += genJetP4
-                        rescaledAK4 = True
-                
-                if not rescaledAK4:
-                    if ak4JERSFnoms[ijet] > 1.0:
-                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)*ak4JERs[ijet]))
-                    if ak4JERSFups[ijet] > 1.0:
-                        jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)*ak4JERs[ijet]))
-                    else :
-                        jetP4_JERup = jetP4
-                    if ak4JERSFdowns[ijet] > 1.0:
-                        jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)*ak4JERs[ijet]))
                     else:
-                        jetP4_JERdown = jetP4
-                
+                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1))*ak4JERs[ijet]))
+                        jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1))*ak4JERs[ijet]))
+                        jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1))*ak4JERs[ijet]))
+                else:
+                    jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1))*ak4JERs[ijet]))
+                    jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1))*ak4JERs[ijet]))
+                    jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1))*ak4JERs[ijet]))
+
             metv -= jetP4
 
             if jetP4.Perp() > 15. and abs(jetP4.Eta()) < 3.0:
@@ -2075,10 +2027,8 @@ for event in events :
         ak8JetPhi = ak8JetPhiHandle.product()
         event.getByLabel (ak8JetEtaLabel, ak8JetEtaHandle)
         ak8JetEta = ak8JetEtaHandle.product()
-        event.getByLabel (ak8JetYLabel, ak8JetYHandle)
-        ak8JetY = ak8JetYHandle.product()
-        event.getByLabel (ak8JetMassLabel, ak8JetMassHandle)
-        ak8JetMass = ak8JetMassHandle.product()
+        event.getByLabel (ak8JetELabel, ak8JetEHandle)
+        ak8JetE = ak8JetEHandle.product()
         event.getByLabel (ak8JetTrimMassLabel, ak8JetTrimMassHandle)
         ak8JetTrimMass = ak8JetTrimMassHandle.product()
         event.getByLabel (ak8JetPrunMassLabel, ak8JetPrunMassHandle)
@@ -2107,10 +2057,8 @@ for event in events :
         sjSoftDropEta  = sjSoftDropEtaHandle.product()
         event.getByLabel(sjSoftDropPhiLabel, sjSoftDropPhiHandle)
         sjSoftDropPhi  = sjSoftDropPhiHandle.product()
-        event.getByLabel(sjSoftDropYLabel, sjSoftDropYHandle)
-        sjSoftDropY    = sjSoftDropYHandle.product()
-        event.getByLabel(sjSoftDropMassLabel, sjSoftDropMassHandle)
-        sjSoftDropMass = sjSoftDropMassHandle.product()
+        event.getByLabel(sjSoftDropELabel, sjSoftDropEHandle)
+        sjSoftDropE    = sjSoftDropEHandle.product()
         event.getByLabel(sjSoftDropCSVLabel, sjSoftDropCSVHandle)
         sjSoftDropCSV  = sjSoftDropCSVHandle.product()
 
@@ -2119,18 +2067,18 @@ for event in events :
         event.getByLabel( ak8JetJECLabel, ak8JetJECHandle )
         ak8JetJECs = ak8JetJECHandle.product()
 
-        event.getByLabel( ak8JetNeuHadEnergyLabel, ak8JetNeuHadEnergyHandle )
-        event.getByLabel( ak8JetNeuEmEnergyLabel, ak8JetNeuEmEnergyHandle )
-        event.getByLabel( ak8JetChHadEnergyLabel, ak8JetChHadEnergyHandle )
-        event.getByLabel( ak8JetChEmEnergyLabel, ak8JetChEmEnergyHandle )
-        event.getByLabel( ak8JetNumDaughterLabel, ak8JetNumDaughterHandle )
+        event.getByLabel( ak8JetNeuHadEnergyFracLabel, ak8JetNeuHadEnergyFracHandle )
+        event.getByLabel( ak8JetNeuEmEnergyFracLabel, ak8JetNeuEmEnergyFracHandle )
+        event.getByLabel( ak8JetChHadEnergyFracLabel, ak8JetChHadEnergyFracHandle )
+        event.getByLabel( ak8JetChEmEnergyFracLabel, ak8JetChEmEnergyFracHandle )
+        event.getByLabel( ak8JetNeuMultiLabel, ak8JetNeuMultiHandle )
         event.getByLabel( ak8JetChMultiLabel, ak8JetChMultiHandle )
 
-        ak8JetNeuHadEnergys = ak8JetNeuHadEnergyHandle.product()
-        ak8JetNeuEmEnergys = ak8JetNeuEmEnergyHandle.product()
-        ak8JetChHadEnergys = ak8JetChHadEnergyHandle.product()
-        ak8JetChEmEnergys = ak8JetChEmEnergyHandle.product()
-        ak8JetNumDaughters = ak8JetNumDaughterHandle.product()
+        ak8JetNeuHadEnergyFracs = ak8JetNeuHadEnergyFracHandle.product()
+        ak8JetNeuEmEnergyFracs = ak8JetNeuEmEnergyFracHandle.product()
+        ak8JetChHadEnergyFracs = ak8JetChHadEnergyFracHandle.product()
+        ak8JetChEmEnergyFracs = ak8JetChEmEnergyFracHandle.product()
+        ak8JetNeuMultis = ak8JetNeuMultiHandle.product()
         ak8JetChMultis = ak8JetChMultiHandle.product()
 
         event.getByLabel(ak8MatchedGenJetPtLabel, ak8MatchedGenJetPtHandle)
@@ -2162,17 +2110,17 @@ for event in events :
             
             # jet IDs must be calculated prior to JECs, so remove them 
             AK8jetP4Pre = ROOT.TLorentzVector()
-            AK8jetP4Pre.SetPtEtaPhiM( ak8JetPt[ijet], ak8JetEta[ijet], ak8JetPhi[ijet], ak8JetMass[ijet] )
+            AK8jetP4Pre.SetPtEtaPhiE( ak8JetPt[ijet], ak8JetEta[ijet], ak8JetPhi[ijet], ak8JetE[ijet] )
 
             # get the raw jet energy
             AK8jetP4Raw = AK8jetP4Pre * ak8JetJECs[ijet]
 
             # calculate the neutral/charged hadron/em energy fractions
-            AK8nhf = ak8JetNeuHadEnergys[ijet] / AK8jetP4Raw.E()
-            AK8nef = ak8JetNeuEmEnergys[ijet] / AK8jetP4Raw.E()
-            AK8chf = ak8JetChHadEnergys[ijet] / AK8jetP4Raw.E()
-            AK8cef = ak8JetChEmEnergys[ijet] / AK8jetP4Raw.E()
-            AK8nconstituents = ak8JetNumDaughters[ijet]
+            AK8nhf = ak8JetNeuHadEnergyFracs[ijet]
+            AK8nef = ak8JetNeuEmEnergyFracs[ijet]
+            AK8chf = ak8JetChHadEnergyFracs[ijet]
+            AK8cef = ak8JetChEmEnergyFracs[ijet]
+            AK8nconstituents = ak8JetNeuMultis[ijet] + ak8JetChMultis[ijet]
             AK8nchmult = ak8JetChMultis[ijet] 
 
             # require loose jet ID
@@ -2186,10 +2134,13 @@ for event in events :
             for ilep in xrange( len(lepCand) ) :
                 if lepCand[ilep].DeltaR(AK8jetP4Raw) < 0.4 :
                     # check jet daughters close to the lepton
-                    pfcands = int(ak8JetNumDaughters[ijet])
-                    for ipf in range(0, pfcands) :
+                    #pfcands = int(ak8JetNumDaughters[ijet])
+                    #for ipf in range(0, pfcands) :
+                    ak8daughters = ak8JetKeys[ijet]
+                    for daughterKey in ak8daughters :
                         # if jet daughter matches lepton, remove lepton p4 from (raw) jet p4
-                        if ak8JetKeys[ijet][ipf] in lepCandKey[ilep]:
+                        #if ak8JetKeys[ijet][ipf] in lepCandKey[ilep]:
+                        if daughterKey in lepCandKey[ilep]:
                             if options.debug:
                                 print 'Event {0:d}, removing lepton with pt/eta/phi = {1:6.2f},{2:6.2f},{3:6.2f} from AK8 jet with pt/eta/phi = {4:6.2f},{5:6.2f},{6:6.2f}'.format(ntotal,lepCand[ilep].Perp(),lepCand[ilep].Eta(),lepCand[ilep].Phi(),AK8jetP4Raw.Perp(), AK8jetP4Raw.Eta(), AK8jetP4Raw.Phi())
                             if lepCand[ilep].E() > AK8jetP4Raw.E() :
@@ -2233,11 +2184,10 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
-                rescaledAK8 = False
                 if ak8MatchedGenJetPts[ijet] > 0:
                     AK8genJetP4 = ROOT.TLorentzVector()
                     AK8genJetP4.SetPtEtaPhiE(ak8MatchedGenJetPts[ijet],ak8MatchedGenJetEtas[ijet],ak8MatchedGenJetPhis[ijet],ak8MatchedGenJetEnergys[ijet])
-                    if AK8jetP4.DeltaR(AK8genJetP4) < 0.4 and abs(AK8jetP4.Perp() - AK8genJetP4.Perp()) < (3 * ak8JERs[ijet] * AK8jetP4.Perp()) : # Do matching requirement
+                    if AK8jetP4.DeltaR(AK8genJetP4) < 0.2 and abs(AK8jetP4.Perp() - AK8genJetP4.Perp()) < (3 * ak8JERs[ijet] * AK8jetP4.Perp()) : # Do matching requirement
                         AK8jetP4 -= AK8genJetP4
                         AK8jetP4 *= ak8JERSFnoms[ijet]
                         AK8jetP4 += AK8genJetP4
@@ -2247,19 +2197,15 @@ for event in events :
                         AK8jetP4_JERdown = AK8jetP4 - AK8genJetP4
                         AK8jetP4_JERdown *= ak8JERSFdowns[ijet]
                         AK8jetP4_JERdown += AK8genJetP4
-                        rescaledAK8 = True
 
-                if not rescaledAK8:
-                    if ak8JERSFnoms[ijet] > 1.0:
-                        AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)*ak8JERs[ijet]))
-                    if ak8JERSFups[ijet] > 1.0:
-                        AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)*ak8JERs[ijet]))
                     else:
-                        AK8jetP4_JERup = AK8jetP4
-                    if ak8JERSFdowns[ijet] > 1.0:
-                        AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)*ak8JERs[ijet]))
-                    else:
-                        AK8jetP4_JERdown = AK8jetP4
+                        AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1))*ak8JERs[ijet]))
+                        AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1))*ak8JERs[ijet]))
+                        AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1))*ak8JERs[ijet]))
+                else:
+                    AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1))*ak8JERs[ijet]))
+                    AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1))*ak8JERs[ijet]))
+                    AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1))*ak8JERs[ijet]))
 
             metv -= AK8jetP4
 
@@ -2291,10 +2237,12 @@ for event in events :
             else :
                 ak8jetSDmass.push_back(-10.0)
             if int(ak8JetSDSj0[ijet]) >= 0 and int(ak8JetSDSj0[ijet]) < len(sjSoftDropPt) :
-                ak8jetSDsubjet0pt.push_back(sjSoftDropPt[int(ak8JetSDSj0[ijet])])
-                ak8jetSDsubjet0eta.push_back(sjSoftDropEta[int(ak8JetSDSj0[ijet])])
-                ak8jetSDsubjet0phi.push_back(sjSoftDropPhi[int(ak8JetSDSj0[ijet])])
-                ak8jetSDsubjet0mass.push_back(sjSoftDropMass[int(ak8JetSDSj0[ijet])])
+                sj0P4 = ROOT.TLorentzVector()
+                sj0P4.SetPtEtaPhiE(sjSoftDropPt[int(ak8JetSDSj0[ijet])],sjSoftDropEta[int(ak8JetSDSj0[ijet])],sjSoftDropPhi[int(ak8JetSDSj0[ijet])],sjSoftDropE[int(ak8JetSDSj0[ijet])])
+                ak8jetSDsubjet0pt.push_back(sj0P4.Perp())
+                ak8jetSDsubjet0eta.push_back(sj0P4.Eta())
+                ak8jetSDsubjet0phi.push_back(sj0P4.Phi())
+                ak8jetSDsubjet0mass.push_back(sj0P4.M())
                 ak8jetSDsubjet0CSV.push_back(sjSoftDropCSV[int(ak8JetSDSj0[ijet])])
             else :
                 ak8jetSDsubjet0pt.push_back(-10.0)
@@ -2303,10 +2251,12 @@ for event in events :
                 ak8jetSDsubjet0mass.push_back(-10.0)
                 ak8jetSDsubjet0CSV.push_back(-10.0)
             if int(ak8JetSDSj1[ijet]) >= 0 and int(ak8JetSDSj1[ijet]) < len(sjSoftDropPt) :
-                ak8jetSDsubjet1pt.push_back(sjSoftDropPt[int(ak8JetSDSj1[ijet])])
-                ak8jetSDsubjet1eta.push_back(sjSoftDropEta[int(ak8JetSDSj1[ijet])])
-                ak8jetSDsubjet1phi.push_back(sjSoftDropPhi[int(ak8JetSDSj1[ijet])])
-                ak8jetSDsubjet1mass.push_back(sjSoftDropMass[int(ak8JetSDSj1[ijet])])
+                sj1P4 = ROOT.TLorentzVector()
+                sj1P4.SetPtEtaPhiE(sjSoftDropPt[int(ak8JetSDSj1[ijet])],sjSoftDropEta[int(ak8JetSDSj1[ijet])],sjSoftDropPhi[int(ak8JetSDSj1[ijet])],sjSoftDropE[int(ak8JetSDSj1[ijet])])
+                ak8jetSDsubjet1pt.push_back(sj1P4.Perp())
+                ak8jetSDsubjet1eta.push_back(sj1P4.Eta())
+                ak8jetSDsubjet1phi.push_back(sj1P4.Phi())
+                ak8jetSDsubjet1mass.push_back(sj1P4.M())
                 ak8jetSDsubjet1CSV.push_back(sjSoftDropCSV[int(ak8JetSDSj1[ijet])])
             else :
                 ak8jetSDsubjet1pt.push_back(-10.0)
@@ -2372,6 +2322,13 @@ h_cutflow.Fill(8,nEventsPass)
 
 print 'Total Events:    ' + str(ntotal)
 print '-------------------------------'
+print 'Parton level breakdown:'
+print 'Muon channel: ' + str(nMuChParton)
+print 'Electron channel: ' + str(nElChParton)
+print 'Tau (only) channel: ' + str(nTauOnlyParton)
+print 'Dilepton channel: ' + str(nDilepParton)
+print 'Hadronic channel: ' + str(nHadParton)
+print '-------------------------------'
 print 'Pass nPV:        ' + str(nPassNPV)
 if options.semilep == 1:
     print 'Pass LHE:        ' + str(nPassLHE)
@@ -2391,6 +2348,12 @@ print 'Fraction of all medium electrons not passing twiki cuts: ' + str(nMediumN
 print 'Fraction of all electrons passing twiki cuts not medium: ' + str(nManualNotMediumEl / nEleRaw)
 print 'Fraction of all tight electrons not passing twiki cuts:  ' + str(nTightNotManualEl / nEleRaw)
 print 'Fraction of all electrons passing twiki cuts not tight:  ' + str(nManualNotTightEl / nEleRaw)
+print '-------------------------------'
+print 'Fraction of all medium no iso electrons not passing twiki cuts: ' + str(nMediumNoIsoNotManualEl / nEleRaw)
+print 'Fraction of all electrons passing twiki cuts not medium no iso: ' + str(nManualNotMediumNoIsoEl / nEleRaw)
+print 'Fraction of all tight no iso electrons not passing twiki cuts:  ' + str(nTightNoIsoNotManualEl / nEleRaw)
+print 'Fraction of all electrons passing twiki cuts not tight no iso:  ' + str(nManualNotTightNoIsoEl / nEleRaw)
+print '-------------------------------'
 print 'Fraction of all tight muons not passing twiki cuts:      ' + str(nTightNotManualMu / nMuRaw)
 print 'Fraction of all muons passing twiki cuts not tight:      ' + str(nManualNotTightMu / nMuRaw)
 print '-------------------------------'
