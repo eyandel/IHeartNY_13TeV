@@ -84,7 +84,7 @@ float getMuonSF( double eta, TH1F* h_muID, TH1F* h_muTrig, TString syst){
   else return SF_muID * eff_muTrig * getMuonTrkRecoSF(eta,"nom");
 };
 
-double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h_elReco, TString syst){
+double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h_elReco, TH1F* h_elTrig, TString syst){
 
   float myPt = pt;
   if (pt > 199.9) myPt = 199.9;
@@ -110,6 +110,11 @@ double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h
   float SF_elReco_errUp = h_elReco->GetBinErrorUp(ibin3);
   float SF_elReco_errDn = h_elReco->GetBinErrorLow(ibin3);
 
+  if (pt > 499.9) pt = 499.9;
+  int ibin4 = h_elTrig->GetXaxis()->FindBin(pt);
+  float eff_elTrig = h_elTrig->GetBinContent(ibin4);
+  float eff_elTrig_err = h_elTrig->GetBinError(ibin4);
+
   if (pt > 199.9) {
     SF_elID_errUp *= 2.0;
     SF_elID_errDn *= 2.0;
@@ -119,9 +124,9 @@ double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h
     SF_elReco_errDn *= 2.0;
   }
   
-  if (syst == "up") return (SF_elID + SF_elID_errUp) * (SF_elIso + SF_elIso_errUp) * (SF_elReco + SF_elReco_errUp);
-  else if (syst == "down") return (SF_elID - SF_elID_errDn) * (SF_elIso - SF_elIso_errDn) * (SF_elReco - SF_elReco_errDn);
-  else return SF_elID * SF_elIso * SF_elReco;
+  if (syst == "up") return (SF_elID + SF_elID_errUp) * (SF_elIso + SF_elIso_errUp) * (SF_elReco + SF_elReco_errUp) * (eff_elTrig + eff_elTrig_err);
+  else if (syst == "down") return (SF_elID - SF_elID_errDn) * (SF_elIso - SF_elIso_errDn) * (SF_elReco - SF_elReco_errDn) * (eff_elTrig - eff_elTrig_err);
+  else return SF_elID * SF_elIso * SF_elReco * eff_elTrig;
 };
 
 // ----------------------------------------------------------------------------------------------------------------
@@ -129,7 +134,7 @@ double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h
 // ----------------------------------------------------------------------------------------------------------------
 
 
-void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, bool isData = false, bool isSignal = false, TString lepID = "Medium", TString iso = "None", bool doHemiCuts = false, float metCut = 0.0, bool doTriangular = false, bool isQCD = false, TString systematic = "nom", int oddOrEven = 0, bool usePost = false) {
+void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, bool isData = false, bool isSignal = false, TString lepID = "Medium", TString iso = "None", bool doHemiCuts = false, float metCut = 0.0, bool doTriangular = false, bool isQCD = false, TString systematic = "nom", int oddOrEven = 0, int usePost = 0) {
   
   SetPlotStyle();
   TH1::AddDirectory(kFALSE);
@@ -370,6 +375,11 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH2F* h_elReco = (TH2F*) f_elReco->Get("EGamma_SF2D")->Clone();
   f_elReco->Close();
   delete f_elReco;
+
+  TFile* f_elTrig = TFile::Open("elTrigEff.root");
+  TH1F* h_elTrig = (TH1F*) f_elTrig->Get("eff_elPt")->Clone();
+  f_elTrig->Close();
+  delete f_elTrig;
   
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
@@ -1470,9 +1480,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       refLepMiniIso = goodElMiniIso;
       lepQ = elCharge->at(0);
       if (!isData) {
-      	if (systematic == "lepUp") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up");
-	else if (systematic == "lepDown") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down");
-	else weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom");
+      	if (systematic == "lepUp") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,h_elTrig,"up");
+	else if (systematic == "lepDown") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,h_elTrig,"down");
+	else weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,h_elTrig,"nom");
       }
     }
     
@@ -1602,9 +1612,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	else h_lepSF->Fill(getMuonSF(refLep.Eta(),h_muID,h_muTrig,"nom"));
       }
       if (channel == "el"){
-        if (systematic == "lepUp") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up"));
-        else if (systematic == "lepDown") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down"));
-        else h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom"));
+        if (systematic == "lepUp") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,h_elTrig,"up"));
+        else if (systematic == "lepDown") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,h_elTrig,"down"));
+        else h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,h_elTrig,"nom"));
       }
     }
     h_puWeight->Fill(eventWeight_nom->at(0));
@@ -1676,9 +1686,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     bool passTopTag = false;
     float toptagSF = 1.0;
     float toptagUnc = 0.5;
-    if (usePost) {
-      toptagSF = 1.11; //TODO
-      toptagUnc = 0.14;
+    if (usePost != 0) {
+      if (usePost == 1){
+	toptagSF = 0.96; //Posterior top-tag SF from combB fit
+	toptagUnc = 0.04;
+      }
+      else {
+	toptagSF = 0.82; //Posterior top-mis-tag SF from combB fit
+	toptagUnc = 0.05;
+      }
     }
     if (ak8jetSDmass->at(itopJetCand) > lowmasscut && ak8jetSDmass->at(itopJetCand) < highmasscut){
       nPassMassCut += 1;

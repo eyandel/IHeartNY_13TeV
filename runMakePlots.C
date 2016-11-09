@@ -18,7 +18,7 @@ void runMakePlots(TString toPlot = "final"){
   TString channels[2] = {"mu","el"};
   const int nregion = 4;
   TString regions[nregion] = {"Pre","0t","1t0b","1t1b"};
-  const int nhist = 28;
+  const int nhist = 29;
   TString hists[nhist] = {"metPt",
 			  "ht",
 			  "htLep",
@@ -45,6 +45,7 @@ void runMakePlots(TString toPlot = "final"){
 			  "lepPt",
 			  "lepEta",
 			  "lepAbsEta",
+			  "lepSignEta",
 			  "lepPhi",
 			  //"lepBJetdR",
 			  //"lepTJetdR",
@@ -161,42 +162,14 @@ void runMakePlots(TString toPlot = "final"){
   }
 
   if (toPlot == "combine"){
-    combineResults("mu","muA","pre");
-    combineResults("mu","muA","post");
-    combineResults("mu","muB","pre");
-    combineResults("mu","muB","post");
-    combineResults("mu","muC","pre");
-    combineResults("mu","muC","post");
-    combineResults("mu","muD","pre");
-    combineResults("mu","muD","post");
-    combineResults("mu","muE","pre");
-    combineResults("mu","muE","post");
-    combineResults("mu","muF","pre");
-    combineResults("mu","muF","post");
-    combineResults("mu","muG","pre");
-    combineResults("mu","muG","post");
-    combineResults("mu","muH","pre");
-    combineResults("mu","muH","post");
-    combineResults("el","elA","pre");
-    combineResults("el","elA","post");
-    combineResults("el","elB","pre");
-    combineResults("el","elB","post");
-    combineResults("el","elC","pre");
-    combineResults("el","elC","post");
-    combineResults("el","elD","pre");
-    combineResults("el","elD","post");
-    combineResults("el","elE","pre");
-    combineResults("el","elE","post");
-    combineResults("el","elF","pre");
-    combineResults("el","elF","post");
-    combineResults("el","elG","pre");
-    combineResults("el","elG","post");
-    combineResults("el","elH","pre");
-    combineResults("el","elH","post");
-    combineResults("mu","mu1","pre");
-    combineResults("mu","mu1","post");
-    combineResults("el","el1","pre");
-    combineResults("el","el1","post");
+    combineResults("mu","muB");
+    combineResults("el","elB");
+    combineResults("mu","combB");
+    combineResults("el","combB");
+    combineResults("mu","mu5");
+    combineResults("el","el5");
+    combineResults("mu","comb5");
+    combineResults("el","comb5");
 
   }
 

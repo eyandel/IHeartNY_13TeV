@@ -17,7 +17,9 @@
 // various declarations
 // -------------------------------------------------------------------------------------
 
-const double LUM[2] = {12358.75,12295.65}; //pb-1
+//const double LUM[2] = {12358.75,12295.65}; //pb-1
+// Missing small part of mu, el datasets -- rescale lumi by reduced fraction of events
+const double LUM[2] = {12337.98,12267.67}; //pb-1
 
 // -------------------------------------------------------------------------------------
 // helper class for summed, weighted histograms (e.g. single top)
@@ -241,7 +243,7 @@ SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, 
   if (channel == "el") ich = 1;
 
   TString ttbar_name = "PowhegPythia8_nonsemilep";
-  double ttbar_norm = 831.76 * LUM[ich] / 182123200.;
+  double ttbar_norm = 831.76 * LUM[ich] / 182075200.; //182123200 - 48000
   
   SummedHist* ttbar = new SummedHist( histname, kRed-7);
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + "_" + syst + append + ".root";
@@ -306,7 +308,7 @@ SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString ch
     347700. * LUM[ich] / 37828442., // Cross sections are from AN-15-136, which is a bit random and not actually correct for the samples I use
     32100. * LUM[ich] / 44058594.,  // Hopefully they are close enough...
     6831. * LUM[ich] / 29832311.,  
-    1207. * LUM[ich] / 4980387.,
+    1207. * LUM[ich] / 4963881., //4980387 - 16506 (missing file)
     119.9 * LUM[ich] / 7803965.,
     25.24 * LUM[ich] / 4047532.,
   };
