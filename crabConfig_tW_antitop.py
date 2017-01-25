@@ -9,12 +9,12 @@ config.General.transferLogs = True
 config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
-config.JobType.inputFiles = ['FrameworkJobReport.xml', 'execute_for_crab.py', 'iheartny_topxs_fwlite.py', 'JECs', 'pileup_reweight.root']
+config.JobType.inputFiles = ['FrameworkJobReport.xml', 'execute_for_crab.py', 'iheartny_topxs_fwlite.py', 'JECs', 'pileup_reweight_mu.root']
 config.JobType.outputFiles = ['test_iheartNY.root']
 config.JobType.scriptExe = 'execute_iheartNY_MC.sh'
 
 config.section_("Data")
-config.Data.inputDataset = '/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/knash-RunIISpring16MiniAODv2_B2GAnaFW_80x_V1p0_v2-4e74e3854bbd13b3866f4a57304f402f/USER'
+config.Data.inputDataset = ''
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 2

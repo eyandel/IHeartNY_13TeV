@@ -22,10 +22,10 @@
 
 using namespace std;
 
-void calcPUweight(){
-  TFile * F_data_PUnom       = new TFile( "MyDataPileupHistogram.root"                      );
-  TFile * F_data_PUup        = new TFile( "MyDataPileupHistogram_up.root"                      );
-  TFile * F_data_PUdown      = new TFile( "MyDataPileupHistogram_down.root"                      );
+void calcPUweight(TString channel){
+  TFile * F_data_PUnom       = new TFile( "MyDataPileupHistogram_"+channel+".root"                      );
+  TFile * F_data_PUup        = new TFile( "MyDataPileupHistogram_"+channel+"_up.root"                      );
+  TFile * F_data_PUdown      = new TFile( "MyDataPileupHistogram_"+channel+"_down.root"                      );
   TFile * F_MC               = new TFile( "pu.root" );
 
   TH1D * NPU_data_true       = (TH1D*) F_data_PUnom->Get("pileup");
@@ -90,7 +90,7 @@ void calcPUweight(){
 
   // Save weight in output file
   TFile *Out;
-  Out = new TFile("pileup_reweight.root","RECREATE");
+  Out = new TFile("pileup_reweight_"+channel+".root","RECREATE");
   Out->cd();
 
   NPU_data_true       ->Write();

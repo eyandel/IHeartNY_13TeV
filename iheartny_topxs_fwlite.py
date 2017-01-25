@@ -61,6 +61,11 @@ parser.add_option('--isMC', metavar='M', action='store_true',
                   dest='isMC',
                   help='Running on Monte Carlo')
 
+parser.add_option('--jecIOV', metavar='F', type='string', action='store',
+                  default=None,
+                  dest='jecIOV',
+                  help='Run period for JEC/JER (BCD,EF,G,H)')
+
 parser.add_option('--debug', metavar='M', action='store_true',
                   default=False,
                   dest='debug',
@@ -103,46 +108,46 @@ ROOT.gSystem.Load('libCondFormatsJetMETObjects')
 
 jetname = "chs"
 if options.usePuppi:
-    jetname = "puppi"
+    jetname = "Puppi"
 
 if options.isMC : 
-    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_L3Absolute_AK4PF'+jetname+'.txt')
     L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
-    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L2Relative_AK4PF'+jetname+'.txt')
+    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_L2Relative_AK4PF'+jetname+'.txt')
     L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
-    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_L1FastJet_AK4PF'+jetname+'.txt')
     L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
-    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_MC_Uncertainty_AK4PF'+jetname+'.txt')
+    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_Uncertainty_AK4PF'+jetname+'.txt')
     UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
-    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L3Absolute_AK8PF'+jetname+'.txt')
+    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_L3Absolute_AK8PF'+jetname+'.txt')
     L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
-    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L2Relative_AK8PF'+jetname+'.txt')
+    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_L2Relative_AK8PF'+jetname+'.txt')
     L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
-    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_L1FastJet_AK8PF'+jetname+'.txt')
+    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_L1FastJet_AK8PF'+jetname+'.txt')
     L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
-    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_MC_Uncertainty_AK8PF'+jetname+'.txt')
+    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016V2_MC/Spring16_23Sep2016V2_MC_Uncertainty_AK8PF'+jetname+'.txt')
     UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
     
 else :
-    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L3Absolute_AK4PF'+jetname+'.txt')
+    L3JecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L3Absolute_AK4PF'+jetname+'.txt')
     L3JetParAK4 = ROOT.JetCorrectorParameters(L3JecStrAK4)
-    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2Relative_AK4PF'+jetname+'.txt')
+    L2JecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L2Relative_AK4PF'+jetname+'.txt')
     L2JetParAK4 = ROOT.JetCorrectorParameters(L2JecStrAK4)
-    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L1FastJet_AK4PF'+jetname+'.txt')
+    L1JecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L1FastJet_AK4PF'+jetname+'.txt')
     L1JetParAK4 = ROOT.JetCorrectorParameters(L1JecStrAK4)
-    ResJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
+    ResJecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L2L3Residual_AK4PF'+jetname+'.txt')
     ResJetParAK4 = ROOT.JetCorrectorParameters(ResJecStrAK4)
-    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_Uncertainty_AK4PF'+jetname+'.txt')
+    UncJecStrAK4 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_Uncertainty_AK4PF'+jetname+'.txt')
     UncertJetAK4 = ROOT.JetCorrectionUncertainty(UncJecStrAK4)
-    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L3Absolute_AK8PF'+jetname+'.txt')
+    L3JecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L3Absolute_AK8PF'+jetname+'.txt')
     L3JetParAK8 = ROOT.JetCorrectorParameters(L3JecStrAK8)
-    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2Relative_AK8PF'+jetname+'.txt')
+    L2JecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L2Relative_AK8PF'+jetname+'.txt')
     L2JetParAK8 = ROOT.JetCorrectorParameters(L2JecStrAK8)
-    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L1FastJet_AK8PF'+jetname+'.txt')
+    L1JecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L1FastJet_AK8PF'+jetname+'.txt')
     L1JetParAK8 = ROOT.JetCorrectorParameters(L1JecStrAK8)
-    ResJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_L2L3Residual_AK8PF'+jetname+'.txt')
+    ResJecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_L2L3Residual_AK8PF'+jetname+'.txt')
     ResJetParAK8 = ROOT.JetCorrectorParameters(ResJecStrAK8)
-    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_25nsV6_DATA_Uncertainty_AK8PF'+jetname+'.txt')
+    UncJecStrAK8 = ROOT.std.string('JECs/Spring16_23Sep2016'+options.jecIOV+'V2_DATA/Spring16_23Sep2016'+options.jecIOV+'V2_DATA_Uncertainty_AK8PF'+jetname+'.txt')
     UncertJetAK8 = ROOT.JetCorrectionUncertainty(UncJecStrAK8)
 
 #  load JetCorrectorParameter objects into vector (order matters!)
@@ -508,8 +513,10 @@ events = Events (files)
 runs = Runs ( files)
 
 jetname = "CHS"
+massType = "CHS"
 if options.usePuppi:
     jetname = "Puppi"
+    massType = ""
 
 pvChiHandle  = Handle("std::vector<float>")
 pvChiLabel   = ( "vertexInfo", "chi" )
@@ -707,22 +714,22 @@ ak8JetPhiLabel   = ("jetsAK8"+jetname, "jetAK8"+jetname+"Phi")
 ak8JetEHandle = Handle( "std::vector<float>" )
 ak8JetELabel  = ("jetsAK8"+jetname, "jetAK8"+jetname+"E")
 ak8JetTrimMassHandle = Handle("std::vector<float>")
-ak8JetTrimMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"trimmedMass" )
+ak8JetTrimMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"trimmedMass"+massType )
 ak8JetPrunMassHandle = Handle("std::vector<float>")
-ak8JetPrunMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"prunedMass" )
+ak8JetPrunMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"prunedMass"+massType )
 ak8JetFiltMassHandle = Handle("std::vector<float>")
-ak8JetFiltMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"filteredMass" )
+ak8JetFiltMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"filteredMass"+massType )
 ak8JetTau1Handle = Handle("std::vector<float>")
-ak8JetTau1Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau1" )
+ak8JetTau1Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau1"+massType )
 ak8JetTau2Handle = Handle("std::vector<float>")
-ak8JetTau2Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau2" )
+ak8JetTau2Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau2"+massType )
 ak8JetTau3Handle = Handle("std::vector<float>")
-ak8JetTau3Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau3" )
+ak8JetTau3Label = ("jetsAK8"+jetname, "jetAK8"+jetname+"tau3"+massType )
 ak8JetCSVHandle = Handle("std::vector<float>")               
 ak8JetCSVLabel = ( "jetsAK8"+jetname , "jetAK8"+jetname+"CSVv2" )
 
 ak8JetSoftDropMassHandle = Handle("std::vector<float>")
-ak8JetSoftDropMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"softDropMass" )
+ak8JetSoftDropMassLabel = ("jetsAK8"+jetname, "jetAK8"+jetname+"softDropMass"+massType )
 ak8JetSoftDropSubjet0Handle    = Handle("std::vector<float>")
 ak8JetSoftDropSubjet0Label     = ("jetsAK8"+jetname, "jetAK8"+jetname+"vSubjetIndex0")
 ak8JetSoftDropSubjet1Handle    = Handle("std::vector<float>")
@@ -785,6 +792,9 @@ rhoLabel = ("fixedGridRhoFastjetAll", "")
 
 puNtrueIntHandle = Handle("std::int")
 puNtrueIntLabel = ( "eventUserData" , "puNtrueInt" )
+
+runnumHandle = Handle("uint")
+runnumLabel = ("eventInfo", "evtInfoRunNumber")
 
 # -------------------------------------------------------------------------------------
 # Histograms to save
@@ -1028,6 +1038,23 @@ for event in events :
     if ntotal % 1000 == 0 :
       print  '--------- Processing Event ' + str(ntotal)
     ntotal += 1
+
+    # Discard events in wrong IOV
+    if not options.isMC:
+        event.getByLabel(runnumLabel,runnumHandle)
+        runnumber = runnumHandle.product()[0]
+
+        if ntotal % 1000 == 1 :
+            print 'Run number is ' + str(runnumber) + ', JEC IOV is ' + options.jecIOV
+
+        if options.jecIOV is 'BCD' and not (1 <= runnumber <= 276811):
+            continue
+        if options.jecIOV is 'EF' and not (276831 <= runnumber <= 278801):
+            continue
+        if options.jecIOV is 'G' and not (278802 <= runnumber <= 280385):
+            continue
+        if options.jecIOV is 'H' and not (280919 <= runnumber):
+            continue
 
     if options.debug :
         if ntotal > 1000:
@@ -1394,6 +1421,8 @@ for event in events :
         triggerPrescales = trigPrescalesHandle.product()
     
         trigToRun = None
+        print 'Number of triggers in list: ' + str(len(triggerNameStrings))
+        print 'Number of bits in list: ' + str(len(triggerBits))
         for itrig in xrange(0, len(triggerBits) ) :
             if triggerBits[itrig] != 1 :
                 continue
@@ -1402,7 +1431,7 @@ for event in events :
                 passElTrig = True
                 prescale = prescale * triggerPrescales[itrig]
                 h_elPrescale.Fill(triggerPrescales[itrig])
-            if "HLT_Mu45_eta2p1" in trigName :
+            if "HLT_Mu40_eta2p1_PFJet200_PFJet50" in trigName :
                 passMuTrig = True
                 prescale = prescale * triggerPrescales[itrig]
                 h_muPrescale.Fill(triggerPrescales[itrig])
@@ -1881,13 +1910,13 @@ for event in events :
                         jetP4_JERdown *= ak4JERSFdowns[ijet]
                         jetP4_JERdown += genJetP4
                     else:
-                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1))*ak4JERs[ijet]))
-                        jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1))*ak4JERs[ijet]))
-                        jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1))*ak4JERs[ijet]))
+                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)))
+                        jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)))
+                        jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)))
                 else:
-                    jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1))*ak4JERs[ijet]))
-                    jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1))*ak4JERs[ijet]))
-                    jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1))*ak4JERs[ijet]))
+                    jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)))
+                    jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)))
+                    jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)))
 
             metv -= jetP4
 
@@ -2209,13 +2238,13 @@ for event in events :
                         AK8jetP4_JERdown += AK8genJetP4
 
                     else:
-                        AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1))*ak8JERs[ijet]))
-                        AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1))*ak8JERs[ijet]))
-                        AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1))*ak8JERs[ijet]))
+                        AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)))
+                        AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)))
+                        AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)))
                 else:
-                    AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1))*ak8JERs[ijet]))
-                    AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1))*ak8JERs[ijet]))
-                    AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1))*ak8JERs[ijet]))
+                    AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)))
+                    AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)))
+                    AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)))
 
             metv -= AK8jetP4
 
