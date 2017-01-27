@@ -25,7 +25,7 @@ parser.add_option('--type', metavar='F', type='string', action='store',
                   help='')
 
 parser.add_option('--nbr', metavar='F', type='string', action='store',
-                  default='',
+                  default='5',
                   dest='nbr',
                   help='')
 
@@ -76,9 +76,9 @@ from ROOT import RooUnfoldSvd
 # cross sections, efficiencies, total number of events
 # -------------------------------------------------------------------------------------
 
-lum = 12358.75 #pb-1
-if options.lepType=="ele":
-    lum = 12295.65
+lum = 12337.98 # was 12358.75 (pb-1), but missing some data
+if options.lepType == "ele":
+    lum = 12267.67 # was 12295.65 (pb-1), but missing some data
 
 PowhegPythia8_norm = 831.76 * lum / 182123200.                                                                                    
 
@@ -99,10 +99,10 @@ if options.lepType=="ele":
 # In the below, file named f_..._odd will be the one from which response matrix is extracted from
 
 if options.type == "full":
-    f_ttbar     = TFile("histfiles_80X/hists_PowhegPythia8_fullTruth_"+muOrEl+"_nom.root")
+    f_ttbar     = TFile("histfiles_80X/hists_PowhegPythia8_fullTruth_"+muOrEl+"_nom_post.root")
 else :
-    f_ttbar     = TFile("histfiles_80X/hists_PowhegPythia8_fullTruth_"+muOrEl+"_nom_even.root")
-    f_ttbar_odd = TFile("histfiles_80X/hists_PowhegPythia8_fullTruth_"+muOrEl+"_nom_odd.root")
+    f_ttbar     = TFile("histfiles_80X/hists_PowhegPythia8_fullTruth_"+muOrEl+"_nom_even_post.root")
+    f_ttbar_odd = TFile("histfiles_80X/hists_PowhegPythia8_fullTruth_"+muOrEl+"_nom_odd_post.root")
 
     
 # -------------------------------------------------------------------------------------
@@ -217,16 +217,16 @@ if nbins > 10:
     sys.exit() 
 
     
-hDiff_bin = [] # for each iterations, list of bins (i.e. [1st it, bin0], [1st it, bin 1], ... , [1st it, bin n], [1nd it, bin0] , ...  
+hDiff_bin = [] # for each iterations, list of bins (i.e. [1st it, bin0], [1st it, bin 1], ... , [1st it, bin n], [2nd it, bin0] , ...  
 
 for iiter in xrange(0,tot_iter) :
     for ibin in xrange(0,nbins) :
-        if ibin < 5:
-            hDiff_tmp = TH1F("diff_bin"+str(ibin)+"_"+str(iiter),"; unfolded-truth; number of events",100,-0.2,0.2)
-        elif ibin < 7:
-            hDiff_tmp = TH1F("diff_bin"+str(ibin)+"_"+str(iiter),"; unfolded-truth; number of events",100,-0.4,0.4)
-        else :
-            hDiff_tmp = TH1F("diff_bin"+str(ibin)+"_"+str(iiter),"; unfolded-truth; number of events",100,-1,1)
+        #if ibin < 5:
+        #    hDiff_tmp = TH1F("diff_bin"+str(ibin)+"_"+str(iiter),"; unfolded-truth; number of events",100,-0.2,0.2)
+        #elif ibin < 7:
+        #    hDiff_tmp = TH1F("diff_bin"+str(ibin)+"_"+str(iiter),"; unfolded-truth; number of events",100,-0.4,0.4)
+        #else :
+        hDiff_tmp = TH1F("diff_bin"+str(ibin)+"_"+str(iiter),"; unfolded-truth; number of events",100,-1,1)
         hDiff_bin.append(hDiff_tmp)
         
 lowedge = 399.
@@ -235,9 +235,10 @@ highedge = 1199.
 for iiter in xrange(1,tot_iter+1) :
     for itoy in xrange(0,ntoys) :
 
-        print 'iiter = ', iiter, ' itoy = ', itoy
+        #print 'iiter = ', iiter, ' itoy = ', itoy
         
         unfold = RooUnfoldBayes(response, hToy_i[itoy], iiter)
+        #unfold = RooUnfoldSvd(response, hToy_i[itoy], iiter)
         hReco_tmp = unfold.Hreco()
 
         for ibin in range(0, nbins):
@@ -257,7 +258,7 @@ for ibin in xrange(0,nbins) :
             continue
         hDiff_bin[iiter*nbins + ibin].SetLineColor(color[iiter])
         hDiff_bin[iiter*nbins + ibin].Draw("same")
-    c.SaveAs("pull"+options.toy+"_bin"+str(ibin)+".png")
+    c.SaveAs("pull"+options.toy+"_"+options.lepType+"_bin"+str(ibin)+".pdf")
 
 
 # sum relative bias squared and standard deviation squared (sqrt(bias^2)_{sum over bins} / N_bins) and plot vs # iterations 
@@ -322,7 +323,7 @@ ll.AddEntry( std, '#sqrt{#sum std^{2}/N_{bin}}', 'l')
 ll.AddEntry( bias, '#sqrt{#sum bias^{2}/N_{bin}}', 'l')
 ll.AddEntry( biasstd, '#sqrt{#sum (std^{2} + bias^{2})/N_{bin}}', 'l')
 ll.Draw()
-cc.SaveAs("biasstd"+options.toy+".png")
+cc.SaveAs("biasstd"+options.toy+"_"+options.lepType+".pdf")
 
 
 ccc = TCanvas()
@@ -334,7 +335,7 @@ hBias_pt.GetXaxis().SetTitle("Top quark p_{T} (GeV)")
 hBias_pt.SetAxisRange(410,1100,"X")
 hBias_pt.SetAxisRange(-0.25,0.25,"Y")
 hBias_pt.Draw()
-ccc.SaveAs("bias_vspt"+options.toy+".png")
+ccc.SaveAs("bias_vspt"+options.toy+"_"+options.lepType+".pdf")
 
 #sys.exit()
 
@@ -381,6 +382,9 @@ for i_iter in xrange(1,tot_iter+1) :
     unfold   = RooUnfoldBayes(response, hMeas, i_iter)
     unfoldUp = RooUnfoldBayes(response, hMeasUp, i_iter)
     unfoldDn = RooUnfoldBayes(response, hMeasDn, i_iter)
+    #unfold   = RooUnfoldSvd(response, hMeas, i_iter)
+    #unfoldUp = RooUnfoldSvd(response, hMeasUp, i_iter)
+    #unfoldDn = RooUnfoldSvd(response, hMeasDn, i_iter)
 
     # unfolded distribution (histogram)
     hReco = unfold.Hreco()
@@ -509,6 +513,12 @@ for i in xrange(0,tot_iter-1):
 print ""
 
 cerr = TCanvas()
+#cleg = TLegend(0.5, 0.55, 0.9, 0.75)
+#cleg.SetFillStyle(0)
+#cleg.SetTextFont(42)
+#cleg.SetTextSize(0.045)
+#cleg.SetBorderSize(0)
+
 for iiter in xrange(0,tot_iter) :
     if iiter > 9:
         continue
@@ -518,7 +528,9 @@ for iiter in xrange(0,tot_iter) :
     hErrorRatio[iiter].GetXaxis().SetTitle("Top quark p_{T} (GeV)")
     hErrorRatio[iiter].SetLineColor(color[iiter])
     hErrorRatio[iiter].Draw("same")
-cerr.SaveAs("errorRatio.png")
+    #cleg.AddEntry(hErrorRatio[iiter], 'Iteration '+str(iiter), 'l')
+#cleg.Draw()
+cerr.SaveAs("errorRatio_"+options.lepType+"_"+options.type+".pdf")
 
 cerrUp = TCanvas()
 for iiter in xrange(0,tot_iter) :
@@ -530,7 +542,8 @@ for iiter in xrange(0,tot_iter) :
     hErrorRatioUp[iiter].GetXaxis().SetTitle("Top quark p_{T} (GeV)")
     hErrorRatioUp[iiter].SetLineColor(color[iiter])
     hErrorRatioUp[iiter].Draw("same")
-cerrUp.SaveAs("errorRatioUp.png")
+#cleg.Draw()
+cerrUp.SaveAs("errorRatioUp_"+options.lepType+"_"+options.type+".pdf")
 
 cerrDn = TCanvas()
 for iiter in xrange(0,tot_iter) :
@@ -542,7 +555,8 @@ for iiter in xrange(0,tot_iter) :
     hErrorRatioDn[iiter].GetXaxis().SetTitle("Top quark p_{T} (GeV)")
     hErrorRatioDn[iiter].SetLineColor(color[iiter])
     hErrorRatioDn[iiter].Draw("same")
-cerrDn.SaveAs("errorRatioDn.png")
+#cleg.Draw()
+cerrDn.SaveAs("errorRatioDn_"+options.lepType+"_"+options.type+".pdf")
 
 
 # -------------------------------------------------------------------------------------
@@ -599,7 +613,8 @@ for ibin in range(1, thisTrue.GetXaxis().GetNbins()+1 ) :
 # draw parton-level unfolding
 # -------------------------------------------------------------------------------------
 
-## ratio of unfolded data to generator-level 
+## ratio of unfolded data to generator-level
+
 hFrac = thisReco.Clone()
 hFrac.SetName("hFrac")
 hFrac.SetTitle(";Top quark p_{T} (GeV);Data/MC")
@@ -684,7 +699,7 @@ hFrac.GetXaxis().SetRangeUser(400., 1200.)
 
 c1.Update()
 
-c1.SaveAs("UnfoldingPlots/closure"+options.nbr+options.toy+"_result.png")
+c1.SaveAs("UnfoldingPlots/closure"+options.nbr+"_"+options.lepType+"_"+options.toy+"_"+options.type+"_result.pdf")
 
 
 # -------------------------------------------------------------------------------------
@@ -745,7 +760,7 @@ hEmpty2D.Draw()
 hResponse2D.Draw("colz,same,text")
 hEmpty2D.Draw("axis,same")
 
-cr.SaveAs("UnfoldingPlots/closure"+options.nbr+"_response.png")
+cr.SaveAs("UnfoldingPlots/closure"+options.nbr+"_"+options.lepType+"_"+options.type+"_response.pdf")
 
 hEmpty2D.SetAxisRange(410,1150,"X")
 hEmpty2D.SetAxisRange(410,1150,"Y")
@@ -755,9 +770,9 @@ hEmpty2D.Draw()
 hResponse2D.Draw("colz,same,text")
 hEmpty2D.Draw("axis,same")
 
-cr.SaveAs("UnfoldingPlots/closure"+options.nbr+"_response_zoom.png")
+cr.SaveAs("UnfoldingPlots/closure"+options.nbr+"_"+options.lepType+"_"+options.type+"_response_zoom.pdf")
         
-response.Hresponse().SetName("responseMatrix"+options.nbr)
+response.Hresponse().SetName("responseMatrix"+options.nbr+"_"+options.lepType+"_"+options.type)
 response.Hresponse().Write()
     
 

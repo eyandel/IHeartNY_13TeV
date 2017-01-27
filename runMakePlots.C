@@ -157,6 +157,17 @@ void runMakePlots(TString toPlot = "final"){
     makePlots("histfiles_80X/","histfiles_80X/","el","nAK8jet","Pre",false,true,true);
     makePlots("histfiles_80X/","histfiles_80X/","mu","nTjet","Pre",false,true,true);
     makePlots("histfiles_80X/","histfiles_80X/","el","nTjet","Pre",false,true,true);
+
+    makePlots("histfiles_80X/","histfiles_80X/","el","elPtRaw","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","el","elEtaRaw","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","el","elMiniIsoRaw","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","el","elMiniIsoRaw_b","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","el","elMiniIsoRaw_e","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","muPtRaw","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","muEtaRaw","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","muMiniIsoRaw","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","muMiniIsoRaw_b","",true,true,true);
+    makePlots("histfiles_80X/","histfiles_80X/","mu","muMiniIsoRaw_e","",true,true,true);
     
     cout << endl << "Finished with postfit plots!" << endl << endl;
   }
@@ -166,6 +177,10 @@ void runMakePlots(TString toPlot = "final"){
     combineResults("el","elB");
     combineResults("mu","combB");
     combineResults("el","combB");
+    combineResults("mu","muB2");
+    combineResults("el","elB2");
+    combineResults("mu","combB2");
+    combineResults("el","combB2");
     combineResults("mu","mu5");
     combineResults("el","el5");
     combineResults("mu","comb5");

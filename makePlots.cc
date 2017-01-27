@@ -159,18 +159,18 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
   // Apply post-fit normalizations if desired
   // The scale factors are determined from the post-fit nuisance parameters, not the post-fit event yields
 
-  if (usePost){
+  if (usePost && !(var.Contains("Raw"))){
     if (channel == "mu") h_qcd->Scale(0.62); //TODO
     else h_qcd->Scale(0.67);                 // Currently accurate for combB fit, 11/7/16
-    h_singletop->Scale(1.02);
-    h_wjets->Scale(1.08);
+    h_singletop->Scale(1.00);
+    h_wjets->Scale(1.02);
     h_ttbar->Scale(0.77);
     h_ttbar_nonSemiLep->Scale(0.77);
   }
 
   // -------------------------------------------------------------------------------------
   // various hist plotting edits
-  if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet") || hist.Contains("lepAbsEta") || hist.Contains("ak8jetTau") || hist.Contains("ak8jetSDsubjetMaxCSV") || (region == "1t0b" && hist.Contains("ak4jetEta")))){
+  if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet") || hist.Contains("lepAbsEta") || hist.Contains("ak8jetTau") || hist.Contains("ak8jetSDsubjetMaxCSV") || (region == "1t0b" && hist.Contains("ak4jetEta")) || hist.Contains("Raw"))){
     if (h_qcd) h_qcd->Rebin(2);
     if (h_wjets) h_wjets->Rebin(2);
     if (h_singletop) h_singletop->Rebin(2);

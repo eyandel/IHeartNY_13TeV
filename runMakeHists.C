@@ -1,21 +1,25 @@
 // Script to run makeHists.C
 // Syntax is makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, bool isData = false, bool isSignal = false, TString lepID = "Medium", TString iso = "None", bool doHemiCuts = false, float metCut = 0.0, bool doTriangular = false, bool isQCD = false, TString systematic = "nom", int oddOrEven = 0, bool usePost = false)
 
-#include "TFile.h"
-#include "TH1.h"
-#include <iostream>
-#include <string>
-#include <vector>
+#include "TROOT.h"
+#include "TSystem.h"
 
 using namespace std;
 
+// Comment out the following lines for ROOT 5
+#include "makeHists.C"
+#include "BTagCalibrationStandalone.cc"
+
+R__LOAD_LIBRARY(RooUnfold/libRooUnfold.so)
+
 void runMakeHists(TString toMake = "prefit"){
 
-  gROOT->ProcessLine("#include <vector>");
-  gROOT->ProcessLine(".L BTagCalibrationStandalone.cc++");
+  // Uncomment these 4 lines for ROOT 5
+  //gROOT->ProcessLine("#include <vector>");
+  //gROOT->ProcessLine(".L BTagCalibrationStandalone.cc++");
   gROOT->ProcessLine(".include RooUnfold/src");
-  gSystem->Load("RooUnfold/libRooUnfold");
-  gROOT->ProcessLine(".L makeHists.C++");
+  //gSystem->Load("RooUnfold/libRooUnfold.so");
+  //gROOT->ProcessLine(".L makeHists.C++");
 
   const int nBKG = 18;
   TString bkgMCnames[nBKG] = {
@@ -98,8 +102,9 @@ void runMakeHists(TString toMake = "prefit"){
 
   if (toMake == "all" || toMake == "prefit" || toMake == "postfit"){
 
-    bool postTopTagSF = false;
+    int postTopTagSF = false;
     if (toMake == "postfit") postTopTagSF = true;
+
     //run data
     makeHists("skimTrees_80X/","histfiles_80X","Data_mu","mu",true,false,"Tight","MiniIso10",true,35.0,true,false,"nom",0,false); //Data
     makeHists("skimTrees_80X/","histfiles_80X","Data_el","el",true,false,"Tight","MiniIso10",true,35.0,true,false,"nom",0,false);
@@ -107,11 +112,11 @@ void runMakeHists(TString toMake = "prefit"){
     makeHists("skimTrees_80X/","histfiles_80X","Data_mu","mu",true,false,"Medium","MiniIso10",true,35.0,true,true,"nom",0,false); //QCD
     makeHists("skimTrees_80X/","histfiles_80X","Data_el","el",true,false,"Medium","MiniIso10",true,35.0,true,true,"nom",0,false);
     
-    //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF); //Odd (for unfolding closure)
-    //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF);
-    //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF); //Even (for unfolding closure)
-    //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF);
-   
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF); //Odd (for unfolding closure)
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF);
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF); //Even (for unfolding closure)
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF);
+    
     for (int ii = 0; ii < nSYS; ii++){
       // Run signal
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF); //Signal
@@ -121,34 +126,35 @@ void runMakeHists(TString toMake = "prefit"){
       
       //run other MCs
       for (int jj = 0; jj < nBKG; jj ++){
-	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"mu",false,false,"Tight","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF); //Signal
-	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"el",false,false,"Tight","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF);    
-	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"mu",false,false,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF); //QCD
-	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"el",false,false,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF);    
+    	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"mu",false,false,"Tight","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF); //Signal
+    	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"el",false,false,"Tight","MiniIso10",true,35.0,true,false,sysnames[ii],0,postTopTagSF);    
+    	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"mu",false,false,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF); //QCD
+    	makeHists("skimTrees_80X/","histfiles_80X",bkgMCnames[jj],"el",false,false,"Medium","MiniIso10",true,35.0,true,true,sysnames[ii],0,postTopTagSF);    
       }
     }
-   
+
     for (int ii = 0; ii < nTHSYS; ii++){
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,thsysnames[ii],0,postTopTagSF); //Signal
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,thsysnames[ii],0,postTopTagSF);
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Medium","MiniIso10",true,35.0,true,true,thsysnames[ii],0,postTopTagSF); //QCD
       makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Medium","MiniIso10",true,35.0,true,true,thsysnames[ii],0,postTopTagSF);
-      }  
+      //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_nonsemilep","mu",false,false,"Tight","MiniIso10",true,35.0,true,false,thsysnames[ii],0,postTopTagSF); //Signal
+      //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_nonsemilep","el",false,false,"Tight","MiniIso10",true,35.0,true,false,thsysnames[ii],0,postTopTagSF);
+      //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_nonsemilep","mu",false,false,"Medium","MiniIso10",true,35.0,true,true,thsysnames[ii],0,postTopTagSF); //QCD
+      //makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_nonsemilep","el",false,false,"Medium","MiniIso10",true,35.0,true,true,thsysnames[ii],0,postTopTagSF);
+    }  
   }
-
+  
   if (toMake == "unfold") {
     
     bool postTopTagSF = true;
 
-    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",0,postTopTagSF);
-    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF); //Odd (for unfolding closure)
-    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF); //Even (for unfolding closure)
-
-    /*
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",0,postTopTagSF); //Signal
     makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",0,postTopTagSF);
-    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF); //Odd (for unfolding closure)
-    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF); //Even (for unfolding closure)
-    */
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF); //Odd (for unfolding closure)
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",1,postTopTagSF);
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","mu",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF); //Even (for unfolding closure)
+    makeHists("skimTrees_80X/","histfiles_80X","PowhegPythia8_fullTruth","el",false,true,"Tight","MiniIso10",true,35.0,true,false,"nom",2,postTopTagSF);
   }
 
 }
