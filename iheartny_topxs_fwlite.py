@@ -1080,11 +1080,15 @@ for event in events :
     if not options.isMC:
         if options.debug :
             print 'Run number is ' + str(runnumber) + ', JEC IOV is ' + options.jecIOV
+            if "BCD" in options.jecIOV:
+                print options.jecIOV + ' = BCD'
+            if runnumber == 273425 :
+                print str(runnumber) + ' = 273425'
 
-        if not ((options.jecIOV is "BCD" and 1 <= runnumber <= 276811) or 
-                (options.jecIOV is "EF" and 276831 <= runnumber <= 278801) or
-                (options.jecIOV is "G" and 278802 <= runnumber <= 280385) or
-                (options.jecIOV is "H" and 280919 <= runnumber)):
+        if not (("BCD" in options.jecIOV and 1 <= runnumber <= 276811) or 
+                ("EF" in options.jecIOV and 276831 <= runnumber <= 278801) or
+                ("G" in options.jecIOV and 278802 <= runnumber <= 280385) or
+                ("H" in options.jecIOV and 280919 <= runnumber)):
             continue
 
     nInIOV += 1
@@ -1488,9 +1492,9 @@ for event in events :
     weight_puUp = weight_puUp * prescale 
     weight_puDown = weight_puDown * prescale
         
-    if options.muOrEl is "mu" and not passMuTrig:
+    if "mu" in options.muOrEl and not passMuTrig:
         continue
-    if options.muOrEl is "el" and not passElTrig:
+    if "el" in options.muOrEl and not passElTrig:
         continue
     
     # -------------------------------------------------------------------------------------

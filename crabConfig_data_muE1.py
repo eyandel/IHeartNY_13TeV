@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'Data_mu'
+config.General.requestName = 'Data_muE1'
 config.General.workArea = 'test'
 config.General.transferLogs = True
 
