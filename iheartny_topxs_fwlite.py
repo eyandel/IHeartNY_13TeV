@@ -1492,10 +1492,11 @@ for event in events :
     weight_puUp = weight_puUp * prescale 
     weight_puDown = weight_puDown * prescale
         
-    if "mu" in options.muOrEl and not passMuTrig:
-        continue
-    if "el" in options.muOrEl and not passElTrig:
-        continue
+    if not options.isMC :
+        if "mu" in options.muOrEl and not passMuTrig:
+            continue
+        if "el" in options.muOrEl and not passElTrig:
+            continue
     
     # -------------------------------------------------------------------------------------
     # read event rho value
