@@ -15,15 +15,15 @@
 #include "TProfile2D.h"
 #include "TMath.h"
 
-#include "RooUnfold/src/RooUnfold.h"
-#include "RooUnfold/src/RooUnfoldBayes.h"
-#include "RooUnfold/src/RooUnfoldDagostini.h"
-#include "RooUnfold/src/RooUnfoldErrors.h"
-#include "RooUnfold/src/RooUnfoldInvert.h"
-#include "RooUnfold/src/RooUnfoldParms.h"
-#include "RooUnfold/src/RooUnfoldResponse.h"
-#include "RooUnfold/src/RooUnfoldSvd.h"
-#include "RooUnfold/src/RooUnfoldTUnfold.h"
+//#include "RooUnfold/src/RooUnfold.h"
+//#include "RooUnfold/src/RooUnfoldBayes.h"
+//#include "RooUnfold/src/RooUnfoldDagostini.h"
+//#include "RooUnfold/src/RooUnfoldErrors.h"
+//#include "RooUnfold/src/RooUnfoldInvert.h"
+//#include "RooUnfold/src/RooUnfoldParms.h"
+//#include "RooUnfold/src/RooUnfoldResponse.h"
+//#include "RooUnfold/src/RooUnfoldSvd.h"
+//#include "RooUnfold/src/RooUnfoldTUnfold.h"
 
 #include <iostream>
 #include <string>
@@ -35,21 +35,15 @@ void SetPlotStyle();
 void mySmallText(Double_t x,Double_t y,Color_t color,Double_t tsize,char *text); 
 
 
-void unfoldPlots(TString which="", bool y=false, bool doElectron=false) {
+void unfoldPlots(TString toUnfold = "pt", TString channel = "muon") {
   
-  gSystem->Load("RooUnfold/libRooUnfold");
+  //gSystem->Load("RooUnfold/libRooUnfold");
 
   SetPlotStyle();
 
-  TString muOrEl = "mu";
-  if (doElectron) muOrEl = "el";
+  TFile* f = new TFile("UnfoldingPlots/unfold_"+toUnfold+"_PowhegPythia8_"+channel+"_nom_closure.root");
 
-  TString what = "_pt";
-  if (y) what = "_y";
-
-  TFile* f = new TFile("UnfoldingPlots/closureTest"+which+"_full.root");
-
-  TH2F* h_response = (TH2F*) f->Get("responseMatrix"+which);
+  TH2F* h_response = (TH2F*) f->Get("responseMatrix_nom");
 
   TH1F* h_stability = (TH1F*) h_response->ProjectionX()->Clone();
   h_stability->Reset();
@@ -66,8 +60,8 @@ void unfoldPlots(TString which="", bool y=false, bool doElectron=false) {
   h_responseY->SetName("responseY");
 
 
-  TH1F* h_reco = (TH1F*) f->Get("ptRecoTop"+which+"_measured");
-  TH1F* h_gen  = (TH1F*) f->Get("ptGenTop"+which+"_true");
+  TH1F* h_reco = (TH1F*) f->Get(toUnfold+"RecoTop_measured");
+  TH1F* h_gen  = (TH1F*) f->Get(toUnfold+"GenTop_true");
   TH1F* h_eff = (TH1F*) h_reco->Clone();
   h_eff->SetName("efficiency");
   h_eff->Divide(h_gen);
@@ -129,7 +123,7 @@ void unfoldPlots(TString which="", bool y=false, bool doElectron=false) {
   // ----------------------------------------------------------------------------------------------------------------
 
   h_purity->SetAxisRange(0,1.2,"Y");
-  if (!y) h_purity->SetAxisRange(400.,1150.0,"X");
+  if (toUnfold == "pt") h_purity->SetAxisRange(400.,1150.0,"X");
   h_purity->GetYaxis()->SetTitleOffset(1.1);
   h_purity->GetYaxis()->SetTitle("");  
   h_purity->GetYaxis()->SetTitle("Fractional");
@@ -157,9 +151,7 @@ void unfoldPlots(TString which="", bool y=false, bool doElectron=false) {
   leg->AddEntry(h_eff, " Efficiency", "l");
   leg->Draw();
 
-  c.SaveAs("purity-stability"+which+"_"+muOrEl+what+".png");
-  c.SaveAs("purity-stability"+which+"_"+muOrEl+what+".eps");
-
+  c.SaveAs("UnfoldingPlots/purity-stability_"+channel+"_"+toUnfold+".pdf");
 
 }
 

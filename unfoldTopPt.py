@@ -64,7 +64,7 @@ argv = []
 
 import sys
 
-from ROOT import gRandom, TH1, TH1D, cout, TFile, gSystem, TCanvas, TPad, gPad, gROOT, gStyle, THStack, TLegend, TLatex, TColor
+from ROOT import gRandom, TH1, TH1D, cout, TFile, gSystem, TCanvas, TPad, gPad, gROOT, gStyle, THStack, TLegend, TLatex, TColor, TUnfold
 from array import array
 
 gROOT.Macro("rootlogon.C")
@@ -90,6 +90,7 @@ from ROOT import RooUnfoldResponse
 from ROOT import RooUnfold
 from ROOT import RooUnfoldBayes
 from ROOT import RooUnfoldSvd
+from ROOT import RooUnfoldTUnfold
 
 # -------------------------------------------------------------------------------------
 # cross sections, efficiencies, total number of events
@@ -194,10 +195,10 @@ if options.bkgSyst != "nom" :
     syst_flag = "Bkg"+options.bkgSyst
 
 if options.closureTest == True:
-    response = f_ttbar_odd.Get("response_"+options.toUnfold+options.nbr)
+    response = f_ttbar_odd.Get("response_"+options.toUnfold+options.nbr+"fine")
     response.SetName("response_"+options.toUnfold+"_"+syst_flag)
 else :
-    response = f_ttbar.Get("response_"+options.toUnfold+options.nbr)
+    response = f_ttbar.Get("response_"+options.toUnfold+options.nbr+"fine")
     response.SetName("response_"+options.toUnfold+"_"+syst_flag)
 
 TH1.AddDirectory(0)
@@ -210,25 +211,25 @@ hTrue = f_ttbar.Get(options.toUnfold+"GenTop"+options.nbr)
 hTrue.Sumw2()
 
 if not options.closureTest: 
-    hMeas = f_data.Get(options.toUnfold+"RecoTop"+options.nbr)
+    hMeas = f_data.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
 else :
-    hMeas = f_ttbar.Get(options.toUnfold+"RecoTop"+options.nbr)
+    hMeas = f_ttbar.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
 
 hMeas.Sumw2()
 
 if not options.closureTest: 
-    hMeas_tt_nonsemi         = f_ttbar_nonsemilep.Get(options.toUnfold+"RecoTop"+options.nbr).Clone()
-    hMeas_T_t                = f_T_t.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_Tbar_t             = f_Tbar_t.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_T_tW               = f_T_tW.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_Tbar_tW            = f_Tbar_tW.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_WJets_HT100to200   = f_WJets_HT100to200.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_WJets_HT200to400   = f_WJets_HT200to400.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_WJets_HT400to600   = f_WJets_HT400to600.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_WJets_HT600to800   = f_WJets_HT600to800.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_WJets_HT800to1200  = f_WJets_HT800to1200.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_WJets_HT1200to2500 = f_WJets_HT1200to2500.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_WJets_HT2500toInf  = f_WJets_HT2500toInf.Get(options.toUnfold+"RecoTop"+options.nbr)
+    hMeas_tt_nonsemi         = f_ttbar_nonsemilep.Get(options.toUnfold+"RecoTop"+options.nbr+"fine").Clone()
+    hMeas_T_t                = f_T_t.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_Tbar_t             = f_Tbar_t.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_T_tW               = f_T_tW.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_Tbar_tW            = f_Tbar_tW.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_WJets_HT100to200   = f_WJets_HT100to200.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_WJets_HT200to400   = f_WJets_HT200to400.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_WJets_HT400to600   = f_WJets_HT400to600.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_WJets_HT600to800   = f_WJets_HT600to800.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_WJets_HT800to1200  = f_WJets_HT800to1200.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_WJets_HT1200to2500 = f_WJets_HT1200to2500.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_WJets_HT2500toInf  = f_WJets_HT2500toInf.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
     
     hMeas_tt_nonsemi.Sumw2()
     hMeas_T_t.Sumw2()
@@ -243,19 +244,19 @@ if not options.closureTest:
     hMeas_WJets_HT1200to2500.Sumw2()
     hMeas_WJets_HT2500toInf.Sumw2()
     
-    hMeas_qcd                    = f_QCD.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_tt_nonsemi         = f_qcd_ttbar_nonsemilep.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_T_t                = f_qcd_T_t.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_Tbar_t             = f_qcd_Tbar_t.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_T_tW               = f_qcd_T_tW.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_Tbar_tW            = f_qcd_Tbar_tW.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_WJets_HT100to200   = f_qcd_WJets_HT100to200.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_WJets_HT200to400   = f_qcd_WJets_HT200to400.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_WJets_HT400to600   = f_qcd_WJets_HT400to600.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_WJets_HT600to800   = f_qcd_WJets_HT600to800.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_WJets_HT800to1200  = f_qcd_WJets_HT800to1200.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_WJets_HT1200to2500 = f_qcd_WJets_HT1200to2500.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hMeas_qcd_WJets_HT2500toInf  = f_qcd_WJets_HT2500toInf.Get(options.toUnfold+"RecoTop"+options.nbr)
+    hMeas_qcd                    = f_QCD.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_tt_nonsemi         = f_qcd_ttbar_nonsemilep.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_T_t                = f_qcd_T_t.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_Tbar_t             = f_qcd_Tbar_t.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_T_tW               = f_qcd_T_tW.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_Tbar_tW            = f_qcd_Tbar_tW.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_WJets_HT100to200   = f_qcd_WJets_HT100to200.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_WJets_HT200to400   = f_qcd_WJets_HT200to400.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_WJets_HT400to600   = f_qcd_WJets_HT400to600.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_WJets_HT600to800   = f_qcd_WJets_HT600to800.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_WJets_HT800to1200  = f_qcd_WJets_HT800to1200.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_WJets_HT1200to2500 = f_qcd_WJets_HT1200to2500.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hMeas_qcd_WJets_HT2500toInf  = f_qcd_WJets_HT2500toInf.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
     
     hMeas_qcd.Sumw2()
     hMeas_qcd_tt_nonsemi.Sumw2()
@@ -348,12 +349,12 @@ if not options.closureTest:
     f_QCD_HT1500to2000 = TFile("histfiles_80X/hists_QCD_HT1500to2000_"+muOrEl+"_nom"+append+".root")
     f_QCD_HT2000toInf  = TFile("histfiles_80X/hists_QCD_HT2000toInf_"+muOrEl+"_nom"+append+".root")
 
-    hNorm_QCD_HT300to500   = f_QCD_HT300to500.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hNorm_QCD_HT500to700   = f_QCD_HT500to700.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hNorm_QCD_HT700to1000  = f_QCD_HT700to1000.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hNorm_QCD_HT1000to1500 = f_QCD_HT1000to1500.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hNorm_QCD_HT1500to2000 = f_QCD_HT1500to2000.Get(options.toUnfold+"RecoTop"+options.nbr)
-    hNorm_QCD_HT2000toInf  = f_QCD_HT2000toInf.Get(options.toUnfold+"RecoTop"+options.nbr)
+    hNorm_QCD_HT300to500   = f_QCD_HT300to500.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hNorm_QCD_HT500to700   = f_QCD_HT500to700.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hNorm_QCD_HT700to1000  = f_QCD_HT700to1000.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hNorm_QCD_HT1000to1500 = f_QCD_HT1000to1500.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hNorm_QCD_HT1500to2000 = f_QCD_HT1500to2000.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
+    hNorm_QCD_HT2000toInf  = f_QCD_HT2000toInf.Get(options.toUnfold+"RecoTop"+options.nbr+"fine")
 
     hNorm_QCD_HT300to500.Scale(347700. * lum / 37828442.)
     hNorm_QCD_HT500to700.Scale(32100. * lum / 44058594.)
@@ -459,11 +460,15 @@ fout = TFile("UnfoldingPlots/unfold_"+options.toUnfold+"_PowhegPythia8_"+options
 
 print "------------ UNFOLDING (syst: " + syst_flag + ") ------------"
 
-n_iter = 3
-print " using " + str(n_iter) + " iterations"
+#n_iter = 3
+#print " using " + str(n_iter) + " iterations"
 
-unfold = RooUnfoldBayes(response, hMeas, n_iter)
+#unfold = RooUnfoldBayes(response, hMeas, n_iter)
 #unfold = RooUnfoldSvd(response, hMeas, 2);
+
+unfold = RooUnfoldTUnfold(response, hMeas, TUnfold.kRegModeCurvature)
+tau = unfold.GetTau()
+print tau
 
 # get the unfolded distribution
 hReco = unfold.Hreco()
@@ -716,10 +721,10 @@ hEmpty2D.Draw("axis,same")
 #if options.syst=="nom" and options.closureTest==False:
 cr.SaveAs("UnfoldingPlots/unfold"+closureout+"_responseMatrix_"+options.lepType+"_"+syst_flag+".pdf")
 
-hEmpty2D.SetAxisRange(450,1150,"X")
-hEmpty2D.SetAxisRange(450,1150,"Y")
-hResponse2D.SetAxisRange(450,1150,"X")
-hResponse2D.SetAxisRange(450,1150,"Y")
+hEmpty2D.SetAxisRange(410,1150,"X")
+hEmpty2D.SetAxisRange(410,1150,"Y")
+hResponse2D.SetAxisRange(410,1150,"X")
+hResponse2D.SetAxisRange(410,1150,"Y")
 hEmpty2D.Draw()
 hResponse2D.Draw("colz,same,text")
 hEmpty2D.Draw("axis,same")

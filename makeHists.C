@@ -183,16 +183,22 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   float ptbins3[nptbins3+1] = {300.0,400.0,450.0,525.0,600.0,700.0,800.0,950.0,1200.0,2000.0};
   const int nptbins4 = 7;
   float ptbins4[nptbins4+1] = {300.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
-  const int nptbins5 = 6;
-  float ptbins5[nptbins5+1] = {400.0,475.0,575.0,700.0,850.0,1200.0,2000.0};
-  const int nptbins5fine = 12;
-  float ptbins5fine[nptbins5fine+1] = {400.0,430.0,475.0,525.0,575.0,625.0,700.0,775.0,850.0,1025.,1200.0,1600.0,2000.0};
+  const int nptbins5 = 7;
+  float ptbins5[nptbins5+1] = {300.0,400.0,475.0,575.0,700.0,850.0,1200.0,2000.0};
+  const int nptbins5fine = 14;
+  float ptbins5fine[nptbins5fine+1] = {300.0,350.0,400.0,430.0,475.0,525.0,575.0,625.0,700.0,775.0,850.0,1025.0,1200.0,1600.0,2000.0};
+  const int nptbins6 = 7;
+  float ptbins6[nptbins6+1] = {300.0,400.0,475.0,550.0,650.0,800.0,1200.0,2000.0};
+  const int nptbins6fine = 14;
+  float ptbins6fine[nptbins6fine+1] = {300.0,350.0,400.0,430.0,475.0,505.0,550.0,600.0,650.0,725.0,800.0,1000.0,1200.0,1600.0,2000.0};
 
   TH1D* h_bins2 = new TH1D("bins2", ";;", nptbins2, ptbins2);
   TH1D* h_bins3 = new TH1D("bins3", ";;", nptbins3, ptbins3);
   TH1D* h_bins4 = new TH1D("bins4", ";;", nptbins4, ptbins4);
   TH1D* h_bins5 = new TH1D("bins5", ";;", nptbins5, ptbins5);
   TH1D* h_bins5fine = new TH1D("bins5fine", ";;", nptbins5fine, ptbins5fine);
+  TH1D* h_bins6 = new TH1D("bins6", ";;", nptbins6, ptbins6);
+  TH1D* h_bins6fine = new TH1D("bins6fine", ";;", nptbins6fine, ptbins6fine);
 
   RooUnfoldResponse response(h_bins, h_bins);
   response.SetName("response_pt");
@@ -205,22 +211,29 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   RooUnfoldResponse response4(h_bins4, h_bins4);
   RooUnfoldResponse response5(h_bins5, h_bins5);
   RooUnfoldResponse response5fine(h_bins5fine, h_bins5);
+  RooUnfoldResponse response6(h_bins6, h_bins6);
+  RooUnfoldResponse response6fine(h_bins6fine, h_bins6);
   response2.SetName("response_pt2");
   response3.SetName("response_pt3");
   response4.SetName("response_pt4");
   response5.SetName("response_pt5");
   response5fine.SetName("response_pt5fine");
+  response6.SetName("response_pt6");
+  response6fine.SetName("response_pt6fine");
 
   TH1D* h_ptGenTop2 = new TH1D("ptGenTop2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptGenTop3 = new TH1D("ptGenTop3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptGenTop4 = new TH1D("ptGenTop4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
   TH1D* h_ptGenTop5 = new TH1D("ptGenTop5", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptGenTop6 = new TH1D("ptGenTop6", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
 
   TH1D* h_ptRecoTop2 = new TH1D("ptRecoTop2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptRecoTop3 = new TH1D("ptRecoTop3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptRecoTop4 = new TH1D("ptRecoTop4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
   TH1D* h_ptRecoTop5 = new TH1D("ptRecoTop5", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
   TH1D* h_ptRecoTop5fine = new TH1D("ptRecoTop5fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5fine, ptbins5fine);
+  TH1D* h_ptRecoTop6 = new TH1D("ptRecoTop6", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
+  TH1D* h_ptRecoTop6fine = new TH1D("ptRecoTop6fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6fine, ptbins6fine);
 
   // reweighted top pt spectra at reco/truth level (using weights based on parton-level top quark pt)
   TH1D* h_ptGenTopMod  = new TH1D("ptGenTopMod",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
@@ -228,24 +241,30 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1D* h_ptGenTopMod3 = new TH1D("ptGenTopMod3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptGenTopMod4 = new TH1D("ptGenTopMod4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
   TH1D* h_ptGenTopMod5 = new TH1D("ptGenTopMod5", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptGenTopMod6 = new TH1D("ptGenTopMod6", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
   TH1D* h_ptRecoTopMod  = new TH1D("ptRecoTopMod",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1D* h_ptRecoTopMod2 = new TH1D("ptRecoTopMod2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptRecoTopMod3 = new TH1D("ptRecoTopMod3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptRecoTopMod4 = new TH1D("ptRecoTopMod4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
   TH1D* h_ptRecoTopMod5 = new TH1D("ptRecoTopMod5", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
   TH1D* h_ptRecoTopMod5fine = new TH1D("ptRecoTopMod5fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5fine, ptbins5fine);
+  TH1D* h_ptRecoTopMod6 = new TH1D("ptRecoTopMod6", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
+  TH1D* h_ptRecoTopMod6fine = new TH1D("ptRecoTopMod6fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6fine, ptbins6fine);
 
   TH1D* h_ptGenTopModDown  = new TH1D("ptGenTopModDown",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1D* h_ptGenTopModDown2 = new TH1D("ptGenTopModDown2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptGenTopModDown3 = new TH1D("ptGenTopModDown3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptGenTopModDown4 = new TH1D("ptGenTopModDown4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
   TH1D* h_ptGenTopModDown5 = new TH1D("ptGenTopModDown5", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptGenTopModDown6 = new TH1D("ptGenTopModDown6", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
   TH1D* h_ptRecoTopModDown  = new TH1D("ptRecoTopModDown",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1D* h_ptRecoTopModDown2 = new TH1D("ptRecoTopModDown2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptRecoTopModDown3 = new TH1D("ptRecoTopModDown3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptRecoTopModDown4 = new TH1D("ptRecoTopModDown4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
   TH1D* h_ptRecoTopModDown5 = new TH1D("ptRecoTopModDown5", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
   TH1D* h_ptRecoTopModDown5fine = new TH1D("ptRecoTopModDown5fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5fine, ptbins5fine);
+  TH1D* h_ptRecoTopModDown6 = new TH1D("ptRecoTopModDown6", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
+  TH1D* h_ptRecoTopModDown6fine = new TH1D("ptRecoTopModDown6fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6fine, ptbins6fine);
 
   float LUM = 12358.75;
   if (channel == "el") LUM = 12295.65;
@@ -347,11 +366,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptGenTop3->Fill(genTopPt_TO->at(0),weight);
       h_ptGenTop4->Fill(genTopPt_TO->at(0),weight);
       h_ptGenTop5->Fill(genTopPt_TO->at(0),weight);
+      h_ptGenTop6->Fill(genTopPt_TO->at(0),weight);
       response2.Miss(genTopPt_TO->at(0),weight*weight_response);
       response3.Miss(genTopPt_TO->at(0),weight*weight_response);
       response4.Miss(genTopPt_TO->at(0),weight*weight_response);
       response5.Miss(genTopPt_TO->at(0),weight*weight_response);
       response5fine.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response6.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response6fine.Miss(genTopPt_TO->at(0),weight*weight_response);
 
       float oldpt = genTopPt_TO->at(0);
       float w_ptup = (1.0 + 0.0008*oldpt);
@@ -362,12 +384,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptGenTopMod3->Fill(oldpt,weight*w_ptup);
       h_ptGenTopMod4->Fill(oldpt,weight*w_ptup);
       h_ptGenTopMod5->Fill(oldpt,weight*w_ptup);
+      h_ptGenTopMod6->Fill(oldpt,weight*w_ptup);
 
       h_ptGenTopModDown->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown2->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown3->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown5->Fill(oldpt,weight*w_ptdn);
+      h_ptGenTopModDown6->Fill(oldpt,weight*w_ptdn);
 
     }
     treeTO->Delete();
@@ -1166,6 +1190,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	h_ptGenTop3->Fill(genTopPt->at(0),weight);
 	h_ptGenTop4->Fill(genTopPt->at(0),weight);
 	h_ptGenTop5->Fill(genTopPt->at(0),weight);
+	h_ptGenTop6->Fill(genTopPt->at(0),weight);
 
 	float oldpt = genTopPt->at(0);
 	float w_ptup = (1.0 + 0.0008*oldpt);
@@ -1179,12 +1204,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	h_ptGenTopMod3->Fill(oldpt,weight*w_ptup);
 	h_ptGenTopMod4->Fill(oldpt,weight*w_ptup);
 	h_ptGenTopMod5->Fill(oldpt,weight*w_ptup);
+	h_ptGenTopMod6->Fill(oldpt,weight*w_ptup);
 
 	h_ptGenTopModDown->Fill(oldpt,weight*w_ptdn);
 	h_ptGenTopModDown2->Fill(oldpt,weight*w_ptdn);
 	h_ptGenTopModDown3->Fill(oldpt,weight*w_ptdn);
 	h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);
 	h_ptGenTopModDown5->Fill(oldpt,weight*w_ptdn);
+	h_ptGenTopModDown6->Fill(oldpt,weight*w_ptdn);
 
 	if (channel == "mu"){
 	  if ((int)genMuPt->size() == 0) {
@@ -1265,6 +1292,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*weight_response);
 	response5.Miss(genTopPt->at(0),weight*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1300,6 +1329,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*weight_response);
 	response5.Miss(genTopPt->at(0),weight*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1532,6 +1563,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response4.Miss(genTopPt->at(0),weight*weight_response);
 	  response5.Miss(genTopPt->at(0),weight*weight_response);
 	  response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	  response6.Miss(genTopPt->at(0),weight*weight_response);
+	  response6fine.Miss(genTopPt->at(0),weight*weight_response);
 	}
 	continue;
       }
@@ -1543,6 +1576,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response4.Miss(genTopPt->at(0),weight*weight_response);
 	  response5.Miss(genTopPt->at(0),weight*weight_response);
 	  response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	  response6.Miss(genTopPt->at(0),weight*weight_response);
+	  response6fine.Miss(genTopPt->at(0),weight*weight_response);
 	}
 	continue;
       }
@@ -1587,6 +1622,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response4.Miss(genTopPt->at(0),weight*weight_response);
 	  response5.Miss(genTopPt->at(0),weight*weight_response);
 	  response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	  response6.Miss(genTopPt->at(0),weight*weight_response);
+	  response6fine.Miss(genTopPt->at(0),weight*weight_response);
 	}
 	continue;
       }
@@ -1603,6 +1640,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*weight_response);
 	response5.Miss(genTopPt->at(0),weight*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1642,6 +1681,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*weight_response);
 	response5.Miss(genTopPt->at(0),weight*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1671,6 +1712,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*weight_response);
 	response5.Miss(genTopPt->at(0),weight*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1685,6 +1728,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*weight_response);
 	response5.Miss(genTopPt->at(0),weight*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1893,6 +1938,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptRecoTop4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
       h_ptRecoTop5->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
       h_ptRecoTop5fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop6->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop6fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
 
       h_ptRecoTopMod->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopMod2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
@@ -1900,12 +1947,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptRecoTopMod4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopMod5->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopMod5fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod6->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod6fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopModDown->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown5->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown5fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown6->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown6fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
 
       if (isSignal){
 	if (passParton) {
@@ -1915,6 +1966,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response4.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
 	  response5.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
 	  response5fine.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response6.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response6fine.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
 	}
 	else {
 	  response.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
@@ -1923,6 +1976,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response4.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
 	  response5.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
 	  response5fine.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response6.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response6fine.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
 	}
       }
     }
@@ -1934,6 +1989,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
 	response5.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response6.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
       }
     }
     else{
@@ -1944,6 +2001,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response4.Miss(genTopPt->at(0),weight*weight_response);
 	response5.Miss(genTopPt->at(0),weight*weight_response);
 	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
     }
 
@@ -2224,23 +2283,28 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_ptGenTop3->Write();
     h_ptGenTop4->Write();
     h_ptGenTop5->Write();
+    h_ptGenTop6->Write();
 
     h_ptGenTopMod->Write();
     h_ptGenTopMod2->Write();
     h_ptGenTopMod3->Write();
     h_ptGenTopMod4->Write();
     h_ptGenTopMod5->Write();
+    h_ptGenTopMod6->Write();
     h_ptGenTopModDown->Write();
     h_ptGenTopModDown2->Write();
     h_ptGenTopModDown3->Write();
     h_ptGenTopModDown4->Write();
     h_ptGenTopModDown5->Write();
+    h_ptGenTopModDown6->Write();
 
     response2.Write();
     response3.Write();
     response4.Write();
     response5.Write();
     response5fine.Write();
+    response6.Write();
+    response6fine.Write();
 
 
     /*
@@ -2266,6 +2330,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ptRecoTop4->Write();
   h_ptRecoTop5->Write();
   h_ptRecoTop5fine->Write();
+  h_ptRecoTop6->Write();
+  h_ptRecoTop6fine->Write();
 
   h_ptRecoTopMod->Write();
   h_ptRecoTopMod2->Write();
@@ -2273,12 +2339,16 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ptRecoTopMod4->Write();
   h_ptRecoTopMod5->Write();
   h_ptRecoTopMod5fine->Write();
+  h_ptRecoTopMod6->Write();
+  h_ptRecoTopMod6fine->Write();
   h_ptRecoTopModDown->Write();
   h_ptRecoTopModDown2->Write();
   h_ptRecoTopModDown3->Write();
   h_ptRecoTopModDown4->Write();
   h_ptRecoTopModDown5->Write();
   h_ptRecoTopModDown5fine->Write();
+  h_ptRecoTopModDown6->Write();
+  h_ptRecoTopModDown6fine->Write();
 
   h_metPtPre->Write();
   h_htPre->Write();
@@ -2524,23 +2594,28 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ptGenTop3->Delete();
   h_ptGenTop4->Delete();
   h_ptGenTop5->Delete();
+  h_ptGenTop6->Delete();
 
   h_ptRecoTop2->Delete();
   h_ptRecoTop3->Delete();
   h_ptRecoTop4->Delete();
   h_ptRecoTop5->Delete();
   h_ptRecoTop5fine->Delete();
+  h_ptRecoTop6->Delete();
+  h_ptRecoTop6fine->Delete();
 
   h_ptGenTopMod->Delete();
   h_ptGenTopMod2->Delete();
   h_ptGenTopMod3->Delete();
   h_ptGenTopMod4->Delete();
   h_ptGenTopMod5->Delete();
+  h_ptGenTopMod6->Delete();
   h_ptGenTopModDown->Delete();
   h_ptGenTopModDown2->Delete();
   h_ptGenTopModDown3->Delete();
   h_ptGenTopModDown4->Delete();
   h_ptGenTopModDown5->Delete();
+  h_ptGenTopModDown6->Delete();
 
   h_ptRecoTopMod->Delete();
   h_ptRecoTopMod2->Delete();
@@ -2548,18 +2623,24 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ptRecoTopMod4->Delete();
   h_ptRecoTopMod5->Delete();
   h_ptRecoTopMod5fine->Delete();
+  h_ptRecoTopMod6->Delete();
+  h_ptRecoTopMod6fine->Delete();
   h_ptRecoTopModDown->Delete();
   h_ptRecoTopModDown2->Delete();
   h_ptRecoTopModDown3->Delete();
   h_ptRecoTopModDown4->Delete();
   h_ptRecoTopModDown5->Delete();
   h_ptRecoTopModDown5fine->Delete();
+  h_ptRecoTopModDown6->Delete();
+  h_ptRecoTopModDown6fine->Delete();
 
   response2.Delete();
   response3.Delete();
   response4.Delete();
   response5.Delete();
   response5fine.Delete();
+  response6.Delete();
+  response6fine.Delete();
 
 
   /*
