@@ -28,12 +28,14 @@ if options.closureTests:
         #"python closureTest.py --lepType=ele --type=full --toy=up",
         #"python closureTest.py --lepType=muon --type=full --toy=dn",
         #"python closureTest.py --lepType=ele --type=full --toy=dn",
-        "python closureTestTUnfold_v2.py --lepType=muon --type=half --toy=nom --regType=LCurve",
-        "python closureTestTUnfold_v2.py --lepType=ele --type=half --toy=nom --regType=LCurve",
-        "python closureTestTUnfold_v2.py --lepType=muon --type=half --toy=up --regType=LCurve",
-        "python closureTestTUnfold_v2.py --lepType=ele --type=half --toy=up --regType=LCurve",
-        "python closureTestTUnfold_v2.py --lepType=muon --type=half --toy=dn --regType=LCurve",
-        "python closureTestTUnfold_v2.py --lepType=ele --type=half --toy=dn --regType=LCurve"
+        "python closureTest.py --lepType=muon --type=half --toy=nom",
+        "python closureTest.py --lepType=ele --type=half --toy=nom",
+        #"python closureTestTUnfold_v2.py --lepType=muon --type=half --toy=nom --regType=LCurve",
+        #"python closureTestTUnfold_v2.py --lepType=ele --type=half --toy=nom --regType=LCurve",
+        #"python closureTestTUnfold_v2.py --lepType=muon --type=half --toy=up --regType=LCurve",
+        #"python closureTestTUnfold_v2.py --lepType=ele --type=half --toy=up --regType=LCurve",
+        #"python closureTestTUnfold_v2.py --lepType=muon --type=half --toy=dn --regType=LCurve",
+        #"python closureTestTUnfold_v2.py --lepType=ele --type=half --toy=dn --regType=LCurve"
     ]
     
 else :

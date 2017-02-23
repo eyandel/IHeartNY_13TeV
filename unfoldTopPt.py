@@ -460,15 +460,11 @@ fout = TFile("UnfoldingPlots/unfold_"+options.toUnfold+"_PowhegPythia8_"+options
 
 print "------------ UNFOLDING (syst: " + syst_flag + ") ------------"
 
-#n_iter = 3
-#print " using " + str(n_iter) + " iterations"
+n_iter = 3
+print " using " + str(n_iter) + " iterations"
 
-#unfold = RooUnfoldBayes(response, hMeas, n_iter)
+unfold = RooUnfoldBayes(response, hMeas, n_iter)
 #unfold = RooUnfoldSvd(response, hMeas, 2);
-
-unfold = RooUnfoldTUnfold(response, hMeas, TUnfold.kRegModeCurvature)
-tau = unfold.GetTau()
-print tau
 
 # get the unfolded distribution
 hReco = unfold.Hreco()

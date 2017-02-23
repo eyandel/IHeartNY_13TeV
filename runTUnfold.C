@@ -53,8 +53,8 @@ void runTUnfold() {
   cout<<"TUnfold version is "<<TUnfold::GetTUnfoldVersion()<< endl;
   
   //Closure test
-  doUnfold("mu","pt",true,false,"none","LCurve");
-  doUnfold("el","pt",true,false,"none","LCurve");
+  //doUnfold("mu","pt",true,false,"none","ScanTau");
+  //doUnfold("el","pt",true,false,"none","ScanTau");
   //Full unfolding
 
   doUnfold("mu","pt",false,false,"Up","LCurve");
@@ -131,6 +131,10 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
   f_data->Close();
   delete f_data;
   cout << "Number of data bins: " << h_data->GetXaxis()->GetNbins() << endl;
+
+  for (int ib = 1; ib < h_data->GetXaxis()->GetNbins()+1; ib++){
+    cout << "Bin number " << ib << " has " << h_data->GetBinContent(ib) << " entries " << endl;
+  }
 
   // Correct for fake events
   if (response->FakeEntries()){
@@ -274,9 +278,7 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
       QCD_norm += h_tmp->Integral();
     }
     h_qcd->Scale(QCD_norm / h_qcd->Integral());
-  }
 
-  if (!isClosure){
     if (channel == "mu"){
       hMeas->Add(h_ttbar,-1.0*0.77);
       hMeas->Add(h_singletop,-1.0*1.00);
@@ -317,7 +319,7 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
     // --------------------------------------------------------------------------------------
     // Subtract backgrounds if not closure test
     // --------------------------------------------------------------------------------------
-    
+
     if (!isClosure){
       if (channel == "mu"){
 	unfold.SubtractBackground(h_ttbar,"ttbar",0.77,0.06); //hist, bkg name, fit normalization, uncertainty
@@ -360,50 +362,90 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
 	delete f_syst;
       }
     }
-    
+
     // --------------------------------------------------------------------------------------
     // Find tau, do unfolding
     // --------------------------------------------------------------------------------------
 
     for (int jj = 0; jj < nSCAN; jj++){
 
-      TCanvas* c1 = new TCanvas();
-      c1->cd();
+      TSpline* logTauX = 0;
+      TSpline* logTauY = 0;
+      TGraph* lCurve = 0;
+      TSpline* scanResult = 0;
+      TGraph* bestLCurve = new TGraph(1);
+      TGraph *bestRhoLogTau=new TGraph(1);
+      Double_t tau,rho,x,y;
 
       if (regMode == "LCurve"){
-	TSpline* logTauX = 0;
-	TSpline* logTauY = 0;
-	TGraph* lCurve = 0;
-	TGraph* bestLCurve = new TGraph(1);
-	int i_tau = unfold.ScanLcurve(100,0.0001,0.01,&lCurve,&logTauX,&logTauY);
-	Double_t tau, x ,y, rho;
+	int i_tau = unfold.ScanLcurve(100,0.0001,0.1,&lCurve,&logTauX,&logTauY);
 	logTauX->GetKnot(i_tau,tau,x);
 	logTauY->GetKnot(i_tau,tau,y);
 	bestLCurve->SetPoint(1,x,y);
 	bestLCurve->SetMarkerColor(2);
+
+	TCanvas* c1 = new TCanvas();
+	c1->cd();
+	
 	lCurve->Draw();
 	bestLCurve->Draw("*");
+	
+	TLatex* tautext = new TLatex();
+	tautext->SetNDC();
+	tautext->SetTextFont(42);
+	tautext->SetTextSize(0.04);
+	tautext->DrawLatex(0.55,0.8,TString::Format("Optimal point: log #tau = %.3f",tau));
+	
+	c1->Print(TString::Format("UnfoldingPlots/LCurve_"+channel+"_reg%d_scan%d.pdf",ii,jj));
       }
       
       else {
-	TSpline* scanResult = 0;
-	int i_tau = unfold.ScanTau(100,0.0001,0.01,&scanResult,scan_modes[jj]);
-	
-	Double_t t[1],rho[1],x[1],y[1];
-	scanResult->GetKnot(i_tau,t[0],rho[0]);
-	TGraph *bestRhoLogTau=new TGraph(1,t,rho);
+	const char *SCAN_DISTRIBUTION=0;
+	const char *SCAN_AXISSTEERING=0;
+	int i_tau = unfold.ScanTau(100,0.0001,0.1,&scanResult,scan_modes[jj],SCAN_DISTRIBUTION,SCAN_AXISSTEERING,&lCurve,&logTauX,&logTauY);
+
+	logTauX->GetKnot(i_tau,tau,x);
+	logTauY->GetKnot(i_tau,tau,y);
+	bestLCurve->SetPoint(1,x,y);
+	bestLCurve->SetMarkerColor(2);
+
+	scanResult->GetKnot(i_tau,tau,rho);
+	bestRhoLogTau->SetPoint(1,tau,rho);
+
 	Double_t *tAll=new Double_t[100];
 	Double_t *rhoAll=new Double_t[100];
 	for(Int_t i=0;i<100;i++) {
 	  scanResult->GetKnot(i,tAll[i],rhoAll[i]);
 	}
 	TGraph *knots=new TGraph(100,tAll,rhoAll);
+
+	TCanvas* c1 = new TCanvas();
+	c1->cd();
+	
+	lCurve->Draw();
+	bestLCurve->Draw("*");
+	
+	TLatex* tautext = new TLatex();
+	tautext->SetNDC();
+	tautext->SetTextFont(42);
+	tautext->SetTextSize(0.04);
+	tautext->DrawLatex(0.55,0.8,TString::Format("Optimal point: log #tau = %.3f",tau));
+	
+	c1->Print(TString::Format("UnfoldingPlots/LCurve_"+channel+"_reg%d_scan%d.pdf",ii,jj));
+	
+	TCanvas* cT = new TCanvas();
+	cT->cd();
+	
 	knots->Draw();
 	bestRhoLogTau->Draw("*");
+	
+	tautext->DrawLatex(0.55,0.8,TString::Format("Optimal point: log #tau = %.3f",tau));
+	
+	cT->Print(TString::Format("UnfoldingPlots/ScanTau_"+channel+"_reg%d_scan%d.pdf",ii,jj));
       }
-      
-      c1->Print(TString::Format("UnfoldingPlots/"+regMode+"_"+channel+"_reg%d_scan%d.pdf",ii,jj));
-      
+	
+      unfold.DoUnfold(pow(10,tau));
+	
       cout<<"chi**2="<<unfold.GetChi2A()<<"+"<<unfold.GetChi2L()
 	  <<" / "<<unfold.GetNdf()<<"\n";
       
@@ -595,6 +637,7 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
       
       hFrac->GetYaxis()->SetTitle("Theory / Data");
       hFrac->GetXaxis()->SetTitle("Top quark p_{T} (GeV)");
+      hFrac->SetTitle("");
       hFrac->GetYaxis()->SetTitleOffset(0.8);
       hFrac->GetYaxis()->SetNdivisions(505);
       hFrac->GetYaxis()->SetTitleOffset(0.38);
@@ -638,7 +681,7 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
 	else if (toUnfold == "y") h_sysTotal->GetXaxis()->SetTitle("Top quark y");
 	h_sysTotal->GetYaxis()->SetTitle("Uncertainty [%]");
 	if (toUnfold == "pt") h_sysTotal->SetAxisRange(400,1150,"X");
-	h_sysTotal->SetMaximum(100.0);
+	h_sysTotal->SetMaximum(500.0);
 	h_sysTotal->SetMinimum(0.0);
 	
 	int colors[9] = {632,600,617,417,432,801,864,906,419};
@@ -667,10 +710,10 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
 				"PDF Uncertainty","#mu_{R}, #mu_{F} scales","#alpha_{s} scale"};
 	
 	TLegend* leg2;
-	if (toUnfold == "pt" && doNormalize) leg2 = new TLegend(0.2,0.65,0.45,0.8);
+	if (toUnfold == "pt" && doNormalize) leg2 = new TLegend(0.2,0.60,0.45,0.8);
 	else leg2 = new TLegend(0.2,0.65,0.45,0.88);
 	const int split = (int) nSYST / 2;
-	for (int is = 0; is < split+1; is++){
+	for (int is = 0; is < split+2; is++){
 	  leg2->AddEntry(h_sysUnc[is],longnames[is],"lp");
 	}
 	leg2->SetFillStyle(0);
@@ -679,9 +722,9 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
 	leg2->SetTextFont(42);
 	
 	TLegend* leg22;
-	if (toUnfold == "pt" && doNormalize) leg22 = new TLegend(0.55,0.65,0.8,0.8);
+	if (toUnfold == "pt" && doNormalize) leg22 = new TLegend(0.55,0.60,0.8,0.8);
 	else leg22 = new TLegend(0.55,0.65,0.8,0.88);
-	for (int is = split+1; is < nSYST; is++){
+	for (int is = split+2; is < nSYST; is++){
 	  leg22->AddEntry(h_sysUnc[is],longnames[is],"lp");
 	}
 	if (!isClosure) leg22->AddEntry(h_bkgUnc,"Background normalization","lp");
@@ -694,6 +737,7 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
 	leg22->SetTextFont(42);
 	
 	h_sysTotal->SetFillStyle(3344);
+	h_sysTotal->SetTitle("");
 
 	for (int is = 0; is < nSYST; is++){
 	  h_sysUnc[is]->Draw("hist");
@@ -745,9 +789,17 @@ void doUnfold(TString channel, TString toUnfold, bool isClosure, bool doNormaliz
       c4->SetLeftMargin(0.18);
       c4->SetRightMargin(0.12);
       c4->SetBottomMargin(0.1);
-      //histEmatTotal->SetAxisRange(1.0,histEmatTotal->GetXaxis()->GetNbins()-1.001,"X");
-      //histEmatTotal->SetAxisRange(1.0,histEmatTotal->GetXaxis()->GetNbins()-1.001,"Y");
+      histEmatTotal->SetAxisRange(400.,1199.0,"X");
+      histEmatTotal->SetAxisRange(400.,1199.0,"Y");
       histEmatTotal->GetZaxis()->SetLabelSize(0.04);
+      histEmatTotal->GetXaxis()->SetLabelSize(0.04);
+      histEmatTotal->GetYaxis()->SetLabelSize(0.04);
+      histEmatTotal->SetTitle("Covariance matrix (correlations between output bins)");
+      histEmatTotal->SetTitleSize(0.9,"t");
+      histEmatTotal->GetXaxis()->SetTitle("Top quark p_{T} (GeV)");
+      histEmatTotal->GetYaxis()->SetTitle("Top quark p_{T} (GeV)");
+      histEmatTotal->SetTitleSize(0.045,"x");
+      histEmatTotal->SetTitleSize(0.045,"y");
       histEmatTotal->Draw("COLZ");
       gPad->Update();
       TPaletteAxis *palette = (TPaletteAxis*)histEmatTotal->GetListOfFunctions()->FindObject("palette");
