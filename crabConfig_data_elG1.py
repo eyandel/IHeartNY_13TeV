@@ -2,7 +2,7 @@ from WMCore.Configuration import Configuration
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'Data_el'
+config.General.requestName = 'Data_elG1'
 config.General.workArea = 'test'
 config.General.transferLogs = True
 
@@ -11,17 +11,17 @@ config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
 config.JobType.inputFiles = ['FrameworkJobReport.xml', 'execute_for_crab.py', 'iheartny_topxs_fwlite.py', 'JECs']
 config.JobType.outputFiles = ['test_iheartNY.root']
-config.JobType.scriptExe = 'execute_iheartNY_data_el.sh'
+config.JobType.scriptExe = 'execute_iheartNY_dataG_el.sh'
 
 config.section_("Data")
-config.Data.inputDataset = '/SingleElectron/asparker-RunIISpring16MiniAODv2_B2GAnaFW_80x_V1p0-c9ad27f972ae59d36cd924fb5f87408c/USER'
+config.Data.inputDataset = '/SingleElectron/vorobiev-SingleElectron_Run2016G-23Sep2016-v1_B2GAnaFW_80X_v2p4-b45603bfa955d854bdcb9af322c0b037/USER'
 config.Data.inputDBS = 'phys03'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
 #config.Data.totalUnits = 1000
 config.Data.ignoreLocality = True
 config.Data.publication = False
-config.Data.outLFNDirBase = '/store/user/dittmer/13TeV_80X'
+config.Data.outLFNDirBase = '/store/user/dittmer/13TeV_full2016'
 # This string is used to construct the output dataset name
 
 config.section_("Site")

@@ -878,7 +878,7 @@ smearfunc = ROOT.TRandom3()
 # -------------------------------
 muTrigIndices = {}
 elTrigIndices = {}
-metFilters = {}
+metFiltIndices = {}
 
 for run in runs:
 
@@ -900,8 +900,14 @@ for run in runs:
     if not gotName:
         print 'Error! no MET filter in run info'
     filterNameStrings = metFilterNameHandle.product()
+    metFilts = []
+    if len(filterNameStrings) != 0:
+        for ifilt in xrange(0, len(filterNameStrings) ) :
+            if any(s in filterNameStrings[ifilt] for s in ("HBHENoiseFilter","HBHENoiseIsoFilter","globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")):
+                metFilts.append(ifilt)
 
-    metFilters[runnumber] = filterNameStrings
+
+    metFiltIndices[runnumber] = metFilts
 
     gotTrigName = run.getByLabel( trigNameLabel, trigNameHandle )
     if not gotTrigName:
@@ -1441,11 +1447,11 @@ for event in events :
     else :
         filterBits = metFilterBitsHandle.product()
 
-        metFilterNames = metFilters[runnumber]
-        for ifilt in xrange(0, len(metFilterNames) ) :
-            if any(s in metFilterNames[ifilt] for s in ("HBHENoiseFilter","HBHENoiseIsoFilter","globalTightHalo2016Filter","goodVertices","eeBadScFilter","EcalDeadCellTriggerPrimitiveFilter")) and filterBits[ifilt] == 0:
+        metFilterIndices = metFiltIndices[runnumber]
+        for ifilt in metFilterIndices :
+            if filterBits[ifilt] == 0:
                 if options.debug :
-                    print 'MET filter fails: ' + filterNameStrings[ifilt]
+                    print 'MET filter fails'
                 metFilt = False
 
     # Now check additional MET filters
