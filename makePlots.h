@@ -17,7 +17,8 @@
 // various declarations
 // -------------------------------------------------------------------------------------
 
-const double LUM[2] = {12358.75,12295.65}; //pb-1
+const double LUM[2] = {37941.57,37941.57}; //pb-1
+// TODO: use correct electron lumi, account for missing files
 
 // -------------------------------------------------------------------------------------
 // helper class for summed, weighted histograms (e.g. single top)
@@ -164,13 +165,13 @@ SummedHist * getWJets( TString DIR, TString histname, TString region, TString ch
   };
   
   double wjets_norms[nwjets] = {
-    1345.0 * 1.21 * LUM[ich] / 27529599.,  // Note: these are from AN-15-107, may need updating
-    359.7 * 1.21 * LUM[ich] / 4963240.,  
-    48.91 * 1.21 * LUM[ich] / 1963464.,  
-    12.05 * 1.21 * LUM[ich] / 3722395.,
-    5.501 * 1.21 * LUM[ich] / 6314257.,
-    1.329 * 1.21 * LUM[ich] / 6768156.,
-    0.03216 * 1.21 * LUM[ich] / 253561.,
+    1345.0 * 1.21 * LUM[ich] / 39617787.,  // Note: cross sections are from AN-15-107, may need updating
+    359.7 * 1.21 * LUM[ich] / 19914590.,  
+    48.91 * 1.21 * LUM[ich] / 5796237.,  
+    12.05 * 1.21 * LUM[ich] / 14822888.,
+    5.501 * 1.21 * LUM[ich] / 6200954.,
+    1.329 * 1.21 * LUM[ich] / 6324934.,
+    0.03216 * 1.21 * LUM[ich] / 2384260.,
   };
   
   SummedHist* wjets = new SummedHist( histname, kGreen-3 );
@@ -198,20 +199,22 @@ SummedHist * getSingleTop( TString DIR, TString histname, TString region, TStrin
   int ich = 0;
   if (channel == "el") ich = 1;
 
-  const int nsingletop = 4;
+  const int nsingletop = 5;
   
   TString singletop_names[nsingletop] = {
     "SingleTop_t_t",
     "SingleTop_tbar_t",
     "SingleTop_t_tW",
     "SingleTop_tbar_tW",
+    "SingleTop_s",
   };
   
   double singletop_norms[nsingletop] = {
-    136.02*0.322 * LUM[ich] / 3279200., // xsec from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
-    80.95*0.322 * LUM[ich] / 1682400.,  // BR from https://twiki.cern.ch/twiki/bin/view/Main/EdbrBackup (second-hand, but can't find original source)
-    35.9 * LUM[ich] / 998400.,          // BR are needed because t-channel samples are leptonic final state only
-    35.9 * LUM[ich] / 985000.,
+    136.02 * LUM[ich] / 5993676., // xsec from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
+    80.95 * LUM[ich] / 3928063.,  // BR from https://twiki.cern.ch/twiki/bin/view/Main/EdbrBackup (second-hand, but can't find original source)
+    35.9 * LUM[ich] / 992024.,    // BR is needed because s-channel sample is leptonic final state only
+    35.9 * LUM[ich] / 998276.,
+    10.32 * 0.322 * LUM[ich] / 1000000.,
   };
   
   SummedHist* singletop = new SummedHist( histname, 6 );
@@ -241,7 +244,7 @@ SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, 
   if (channel == "el") ich = 1;
 
   TString ttbar_name = "PowhegPythia8_nonsemilep";
-  double ttbar_norm = 831.76 * LUM[ich] / 182123200.;
+  double ttbar_norm = 831.76 * LUM[ich] / 77229341.; //TODO: technically this is incorrect, as there is a job missing -- but can't tell what files the job corresponds to
   
   SummedHist* ttbar = new SummedHist( histname, kRed-7);
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + "_" + syst + append + ".root";
@@ -267,7 +270,7 @@ SummedHist * getTTbar( TString DIR, TString histname, TString region, TString ch
   if (channel == "el") ich = 1;
 
   TString ttbar_name = "PowhegPythia8_fullTruth";
-  double ttbar_norm = 831.76 * LUM[ich] / 182123200.;
+  double ttbar_norm = 831.76 * LUM[ich] / 77229341.;
   
   SummedHist* ttbar = new SummedHist( histname, kRed+1);
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + "_" + syst + append + ".root";
@@ -291,10 +294,10 @@ SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString ch
   int ich = 0;
   if (channel == "el") ich = 1;
 
-  const int nqcd = 6;
+  const int nqcd = 5;
   
   TString qcd_names[nqcd] = {
-    "QCD_HT300to500",
+    //"QCD_HT300to500", //Empty currently
     "QCD_HT500to700",
     "QCD_HT700to1000",
     "QCD_HT1000to1500",
@@ -303,12 +306,12 @@ SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString ch
   };
   
   double qcd_norms[nqcd] = {
-    347700. * LUM[ich] / 37828442., // Cross sections are from AN-15-136, which is a bit random and not actually correct for the samples I use
-    32100. * LUM[ich] / 44058594.,  // Hopefully they are close enough...
-    6831. * LUM[ich] / 29832311.,  
-    1207. * LUM[ich] / 4980387.,
-    119.9 * LUM[ich] / 7803965.,
-    25.24 * LUM[ich] / 4047532.,
+    //347700. * LUM[ich] / 17035891., // Cross sections are from AN-15-136, which is a bit random and not actually correct for the samples I use
+    32100. * LUM[ich] / 18929951.,  // Technically part of this is missing, but can't tell which part -- ~1% though
+    6831. * LUM[ich] / 15629253.,  
+    1207. * LUM[ich] / 4767100., 
+    119.9 * LUM[ich] / 3970819.,
+    25.24 * LUM[ich] / 1991645.,
   };
   
   SummedHist* qcd = new SummedHist( histname, kYellow );
@@ -346,10 +349,10 @@ float getQCDnorm( TString DIR, TString channel, TString region, TString syst, bo
   int ich = 0;
   if (channel == "el") ich = 1;
 
-  const int nqcd = 6;
+  const int nqcd = 5;
   
   TString qcd_names[nqcd] = {
-    "QCD_HT300to500",
+    //"QCD_HT300to500",
     "QCD_HT500to700",
     "QCD_HT700to1000",
     "QCD_HT1000to1500",
@@ -358,12 +361,12 @@ float getQCDnorm( TString DIR, TString channel, TString region, TString syst, bo
   };
 
   double qcd_norms[nqcd] = {
-    347700. * LUM[ich] / 37828442., // Cross sections are from AN-15-136, which is a bit random and not actually correct for the samples I use
-    32100. * LUM[ich] / 44058594.,  // Hopefully they are close enough...
-    6831. * LUM[ich] / 29832311.,  
-    1207. * LUM[ich] / 4980387.,
-    119.9 * LUM[ich] / 7803965.,
-    25.24 * LUM[ich] / 4047532.,
+    //347700. * LUM[ich] / 17035891., // Cross sections are from AN-15-136, which is a bit random and not actually correct for the samples I use
+    32100. * LUM[ich] / 18929951.,  // Hopefully they are close enough...
+    6831. * LUM[ich] / 15629253.,  
+    1207. * LUM[ich] / 4767100.,
+    119.9 * LUM[ich] / 3970819.,
+    25.24 * LUM[ich] / 1991645.,
   };
 
   float n_qcd = 0.0;
@@ -429,7 +432,7 @@ TObject * getSignal( TString DIR, TString histname, TString region, TString chan
   if (channel == "el") ich = 1;
 
   TString ttbar_name = "PowhegPythia8_semilep";
-  double ttbar_norm = 831.76 * LUM[ich] / 182123200.;
+  double ttbar_norm = 831.76 * LUM[ich] / 77229341.;
     
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + append + "_nom.root";
   TH2F* ttbar = (TH2F*) getHist(iname,histname,region);
@@ -455,6 +458,7 @@ TObject * getBackground( TString DIR, TString histname, TString region, TString 
     "SingleTop_tbar_t",
     "SingleTop_t_tW",
     "SingleTop_tbar_tW",
+    "SingleTop_s",
     "WJets_HT100to200",
     "WJets_HT200to400",
     "WJets_HT400to600",
@@ -462,7 +466,7 @@ TObject * getBackground( TString DIR, TString histname, TString region, TString 
     "WJets_HT800to1200",
     "WJets_HT1200to2500",
     "WJets_HT2500toInf",
-    "QCD_HT300to500",
+    //"QCD_HT300to500",
     "QCD_HT500to700",
     "QCD_HT700to1000",
     "QCD_HT1000to1500",
@@ -471,24 +475,25 @@ TObject * getBackground( TString DIR, TString histname, TString region, TString 
   };
   
   double bkg_norms[nbkg] = {
-    831.76 * LUM[ich] / 182123200.,       //TTbar nonsignal
-    136.02*0.322 * LUM[ich] / 3279200.,   //SingleTop
-    80.95*0.322 * LUM[ich] / 1682400.,  
-    35.9 * LUM[ich] / 998400.,          
-    35.9 * LUM[ich] / 985000.,
-    1345.0 * 1.21 * LUM[ich] / 27529599., //WJets
-    359.7 * 1.21 * LUM[ich] / 4963240.,  
-    48.91 * 1.21 * LUM[ich] / 1963464.,  
-    12.05 * 1.21 * LUM[ich] / 3722395.,
-    5.501 * 1.21 * LUM[ich] / 6314257.,
-    1.329 * 1.21 * LUM[ich] / 6768156.,
-    0.03216 * 1.21 * LUM[ich] / 253561.,
-    347700. * LUM[ich] / 37828442.,     //QCD
-    32100. * LUM[ich] / 44058594.,  
-    6831. * LUM[ich] / 29832311.,  
-    1207. * LUM[ich] / 4980387.,
-    119.9 * LUM[ich] / 7803965.,
-    25.24 * LUM[ich] / 4047532.
+    831.76 * LUM[ich] / 77229341.,       //TTbar nonsignal
+    136.02 * LUM[ich] / 5993676.,        //Single top
+    80.95 * LUM[ich] / 3928063.,  
+    35.9 * LUM[ich] / 992024.,    
+    35.9 * LUM[ich] / 998276.,
+    10.32 * 0.322 * LUM[ich] / 1000000.,
+    1345.0 * 1.21 * LUM[ich] / 39617787., // WJets
+    359.7 * 1.21 * LUM[ich] / 19914590.,  
+    48.91 * 1.21 * LUM[ich] / 5796237.,  
+    12.05 * 1.21 * LUM[ich] / 14822888.,
+    5.501 * 1.21 * LUM[ich] / 6200954.,
+    1.329 * 1.21 * LUM[ich] / 6324934.,
+    0.03216 * 1.21 * LUM[ich] / 2384260.,
+    //347700. * LUM[ich] / 17035891.,       // QCD
+    32100. * LUM[ich] / 18929951.,  
+    6831. * LUM[ich] / 15629253.,  
+    1207. * LUM[ich] / 4767100., 
+    119.9 * LUM[ich] / 3970819.,
+    25.24 * LUM[ich] / 1991645.,
   };
   
   TH2F* bkg_hists[nbkg];
