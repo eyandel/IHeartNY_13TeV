@@ -1820,7 +1820,7 @@ for event in events :
     # check that we have exactly one lepton candidate
     # -------------------------------------------------------------------------------------
 
-    if not (passMuTrig and len(muCand) == 1 and nTrueMedium == 0) or (passElTrig and (nTrueMedium == 1 or (nTrueMedium == 0 and nFakeMedium >= 1)) and len(muCand) == 0)):
+    if not ((passMuTrig and len(muCand) == 1 and nTrueMedium == 0) or (passElTrig and (nTrueMedium == 1 or (nTrueMedium == 0 and nFakeMedium >= 1)) and len(muCand) == 0)):
         passReco = False
         if not options.fullTruth :
             continue
