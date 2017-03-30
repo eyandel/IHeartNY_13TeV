@@ -20,7 +20,7 @@
 #include "TProfile.h"
 #include "TProfile2D.h"
 #include "TMath.h"
-#include "TLorentzVector.h"
+
 #include "TSystem.h"
 #include "RooUnfold/src/RooUnfold.h"
 #include "RooUnfold/src/RooUnfoldBayes.h"
@@ -37,6 +37,8 @@
 #include <string>
 #include <vector>
 
+#include "TLorentzVector.h"
+
 #ifdef __CINT__
 #pragma link C++ class std::vector<TLorentzVector>+;
 #endif
@@ -46,62 +48,44 @@ using namespace std;
 void SetPlotStyle();
 void mySmallText(Double_t x,Double_t y,Color_t color,char *text);
 
-float getMuonTrkRecoSF(double eta, TString syst){
-  // Transcription of https://cmsdoc.cern.ch/cms/Physics/muon/ReferenceEfficiencies/Run2016/25ns/tracking/ratios.root
-  
-  float etabins[11] = {-2.4,-2.1,-1.6,-1.1,-0.6,0.0,0.6,1.1,1.6,2.1,2.4};
-  float SFs[10] = {0.982,0.992,0.996,0.993,0.991,0.995,0.997,0.995,0.991,0.977};
-  float SF_errUp[10] = {0.000270,0.000338,0.000227,0.000145,0.000116,0.000102,0.000124,0.000249,0.000302,0.00161};
-  float SF_errDown[10] = {0.00210,0.000334,0.000226,0.000145,0.000116,0.000102,0.000124,0.000249,0.000304,0.00159};
-
-  int ibin = -1;
-  for (int ii = 0; ii < 10; ii++){
-    if (etabins[ii] < eta && eta < etabins[ii+1]) ibin = ii;
-  }
-
-  if (ibin == -1) cout << "ERROR! lepton eta out of range" << endl;
-  
-  if (syst == "up") return SFs[ibin]+SF_errUp[ibin];
-  else if (syst == "down") return SFs[ibin] - SF_errDown[ibin];
-  else return SFs[ibin];
-}
-
-
-float getMuonSF( double eta, TH1F* h_muID, TH1F* h_muTrig, TString syst){
-
-  int ibin1 = h_muID->FindBin(eta);
-  float SF_muID = h_muID->GetBinContent(ibin1);
-  float SF_muID_errUp = h_muID->GetBinErrorUp(ibin1);
-  float SF_muID_errDn = h_muID->GetBinErrorLow(ibin1);
-    
-  int ibin2 = h_muTrig->FindBin(eta);
-  float eff_muTrig = h_muTrig->GetBinContent(ibin2);
-  float eff_muTrig_errUp = h_muTrig->GetBinErrorUp(ibin2);
-  float eff_muTrig_errDn = h_muTrig->GetBinErrorLow(ibin2);
-  
-  if (syst == "up") return (SF_muID + SF_muID_errUp) * (eff_muTrig + eff_muTrig_errUp) * getMuonTrkRecoSF(eta,"up");
-  else if (syst == "down") return (SF_muID - SF_muID_errDn) * (eff_muTrig - eff_muTrig_errDn) * getMuonTrkRecoSF(eta,"down");
-  else return SF_muID * eff_muTrig * getMuonTrkRecoSF(eta,"nom");
-};
-
-double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h_elReco, TString syst){
+float getMuonSF( double eta, double pt, TH1F* h_muID, TString syst, bool usePost){
 
   float myPt = pt;
-  if (pt > 199.9) myPt = 199.9;
+  if (pt > 119.9) myPt = 119.9;
+  
+  int ibinX = h_muID->GetXaxis()->FindBin(myPt);
+  int ibinY = h_muID->GetYaxis()->FindBin(abs(eta));
+  int ibin = h_muID->GetBin(ibinX,ibinY);
+  float SF_muID = h_muID->GetBinContent(ibin);
+  float SF_muID_errUp = h_muID->GetBinErrorUp(ibin);
+  float SF_muID_errDn = h_muID->GetBinErrorLow(ibin);
 
-  int ibinX1 = h_elID->GetXaxis()->FindBin(myPt);
-  int ibinY1 = h_elID->GetYaxis()->FindBin(eta);
-  int ibin1 = h_elID->GetBin(ibinX1,ibinY1);
-  float SF_elID = h_elID->GetBinContent(ibin1);
-  float SF_elID_errUp = h_elID->GetBinErrorUp(ibin1);
-  float SF_elID_errDn = h_elID->GetBinErrorLow(ibin1);
+  // TODO: add isolation SF
+  // For now, take muon iso SF as ~1.0 (https://indico.cern.ch/event/605620/contributions/2441087/attachments/1398025/2132153/VHFMeeting_X53_01.18.17.pdf)
 
-  int ibinX2 = h_elIso->GetXaxis()->FindBin(myPt);
-  int ibinY2 = h_elIso->GetYaxis()->FindBin(eta);
-  int ibin2 = h_elIso->GetBin(ibinX2,ibinY2);
-  float SF_elIso = h_elIso->GetBinContent(ibin2);
-  float SF_elIso_errUp = h_elIso->GetBinErrorUp(ibin2);
-  float SF_elIso_errDn = h_elIso->GetBinErrorLow(ibin2);
+  // TODO: add trigger SF
+
+  float SF_errUp = sqrt(pow(SF_muID_errUp / SF_muID, 2) + pow(0.01,2));
+  float SF_errDn = sqrt(pow(SF_muID_errDn / SF_muID, 2) + pow(0.01,2));
+
+  float SF = SF_muID;
+
+  if (usePost){
+    if (syst == "up") return (SF - 0.078 * SF_errDn) * (1 + 0.994 * SF_errUp); //TODO: modify to have correct postfit values
+    else if (syst == "down") return (SF - 0.078 * SF_errDn) * (1 - 0.994 * SF_errDn);
+    else return SF - 0.078 * SF_errDn;
+  }
+  else{
+    if (syst == "up") return SF * (1 + SF_errUp);
+    else if (syst == "down") return SF * (1 - SF_errDn);
+    else return SF;
+  }
+};
+
+double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h_elReco, TString syst, bool usePost){
+
+  float myPt = pt;
+  if (pt > 499.9) myPt = 499.9;
 
   int ibinX3 = h_elReco->GetXaxis()->FindBin(eta);
   int ibinY3 = h_elReco->GetYaxis()->FindBin(myPt);
@@ -110,18 +94,45 @@ double getElectronSF(double eta, double pt, TH2F* h_elID, TH2F* h_elIso, TH2F* h
   float SF_elReco_errUp = h_elReco->GetBinErrorUp(ibin3);
   float SF_elReco_errDn = h_elReco->GetBinErrorLow(ibin3);
 
-  if (pt > 199.9) {
-    SF_elID_errUp *= 2.0;
-    SF_elID_errDn *= 2.0;
-    SF_elIso_errUp *= 2.0;
-    SF_elIso_errDn *= 2.0;
-    SF_elReco_errUp *= 2.0;
-    SF_elReco_errDn *= 2.0;
+  if (myPt > 199.9) myPt = 199.9;  
+
+  int ibinX1 = h_elID->GetXaxis()->FindBin(myPt);
+  int ibinY1 = h_elID->GetYaxis()->FindBin(abs(eta));
+  int ibin1 = h_elID->GetBin(ibinX1,ibinY1);
+  float SF_elID = h_elID->GetBinContent(ibin1);
+  float SF_elID_errUp = h_elID->GetBinErrorUp(ibin1);
+  float SF_elID_errDn = h_elID->GetBinErrorLow(ibin1);
+
+  int ibinX2 = h_elIso->GetXaxis()->FindBin(myPt);
+  int ibinY2 = h_elIso->GetYaxis()->FindBin(abs(eta));
+  int ibin2 = h_elIso->GetBin(ibinX2,ibinY2);
+  float SF_elIso = h_elIso->GetBinContent(ibin2);
+  float SF_elIso_errUp = h_elIso->GetBinErrorUp(ibin2);
+  float SF_elIso_errDn = h_elIso->GetBinErrorLow(ibin2);
+
+  // TODO: add trigger SF
+
+  float SF_errUp = sqrt(pow(SF_elReco_errUp/SF_elReco,2)+pow(SF_elID_errUp/SF_elID,2)+pow(SF_elIso_errUp/SF_elIso,2));
+  float SF_errDn = sqrt(pow(SF_elReco_errDn/SF_elReco,2)+pow(SF_elID_errDn/SF_elID,2)+pow(SF_elIso_errDn/SF_elIso,2));
+  
+  // Add 1% systematic for high-pt electrons (https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2#Efficiencies_and_scale_factors)
+  if (myPt > 80.0){
+    SF_errUp = sqrt(pow(SF_errUp,2) + pow(0.01,2));
+    SF_errDn = sqrt(pow(SF_errDn,2) + pow(0.01,2));
   }
   
-  if (syst == "up") return (SF_elID + SF_elID_errUp) * (SF_elIso + SF_elIso_errUp) * (SF_elReco + SF_elReco_errUp);
-  else if (syst == "down") return (SF_elID - SF_elID_errDn) * (SF_elIso - SF_elIso_errDn) * (SF_elReco - SF_elReco_errDn);
-  else return SF_elID * SF_elIso * SF_elReco;
+  float SF = SF_elID * SF_elIso * SF_elReco;
+
+  if (usePost){
+    if (syst == "up") return (SF + 1.77 * SF_errUp) * (1 + 0.47 * SF_errUp); //TODO: modify to have correct postfit values
+    else if (syst == "down") return (SF + 1.77 * SF_errUp) * (1 - 0.47 * SF_errDn);
+    else return SF + 1.77 * SF_errUp;
+  }
+  else{
+    if (syst == "up") return SF * (1 + SF_errUp);
+    else if (syst == "down") return SF * (1 - SF_errDn);
+    else return SF;
+  }
 };
 
 // ----------------------------------------------------------------------------------------------------------------
@@ -141,7 +152,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // Setup for response matrix
   //--------------------------
   
-  gSystem->Load("RooUnfold/libRooUnfold");
+  gSystem->Load("RooUnfold/libRooUnfold.so");
 
   const int nptbins = 8;
   float ptbins[nptbins+1] = {0.0,200.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
@@ -154,10 +165,22 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   float ptbins3[nptbins3+1] = {300.0,400.0,450.0,525.0,600.0,700.0,800.0,950.0,1200.0,2000.0};
   const int nptbins4 = 7;
   float ptbins4[nptbins4+1] = {300.0,400.0,500.0,600.0,700.0,800.0,1200.0,2000.0};
+  const int nptbins5 = 7;
+  float ptbins5[nptbins5+1] = {300.0,400.0,475.0,575.0,700.0,850.0,1200.0,2000.0};
+  const int nptbins5fine = 14;
+  float ptbins5fine[nptbins5fine+1] = {300.0,350.0,400.0,430.0,475.0,525.0,575.0,625.0,700.0,775.0,850.0,1025.0,1200.0,1600.0,2000.0};
+  const int nptbins6 = 7;
+  float ptbins6[nptbins6+1] = {300.0,400.0,475.0,550.0,650.0,800.0,1200.0,2000.0};
+  const int nptbins6fine = 14;
+  float ptbins6fine[nptbins6fine+1] = {300.0,350.0,400.0,430.0,475.0,505.0,550.0,600.0,650.0,725.0,800.0,1000.0,1200.0,1600.0,2000.0};
 
   TH1D* h_bins2 = new TH1D("bins2", ";;", nptbins2, ptbins2);
   TH1D* h_bins3 = new TH1D("bins3", ";;", nptbins3, ptbins3);
   TH1D* h_bins4 = new TH1D("bins4", ";;", nptbins4, ptbins4);
+  TH1D* h_bins5 = new TH1D("bins5", ";;", nptbins5, ptbins5);
+  TH1D* h_bins5fine = new TH1D("bins5fine", ";;", nptbins5fine, ptbins5fine);
+  TH1D* h_bins6 = new TH1D("bins6", ";;", nptbins6, ptbins6);
+  TH1D* h_bins6fine = new TH1D("bins6fine", ";;", nptbins6fine, ptbins6fine);
 
   RooUnfoldResponse response(h_bins, h_bins);
   response.SetName("response_pt");
@@ -168,41 +191,67 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   RooUnfoldResponse response2(h_bins2, h_bins2);
   RooUnfoldResponse response3(h_bins3, h_bins3);
   RooUnfoldResponse response4(h_bins4, h_bins4);
+  RooUnfoldResponse response5(h_bins5, h_bins5);
+  RooUnfoldResponse response5fine(h_bins5fine, h_bins5);
+  RooUnfoldResponse response6(h_bins6, h_bins6);
+  RooUnfoldResponse response6fine(h_bins6fine, h_bins6);
   response2.SetName("response_pt2");
   response3.SetName("response_pt3");
   response4.SetName("response_pt4");
+  response5.SetName("response_pt5");
+  response5fine.SetName("response_pt5fine");
+  response6.SetName("response_pt6");
+  response6fine.SetName("response_pt6fine");
 
   TH1D* h_ptGenTop2 = new TH1D("ptGenTop2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptGenTop3 = new TH1D("ptGenTop3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptGenTop4 = new TH1D("ptGenTop4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptGenTop5 = new TH1D("ptGenTop5", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptGenTop6 = new TH1D("ptGenTop6", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
 
   TH1D* h_ptRecoTop2 = new TH1D("ptRecoTop2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptRecoTop3 = new TH1D("ptRecoTop3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptRecoTop4 = new TH1D("ptRecoTop4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptRecoTop5 = new TH1D("ptRecoTop5", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptRecoTop5fine = new TH1D("ptRecoTop5fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5fine, ptbins5fine);
+  TH1D* h_ptRecoTop6 = new TH1D("ptRecoTop6", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
+  TH1D* h_ptRecoTop6fine = new TH1D("ptRecoTop6fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6fine, ptbins6fine);
 
   // reweighted top pt spectra at reco/truth level (using weights based on parton-level top quark pt)
   TH1D* h_ptGenTopMod  = new TH1D("ptGenTopMod",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1D* h_ptGenTopMod2 = new TH1D("ptGenTopMod2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptGenTopMod3 = new TH1D("ptGenTopMod3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptGenTopMod4 = new TH1D("ptGenTopMod4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptGenTopMod5 = new TH1D("ptGenTopMod5", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptGenTopMod6 = new TH1D("ptGenTopMod6", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
   TH1D* h_ptRecoTopMod  = new TH1D("ptRecoTopMod",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1D* h_ptRecoTopMod2 = new TH1D("ptRecoTopMod2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptRecoTopMod3 = new TH1D("ptRecoTopMod3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptRecoTopMod4 = new TH1D("ptRecoTopMod4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptRecoTopMod5 = new TH1D("ptRecoTopMod5", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptRecoTopMod5fine = new TH1D("ptRecoTopMod5fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5fine, ptbins5fine);
+  TH1D* h_ptRecoTopMod6 = new TH1D("ptRecoTopMod6", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
+  TH1D* h_ptRecoTopMod6fine = new TH1D("ptRecoTopMod6fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6fine, ptbins6fine);
 
   TH1D* h_ptGenTopModDown  = new TH1D("ptGenTopModDown",  ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1D* h_ptGenTopModDown2 = new TH1D("ptGenTopModDown2", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptGenTopModDown3 = new TH1D("ptGenTopModDown3", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptGenTopModDown4 = new TH1D("ptGenTopModDown4", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptGenTopModDown5 = new TH1D("ptGenTopModDown5", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptGenTopModDown6 = new TH1D("ptGenTopModDown6", ";p_{T}(generated top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
   TH1D* h_ptRecoTopModDown  = new TH1D("ptRecoTopModDown",  ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins, ptbins);
   TH1D* h_ptRecoTopModDown2 = new TH1D("ptRecoTopModDown2", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins2, ptbins2);
   TH1D* h_ptRecoTopModDown3 = new TH1D("ptRecoTopModDown3", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins3, ptbins3);
   TH1D* h_ptRecoTopModDown4 = new TH1D("ptRecoTopModDown4", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins4, ptbins4);
+  TH1D* h_ptRecoTopModDown5 = new TH1D("ptRecoTopModDown5", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5, ptbins5);
+  TH1D* h_ptRecoTopModDown5fine = new TH1D("ptRecoTopModDown5fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins5fine, ptbins5fine);
+  TH1D* h_ptRecoTopModDown6 = new TH1D("ptRecoTopModDown6", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6, ptbins6);
+  TH1D* h_ptRecoTopModDown6fine = new TH1D("ptRecoTopModDown6fine", ";p_{T}(reconstructed top) [GeV]; Events / 10 GeV", nptbins6fine, ptbins6fine);
 
-  float LUM = 12358.75;
-  if (channel == "el") LUM = 12295.65;
+  float LUM = 37941.57;
+  if (channel == "el") LUM = 37941.57; //TODO: fix w/ correct electron lumi when available
 
-  double weight_response = LUM * 831.76 / 182123200.; //lum * xsec / Nevents for PowhegPythia8
+  double weight_response = LUM * 831.76 / 77229341.; //lum * xsec / Nevents for PowhegPythia8
 
   // ----------------------------------------------------------------------------------------------------------
   // If running on signal, load truth information for events not passing reco, in order to fill response matrix
@@ -298,9 +347,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptGenTop2->Fill(genTopPt_TO->at(0),weight);
       h_ptGenTop3->Fill(genTopPt_TO->at(0),weight);
       h_ptGenTop4->Fill(genTopPt_TO->at(0),weight);
+      h_ptGenTop5->Fill(genTopPt_TO->at(0),weight);
+      h_ptGenTop6->Fill(genTopPt_TO->at(0),weight);
       response2.Miss(genTopPt_TO->at(0),weight*weight_response);
       response3.Miss(genTopPt_TO->at(0),weight*weight_response);
       response4.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response5.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response5fine.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response6.Miss(genTopPt_TO->at(0),weight*weight_response);
+      response6fine.Miss(genTopPt_TO->at(0),weight*weight_response);
 
       float oldpt = genTopPt_TO->at(0);
       float w_ptup = (1.0 + 0.0008*oldpt);
@@ -310,11 +365,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptGenTopMod2->Fill(oldpt,weight*w_ptup);
       h_ptGenTopMod3->Fill(oldpt,weight*w_ptup);
       h_ptGenTopMod4->Fill(oldpt,weight*w_ptup);
+      h_ptGenTopMod5->Fill(oldpt,weight*w_ptup);
+      h_ptGenTopMod6->Fill(oldpt,weight*w_ptup);
 
       h_ptGenTopModDown->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown2->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown3->Fill(oldpt,weight*w_ptdn);
       h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);
+      h_ptGenTopModDown5->Fill(oldpt,weight*w_ptdn);
+      h_ptGenTopModDown6->Fill(oldpt,weight*w_ptdn);
 
     }
     treeTO->Delete();
@@ -324,7 +383,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // Load information for reco
   // -------------------------
   
-  BTagCalibration calib("CSVv2", "CSVv2_ichep.csv"); //76X
+  BTagCalibration calib("CSVv2", "CSVv2_Moriond17_B_H.csv");
   BTagCalibrationReader reader(BTagEntry::OP_MEDIUM, "central");
   BTagCalibrationReader reader_up(BTagEntry::OP_MEDIUM, "up");
   BTagCalibrationReader reader_down(BTagEntry::OP_MEDIUM, "down");
@@ -340,37 +399,65 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   reader_down.load(calib, BTagEntry::FLAV_UDSG, "incl");
   
   // ---------------------------------------------------------------------------------------------------------------
-  // The following histfiles will be used in the analysis
-  TFile* f_muID = TFile::Open("MuonID_Z_RunBCD_prompt80X_7p65.root","read");
+  // Get SFs
+
+  // Muon ID
+  // Taken from https://twiki.cern.ch/twiki/bin/view/CMS/MuonWorkInProgressAndPagResults#Results_on_the_full_2016_data
+  TFile* f_muID_BCDEF = TFile::Open("EfficienciesAndSF_BCDEF.root","read");
+  TFile* f_muID_GH = TFile::Open("EfficienciesAndSF_GH.root","read");
   TH1F* h_muID;
-  if (lepID == "Medium") h_muID = (TH1F*) f_muID->Get("MC_NUM_MediumID_DEN_genTracks_PAR_eta/eta_ratio")->Clone();
-  else h_muID = (TH1F*) f_muID->Get("MC_NUM_TightIDandIPCut_DEN_genTracks_PAR_eta/eta_ratio")->Clone();
-  f_muID->Close();
-  delete f_muID;
 
-  TFile* f_muTrig = TFile::Open("SingleMuonTrigger_Z_RunBCD_prompt80X_7p65.root","read");
-  TH1F* h_muTrig1 = (TH1F*) f_muTrig->Get("Mu45_eta2p1_EtaBins_Run273158_to_274093/efficienciesDATA/histo_eta_DATA");
-  h_muTrig1->Scale(0.637 / (0.637+6.648)); //EDIT Scale by fraction of lumi in run period -- above has 0.637 /fb
-  TH1F* h_muTrig2 = (TH1F*) f_muTrig->Get("Mu45_eta2p1_EtaBins_Run274094_to_276097/efficienciesDATA/histo_eta_DATA");
-  h_muTrig2->Scale(6.648 / (0.637+6.648)); //EDIT Scale by fraction of lumi in run period -- above has 6.648 /fb
-  TH1F* h_muTrig = (TH1F*) h_muTrig1->Clone("muTrig");
-  h_muTrig->Add(h_muTrig2);
-  f_muTrig->Close();
-  delete f_muTrig;
+  if (lepID == "Medium") {
+    TH1F* h_muID_BCDEF = (TH1F*) f_muID_BCDEF->Get("MC_NUM_MediumID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio")->Clone();
+    TH1F* h_muID_GH = (TH1F*) f_muID_GH->Get("MC_NUM_MediumID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio")->Clone();
+    h_muID_BCDEF->Sumw2();
+    h_muID_GH->Sumw2();
+    h_muID_BCDEF->Scale(20.9 / 38.0); // Combine SFs on basis of luminosity: 20.9 (BCDEF), 17.1 (GH)
+    h_muID_GH->Scale(17.1 / 38.0);
+    h_muID = (TH1F*) h_muID_BCDEF->Clone();
+    h_muID->Add(h_muID_GH);
+    h_muID_BCDEF->Delete();
+    h_muID_GH->Delete();
+  }
+  else {
+    TH1F* h_muID_BCDEF = (TH1F*) f_muID_BCDEF->Get("MC_NUM_TightID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio")->Clone();
+    TH1F* h_muID_GH = (TH1F*) f_muID_GH->Get("MC_NUM_TightID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio")->Clone();
+    h_muID_BCDEF->Sumw2();
+    h_muID_GH->Sumw2();
+    h_muID_BCDEF->Scale(20.9 / 38.0);
+    h_muID_GH->Scale(17.1 / 38.0);
+    h_muID = (TH1F*) h_muID_BCDEF->Clone();
+    h_muID->Add(h_muID_GH);
+    h_muID_BCDEF->Delete();
+    h_muID_GH->Delete();
+  }
+  f_muID_BCDEF->Close();
+  f_muID_GH->Close();
+  delete f_muID_BCDEF;
+  delete f_muID_GH;
 
-  TFile* f_elSF = TFile::Open("scaleFactors.root");
+  // Muon isolation
+  // We are currently assuming this to be ~1
+  
+  // Muon trigger
+
+  // Electron ID and isolation
+  // Taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/SUSLeptonSF#Scale_Factors_for_Moriond2017
+  TFile* f_elSFs = TFile::Open("scaleFactors.root"); 
   TH2F* h_elID;
-  if (lepID == "Medium") h_elID = (TH2F*) f_elSF->Get("GsfElectronToMedium")->Clone();
-  else h_elID = (TH2F*) f_elSF->Get("GsfElectronToTight")->Clone();
-  TH2F* h_elIso = (TH2F*) f_elSF->Get("MVAVLooseElectronToMini")->Clone();
-  f_elSF->Close();
-  delete f_elSF;
+  if (lepID == "Medium") h_elID = (TH2F*) f_elSFs->Get("GsfElectronToCutBasedSpring15M");
+  else h_elID = (TH2F*) f_elSFs->Get("GsfElectronToCutBasedSpring15T");
+  TH2F* h_elIso = (TH2F*) f_elSFs->Get("MVAVLooseElectronToMini");
+  f_elSFs->Close();
+  delete f_elSFs;
 
-  TFile* f_elReco = TFile::Open("egammaEff_SF2D.root");
+  // Electron reconstruction
+  // Taken from https://twiki.cern.ch/twiki/bin/view/CMS/EgammaIDRecipesRun2#Efficiencies_and_scale_factors
+  TFile* f_elReco = TFile::Open("eleRecoSF.root");
   TH2F* h_elReco = (TH2F*) f_elReco->Get("EGamma_SF2D")->Clone();
   f_elReco->Close();
   delete f_elReco;
-  
+
   // ----------------------------------------------------------------------------------------------------------------
   // read ntuples
   TChain* tree = new TChain("recoTree");
@@ -685,9 +772,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     tree->SetBranchAddress("ak8jetPhiJERdown"       , &ak8jetPhiJERdown      , &b_ak8jetPhiJERdown      );
     tree->SetBranchAddress("ak8jetMassJERup"        , &ak8jetMassJERup       , &b_ak8jetMassJERup       );
     tree->SetBranchAddress("ak8jetMassJERdown"      , &ak8jetMassJERdown     , &b_ak8jetMassJERdown     );
-  
-    if (isSignal){
-      tree->SetBranchAddress("truthChannel"           , &truthChannel        , &b_truthChannel        );     
+
+    if (sample.Contains("PowhegPythia8")){
+      if (isSignal) tree->SetBranchAddress("truthChannel"           , &truthChannel        , &b_truthChannel        );     
       tree->SetBranchAddress("eventWeight_Q2Up"       , &eventWeight_Q2Up      , &b_eventWeight_Q2Up      );
       tree->SetBranchAddress("eventWeight_Q2Down"     , &eventWeight_Q2Down    , &b_eventWeight_Q2Down    );
       tree->SetBranchAddress("eventWeight_PDF"        , &eventWeight_PDF       , &b_eventWeight_PDF       );
@@ -1055,12 +1142,12 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     float weight = eventWeight_nom->at(0);
     if (!isData && systematic == "puUp") weight = eventWeight_puUp->at(0);
     if (!isData && systematic == "puDown") weight = eventWeight_puDown->at(0);
-    if (isSignal && systematic == "Q2Up") weight *= eventWeight_Q2Up->at(0);
-    if (isSignal && systematic == "Q2Down") weight *= eventWeight_Q2Down->at(0);
-    if (isSignal && systematic == "PDFUp") weight *= (1.0 + eventWeight_PDF->at(0));
-    if (isSignal && systematic == "PDFDown") weight *= (1.0 - eventWeight_PDF->at(0));
-    if (isSignal && systematic == "ASUp") weight *= eventWeight_alphaUp->at(0);
-    if (isSignal && systematic == "ASDown") weight *= eventWeight_alphaDown->at(0);
+    if (sample.Contains("PowhegPythia8") && systematic == "Q2Up") weight *= eventWeight_Q2Up->at(0);
+    if (sample.Contains("PowhegPythia8") && systematic == "Q2Down") weight *= eventWeight_Q2Down->at(0);
+    if (sample.Contains("PowhegPythia8") && systematic == "PDFUp") weight *= (1.0 + eventWeight_PDF->at(0));
+    if (sample.Contains("PowhegPythia8") && systematic == "PDFDown") weight *= (1.0 - eventWeight_PDF->at(0));
+    if (sample.Contains("PowhegPythia8") && systematic == "ASUp") weight *= eventWeight_alphaUp->at(0);
+    if (sample.Contains("PowhegPythia8") && systematic == "ASDown") weight *= eventWeight_alphaDown->at(0);
 
     float unfold_w_ptup = 1.0;
     float unfold_w_ptdn = 1.0;
@@ -1096,6 +1183,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	h_ptGenTop2->Fill(genTopPt->at(0),weight);
 	h_ptGenTop3->Fill(genTopPt->at(0),weight);
 	h_ptGenTop4->Fill(genTopPt->at(0),weight);
+	h_ptGenTop5->Fill(genTopPt->at(0),weight);
+	h_ptGenTop6->Fill(genTopPt->at(0),weight);
 
 	float oldpt = genTopPt->at(0);
 	float w_ptup = (1.0 + 0.0008*oldpt);
@@ -1108,11 +1197,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	h_ptGenTopMod2->Fill(oldpt,weight*w_ptup);
 	h_ptGenTopMod3->Fill(oldpt,weight*w_ptup);
 	h_ptGenTopMod4->Fill(oldpt,weight*w_ptup);
+	h_ptGenTopMod5->Fill(oldpt,weight*w_ptup);
+	h_ptGenTopMod6->Fill(oldpt,weight*w_ptup);
 
 	h_ptGenTopModDown->Fill(oldpt,weight*w_ptdn);
 	h_ptGenTopModDown2->Fill(oldpt,weight*w_ptdn);
 	h_ptGenTopModDown3->Fill(oldpt,weight*w_ptdn);
 	h_ptGenTopModDown4->Fill(oldpt,weight*w_ptdn);
+	h_ptGenTopModDown5->Fill(oldpt,weight*w_ptdn);
+	h_ptGenTopModDown6->Fill(oldpt,weight*w_ptdn);
 
 	if (channel == "mu"){
 	  if ((int)genMuPt->size() == 0) {
@@ -1191,6 +1284,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*weight_response);
 	response3.Miss(genTopPt->at(0),weight*weight_response);
 	response4.Miss(genTopPt->at(0),weight*weight_response);
+	response5.Miss(genTopPt->at(0),weight*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1224,6 +1321,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*weight_response);
 	response3.Miss(genTopPt->at(0),weight*weight_response);
 	response4.Miss(genTopPt->at(0),weight*weight_response);
+	response5.Miss(genTopPt->at(0),weight*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1438,6 +1539,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response2.Miss(genTopPt->at(0),weight*weight_response);
 	  response3.Miss(genTopPt->at(0),weight*weight_response);
 	  response4.Miss(genTopPt->at(0),weight*weight_response);
+	  response5.Miss(genTopPt->at(0),weight*weight_response);
+	  response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	  response6.Miss(genTopPt->at(0),weight*weight_response);
+	  response6fine.Miss(genTopPt->at(0),weight*weight_response);
 	}
 	continue;
       }
@@ -1447,6 +1552,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response2.Miss(genTopPt->at(0),weight*weight_response);
 	  response3.Miss(genTopPt->at(0),weight*weight_response);
 	  response4.Miss(genTopPt->at(0),weight*weight_response);
+	  response5.Miss(genTopPt->at(0),weight*weight_response);
+	  response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	  response6.Miss(genTopPt->at(0),weight*weight_response);
+	  response6fine.Miss(genTopPt->at(0),weight*weight_response);
 	}
 	continue;
       }
@@ -1460,9 +1569,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       refLepMiniIso = goodMuMiniIso;
       lepQ = muCharge->at(0);
       if (!isData){
-	if (systematic == "lepUp") weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"up");
-	else if (systematic == "lepDown") weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"down");
-	else weight *= getMuonSF(refLep.Eta(),h_muID,h_muTrig,"nom");
+	if (systematic == "lepUp") weight *= getMuonSF(refLep.Eta(),refLep.Perp(),h_muID,"up",usePost);
+	else if (systematic == "lepDown") weight *= getMuonSF(refLep.Eta(),refLep.Perp(),h_muID,"down",usePost);
+	else weight *= getMuonSF(refLep.Eta(),refLep.Perp(),h_muID,"nom",usePost);
       }
     }
     if (channel == "el") {
@@ -1470,9 +1579,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       refLepMiniIso = goodElMiniIso;
       lepQ = elCharge->at(0);
       if (!isData) {
-      	if (systematic == "lepUp") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up");
-	else if (systematic == "lepDown") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down");
-	else weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom");
+      	if (systematic == "lepUp") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up",usePost);
+	else if (systematic == "lepDown") weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down",usePost);
+	else weight *= getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom",usePost);
       }
     }
     
@@ -1489,6 +1598,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response2.Miss(genTopPt->at(0),weight*weight_response);
 	  response3.Miss(genTopPt->at(0),weight*weight_response);
 	  response4.Miss(genTopPt->at(0),weight*weight_response);
+	  response5.Miss(genTopPt->at(0),weight*weight_response);
+	  response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	  response6.Miss(genTopPt->at(0),weight*weight_response);
+	  response6fine.Miss(genTopPt->at(0),weight*weight_response);
 	}
 	continue;
       }
@@ -1503,6 +1616,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*weight_response);
 	response3.Miss(genTopPt->at(0),weight*weight_response);
 	response4.Miss(genTopPt->at(0),weight*weight_response);
+	response5.Miss(genTopPt->at(0),weight*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1540,6 +1657,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*weight_response);
 	response3.Miss(genTopPt->at(0),weight*weight_response);
 	response4.Miss(genTopPt->at(0),weight*weight_response);
+	response5.Miss(genTopPt->at(0),weight*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1567,6 +1688,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*weight_response);
 	response3.Miss(genTopPt->at(0),weight*weight_response);
 	response4.Miss(genTopPt->at(0),weight*weight_response);
+	response5.Miss(genTopPt->at(0),weight*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1579,6 +1704,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*weight_response);
 	response3.Miss(genTopPt->at(0),weight*weight_response);
 	response4.Miss(genTopPt->at(0),weight*weight_response);
+	response5.Miss(genTopPt->at(0),weight*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
       continue;
     }
@@ -1597,18 +1726,17 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // ----------------------------
     if (!isData){
       if (channel == "mu"){
-	if (systematic == "lepUp") h_lepSF->Fill(getMuonSF(refLep.Eta(),h_muID,h_muTrig,"up"));
-	else if (systematic == "lepDown") h_lepSF->Fill(getMuonSF(refLep.Eta(),h_muID,h_muTrig,"down"));
-	else h_lepSF->Fill(getMuonSF(refLep.Eta(),h_muID,h_muTrig,"nom"));
+	if (systematic == "lepUp") h_lepSF->Fill(getMuonSF(refLep.Eta(),refLep.Perp(),h_muID,"up",usePost));
+	else if (systematic == "lepDown") h_lepSF->Fill(getMuonSF(refLep.Eta(),refLep.Perp(),h_muID,"down",usePost));
+	else h_lepSF->Fill(getMuonSF(refLep.Eta(),refLep.Perp(),h_muID,"nom",usePost));
       }
       if (channel == "el"){
-        if (systematic == "lepUp") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up"));
-        else if (systematic == "lepDown") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down"));
-        else h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom"));
+        if (systematic == "lepUp") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"up",usePost));
+        else if (systematic == "lepDown") h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"down",usePost));
+        else h_lepSF->Fill(getElectronSF(refLep.Eta(),refLep.Perp(),h_elID,h_elIso,h_elReco,"nom",usePost));
       }
+      h_puWeight->Fill(eventWeight_nom->at(0));
     }
-    h_puWeight->Fill(eventWeight_nom->at(0));
-
     h_metPtPre->Fill(metPt->at(0),weight);
     h_htPre->Fill(ht->at(0),weight);
     h_htLepPre->Fill(metPt->at(0)+refLep.Perp(),weight);
@@ -1677,8 +1805,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     float toptagSF = 1.0;
     float toptagUnc = 0.5;
     if (usePost) {
-      toptagSF = 1.11; //TODO
-      toptagUnc = 0.14;
+      if (sample.Contains("PowhegPythia8") || sample.Contains("SingleTop")){
+	toptagSF = 0.96; //Posterior top-tag SF from combB fit
+	toptagUnc = 0.04;
+      }
+      else {
+	toptagSF = 0.82; //Posterior top-mis-tag SF from combB fit
+	toptagUnc = 0.05;
+      }
     }
     if (ak8jetSDmass->at(itopJetCand) > lowmasscut && ak8jetSDmass->at(itopJetCand) < highmasscut){
       nPassMassCut += 1;
@@ -1695,8 +1829,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       }
     }
 
-    // Using medium b-tagging WP as described in https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation76X
-    float minCSV = 0.800;
+    // Using medium b-tagging WP as described in https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation80XReReco
+    float minCSV = 0.8484;
     bool passBtag = false;
     double btagSF = 1.0;
     double btagSF_up = 1.0;
@@ -1704,71 +1838,71 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 
     if (isSignal){
       if (ak4jetCSV->at(ibJetClose) > minCSV) {
-	if (ak4jetVtxMass->at(ibJetClose) > 0.0){
-	  nCloseTag += 1;
-	  if (ibJetClose == ibJetPt) {
-	    nLeadCloseTag += 1;
-	    if (ak4jetHadronFlavour->at(ibJetClose) == 5) nLeadCloseTrueTag += 1;
-	  }
-	  if (ak4jetHadronFlavour->at(ibJetClose) == 5) nCloseTrueTag += 1;
+	//if (ak4jetVtxMass->at(ibJetClose) > 0.0){
+	nCloseTag += 1;
+	if (ibJetClose == ibJetPt) {
+	  nLeadCloseTag += 1;
+	  if (ak4jetHadronFlavour->at(ibJetClose) == 5) nLeadCloseTrueTag += 1;
 	}
+	if (ak4jetHadronFlavour->at(ibJetClose) == 5) nCloseTrueTag += 1;
+	//}
       }
     }
     
     if (ak4jetCSV->at(ibJetPt) > minCSV) {
       nPassCSV += 1;
-      if (ak4jetVtxMass->at(ibJetPt) > 0.0){
-	nPassBtag += 1;
-	if (isSignal) nLeadTag += 1;
-	passBtag = true;
-	if (!isData){
-	  if (ak4jetHadronFlavour->at(ibJetPt) == 5){
-	    if (isSignal) nLeadTrueTag += 1;
-	    if (ak4Jets.at(ibJetPt).Perp() < 670.0){ //ptMax = 670 for b/c 
-	      btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
-	    }
-	    else{
-	      btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 670.0); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 670.0);
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 670.0);
-	      btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
-	      btagSF_down = btagSF - 2*(btagSF - btagSF_down);
-	    }
+      //if (ak4jetVtxMass->at(ibJetPt) > 0.0){
+      nPassBtag += 1;
+      if (isSignal) nLeadTag += 1;
+      passBtag = true;
+      if (!isData){
+	if (ak4jetHadronFlavour->at(ibJetPt) == 5){
+	  if (isSignal) nLeadTrueTag += 1;
+	  if (ak4Jets.at(ibJetPt).Perp() < 1000.0){ //ptMax = 1000 for b/c 
+	    btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
+	    btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	    btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
 	  }
-	  else if (ak4jetHadronFlavour->at(ibJetPt) == 4){
-	    if (ak4Jets.at(ibJetPt).Perp() < 670.0){ //ptMax = 670 for b/c 
-	      btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
-	    }
-	    else{
-	      btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 670.0); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 670.0);
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 670.0);
-	      btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
-	      btagSF_down = btagSF - 2*(btagSF - btagSF_down);
-	    }
+	  else{
+	    btagSF = reader.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 1000.0); 
+	    btagSF_up = reader_up.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 1000.0);
+	    btagSF_down = reader_down.eval(BTagEntry::FLAV_B, ak4Jets.at(ibJetPt).Eta(), 1000.0);
+	    btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
+	    btagSF_down = btagSF - 2*(btagSF - btagSF_down);
 	  }
-	  else {
-	    if (ak4Jets.at(ibJetPt).Perp() < 1000.0){ //ptMax = 1000 for l 
-	      btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
-	    }
-	    else{
-	      btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0); 
-	      btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0);
-	      btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0);
-	      btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
-	      btagSF_down = btagSF - 2*(btagSF - btagSF_down);
-	    }
-	  }
-	  if (systematic == "BTagUp") btagSF = btagSF_up;
-	  if (systematic == "BTagDown") btagSF= btagSF_down;
 	}
+	else if (ak4jetHadronFlavour->at(ibJetPt) == 4){
+	  if (ak4Jets.at(ibJetPt).Perp() < 1000.0){ //ptMax = 1000 for b/c 
+	    btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
+	    btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	    btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	  }
+	  else{
+	    btagSF = reader.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 1000.0); 
+	    btagSF_up = reader_up.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 1000.0);
+	    btagSF_down = reader_down.eval(BTagEntry::FLAV_C, ak4Jets.at(ibJetPt).Eta(), 1000.0);
+	    btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
+	    btagSF_down = btagSF - 2*(btagSF - btagSF_down);
+	  }
+	}
+	else {
+	  if (ak4Jets.at(ibJetPt).Perp() < 1000.0){ //ptMax = 1000 for l 
+	    btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp()); 
+	    btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	    btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), ak4Jets.at(ibJetPt).Perp());
+	  }
+	  else{
+	    btagSF = reader.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0); 
+	    btagSF_up = reader_up.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0);
+	    btagSF_down = reader_down.eval(BTagEntry::FLAV_UDSG, ak4Jets.at(ibJetPt).Eta(), 1000.0);
+	    btagSF_up = 2*(btagSF_up - btagSF) + btagSF;
+	    btagSF_down = btagSF - 2*(btagSF - btagSF_down);
+	  }
+	}
+	if (systematic == "BTagUp") btagSF = btagSF_up;
+	if (systematic == "BTagDown") btagSF= btagSF_down;
       }
+      //}
     }
 
     // ----------------------------
@@ -1780,15 +1914,27 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_ptRecoTop2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
       h_ptRecoTop3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
       h_ptRecoTop4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop5->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop5fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop6->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop6fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
 
       h_ptRecoTopMod->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopMod2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopMod3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopMod4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod5->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod5fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod6->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod6fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
       h_ptRecoTopModDown->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown3->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
       h_ptRecoTopModDown4->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown5->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown5fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown6->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown6fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
 
       if (isSignal){
 	if (passParton) {
@@ -1796,12 +1942,20 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  response2.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
 	  response3.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
 	  response4.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response5.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response5fine.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response6.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response6fine.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
 	}
 	else {
 	  response.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
 	  response2.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
 	  response3.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
 	  response4.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response5.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response5fine.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response6.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response6fine.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
 	}
       }
     }
@@ -1811,6 +1965,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
 	response3.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
 	response4.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response5.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response6.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*toptagSF*weight_response);
       }
     }
     else{
@@ -1819,6 +1977,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	response2.Miss(genTopPt->at(0),weight*weight_response);
 	response3.Miss(genTopPt->at(0),weight*weight_response);
 	response4.Miss(genTopPt->at(0),weight*weight_response);
+	response5.Miss(genTopPt->at(0),weight*weight_response);
+	response5fine.Miss(genTopPt->at(0),weight*weight_response);
+	response6.Miss(genTopPt->at(0),weight*weight_response);
+	response6fine.Miss(genTopPt->at(0),weight*weight_response);
       }
     }
 
@@ -2037,7 +2199,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   cout << "B-tagging stats:" << endl;
   cout << passStep5 << " b-jet candidates" << endl;
   cout << nPassCSV  << " passing CSV cut" << endl;
-  cout << nPassBtag << " passing VtxMass cut" << endl;
+  //cout << nPassBtag << " passing VtxMass cut" << endl;
   cout << endl;
   cout << "Top-tagging stats:" << endl;
   cout << passStep5 << " top-jet candidates" << endl;
@@ -2076,12 +2238,14 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   // * * * * * * D R A W   A N D   S A V E   P L O T S * * * * * * 
   // -------------------------------------------------------------------------------------------
 
-  h_nTrueLepBJet->Write();
-  
-  h_lepSF->Write();
-  h_puWeight->Write();
+  if (!isData){
+    h_lepSF->Write();
+    h_puWeight->Write();
+  }
 
   if (isSignal){
+    h_nTrueLepBJet->Write();
+
     h_genTopPt->Write();
     h_genTopEta->Write();
     h_genTopPhi->Write();
@@ -2096,19 +2260,29 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     h_ptGenTop2->Write();
     h_ptGenTop3->Write();
     h_ptGenTop4->Write();
+    h_ptGenTop5->Write();
+    h_ptGenTop6->Write();
 
     h_ptGenTopMod->Write();
     h_ptGenTopMod2->Write();
     h_ptGenTopMod3->Write();
     h_ptGenTopMod4->Write();
+    h_ptGenTopMod5->Write();
+    h_ptGenTopMod6->Write();
     h_ptGenTopModDown->Write();
     h_ptGenTopModDown2->Write();
     h_ptGenTopModDown3->Write();
     h_ptGenTopModDown4->Write();
+    h_ptGenTopModDown5->Write();
+    h_ptGenTopModDown6->Write();
 
     response2.Write();
     response3.Write();
     response4.Write();
+    response5.Write();
+    response5fine.Write();
+    response6.Write();
+    response6fine.Write();
 
 
     /*
@@ -2129,19 +2303,30 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   }
 
   h_ptRecoTop->Write();
-
   h_ptRecoTop2->Write();
   h_ptRecoTop3->Write();
   h_ptRecoTop4->Write();
+  h_ptRecoTop5->Write();
+  h_ptRecoTop5fine->Write();
+  h_ptRecoTop6->Write();
+  h_ptRecoTop6fine->Write();
 
   h_ptRecoTopMod->Write();
   h_ptRecoTopMod2->Write();
   h_ptRecoTopMod3->Write();
   h_ptRecoTopMod4->Write();
+  h_ptRecoTopMod5->Write();
+  h_ptRecoTopMod5fine->Write();
+  h_ptRecoTopMod6->Write();
+  h_ptRecoTopMod6fine->Write();
   h_ptRecoTopModDown->Write();
   h_ptRecoTopModDown2->Write();
   h_ptRecoTopModDown3->Write();
   h_ptRecoTopModDown4->Write();
+  h_ptRecoTopModDown5->Write();
+  h_ptRecoTopModDown5fine->Write();
+  h_ptRecoTopModDown6->Write();
+  h_ptRecoTopModDown6fine->Write();
 
   h_metPtPre->Write();
   h_htPre->Write();
@@ -2375,32 +2560,54 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_ptGenTop2->Delete();
   h_ptGenTop3->Delete();
   h_ptGenTop4->Delete();
+  h_ptGenTop5->Delete();
+  h_ptGenTop6->Delete();
 
   h_ptRecoTop2->Delete();
   h_ptRecoTop3->Delete();
   h_ptRecoTop4->Delete();
+  h_ptRecoTop5->Delete();
+  h_ptRecoTop5fine->Delete();
+  h_ptRecoTop6->Delete();
+  h_ptRecoTop6fine->Delete();
 
   h_ptGenTopMod->Delete();
   h_ptGenTopMod2->Delete();
   h_ptGenTopMod3->Delete();
   h_ptGenTopMod4->Delete();
+  h_ptGenTopMod5->Delete();
+  h_ptGenTopMod6->Delete();
   h_ptGenTopModDown->Delete();
   h_ptGenTopModDown2->Delete();
   h_ptGenTopModDown3->Delete();
   h_ptGenTopModDown4->Delete();
+  h_ptGenTopModDown5->Delete();
+  h_ptGenTopModDown6->Delete();
 
   h_ptRecoTopMod->Delete();
   h_ptRecoTopMod2->Delete();
   h_ptRecoTopMod3->Delete();
   h_ptRecoTopMod4->Delete();
+  h_ptRecoTopMod5->Delete();
+  h_ptRecoTopMod5fine->Delete();
+  h_ptRecoTopMod6->Delete();
+  h_ptRecoTopMod6fine->Delete();
   h_ptRecoTopModDown->Delete();
   h_ptRecoTopModDown2->Delete();
   h_ptRecoTopModDown3->Delete();
   h_ptRecoTopModDown4->Delete();
+  h_ptRecoTopModDown5->Delete();
+  h_ptRecoTopModDown5fine->Delete();
+  h_ptRecoTopModDown6->Delete();
+  h_ptRecoTopModDown6fine->Delete();
 
   response2.Delete();
   response3.Delete();
   response4.Delete();
+  response5.Delete();
+  response5fine.Delete();
+  response6.Delete();
+  response6fine.Delete();
 
 
   /*
@@ -2615,9 +2822,10 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   h_2DisoScanPoints->Delete();
   h_MiniIsoScanPoints->Delete();
 
-  h_muTrig->Delete();
   h_muID->Delete();
-
+  h_elID->Delete();
+  h_elIso->Delete();
+  h_elReco->Delete();
 }
 
 
