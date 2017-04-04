@@ -847,6 +847,9 @@ nPassParton = 0
 nPassParticle = 0
 
 nPassLep = 0
+nPassLepMu = 0
+nPassLepElTrue = 0
+nPassLepElFake = 0
 nPassAK4jet = 0
 nPassAK8jet = 0
 nEventsPass = 0
@@ -1591,6 +1594,7 @@ for event in events :
                 continue
             nEleRaw += 1.0
             manualEisMedium = False
+            manualEisMediumNoVeto = True
             if abs( electronSCEtas[ielectronPt] ) <= 1.479 :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00311 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.103 :
@@ -1598,8 +1602,9 @@ for event in events :
                             if electronHoEs[ielectronPt] <  0.253 :
                                 if electronooEmooPs[ielectronPt] <  0.134 :
                                     if electronMissingHits[ielectronPt] <= 1:
-                                        #if not isElectronConVeto[ielectronPt] :
-                                        manualEisMedium = True
+                                        manualEisMediumNoVeto = True
+                                        if not isElectronConVeto[ielectronPt] :
+                                            manualEisMedium = True
             else :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00609 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.045 :
@@ -1607,10 +1612,12 @@ for event in events :
                             if electronHoEs[ielectronPt] <  0.0878 :
                                 if electronooEmooPs[ielectronPt] <  0.13 :
                                     if electronMissingHits[ielectronPt] <= 1:
-                                        #if not isElectronConVeto[ielectronPt] :
-                                        manualEisMedium = True
+                                        manualEisMediumNoVeto = True
+                                        if not isElectronConVeto[ielectronPt] :
+                                            manualEisMedium = True
                                             
             manualEisTight = False
+            manualEisTightNoVeto = False
             if abs( electronSCEtas[ielectronPt] ) <= 1.479 :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00308 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.0816 :
@@ -1618,8 +1625,9 @@ for event in events :
                             if electronHoEs[ielectronPt] <  0.0414 :
                                 if electronooEmooPs[ielectronPt] <  0.0129 :
                                     if electronMissingHits[ielectronPt] <= 1:
-                                        #if not isElectronConVeto[ielectronPt]:
-                                        manualEisTight = True
+                                        manualEisTightNoVeto = True
+                                        if not isElectronConVeto[ielectronPt]:
+                                            manualEisTight = True
             else :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00605 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.0394 :
@@ -1627,47 +1635,48 @@ for event in events :
                             if electronHoEs[ielectronPt] <  0.0641 :
                                 if electronooEmooPs[ielectronPt] <  0.0129 :
                                     if electronMissingHits[ielectronPt] <= 1:
-                                        #if not isElectronConVeto[ielectronPt] :
-                                        manualEisTight = True
+                                        manualEisTightNoVeto = True
+                                        if not isElectronConVeto[ielectronPt] :
+                                            manualEisTight = True
                                             
-            #eIsTight = isElectronTight[ielectronPt]
-            #eIsMedium = isElectronMedium[ielectronPt]
-            #eIsTightNoIso = isElectronTightNoIso[ielectronPt]
-            #eIsMediumNoIso = isElectronMediumNoIso[ielectronPt]
+            eIsTight = isElectronTight[ielectronPt]
+            eIsMedium = isElectronMedium[ielectronPt]
+            eIsTightNoIso = isElectronTightNoIso[ielectronPt]
+            eIsMediumNoIso = isElectronMediumNoIso[ielectronPt]
             
-            #if eIsMedium and not manualEisMedium :
-            #    nMediumNotManualEl += 1.0
-            #if manualEisMedium and not eIsMedium :
-            #    nManualNotMediumEl += 1.0
-            #if eIsTight and not manualEisTight :
-            #    nTightNotManualEl += 1.0
-            #if manualEisTight and not eIsTight :
-            #    nManualNotTightEl += 1.0
+            if eIsMedium and not manualEisMedium :
+                nMediumNotManualEl += 1.0
+            if manualEisMedium and not eIsMedium :
+                nManualNotMediumEl += 1.0
+            if eIsTight and not manualEisTight :
+                nTightNotManualEl += 1.0
+            if manualEisTight and not eIsTight :
+                nManualNotTightEl += 1.0
 
-            #if manualEisMedium and not eIsMediumNoIso :
-            #    print 'Medium manual cuts do not match no iso'
-            #    print 'electron abs(eta): ' + str(abs(electronSCEtas[ielectronPt]))
-            #    print 'full5x5_sigmaIetaIeta: ' + str(electronFull5x5siees[ielectronPt])
-            #    print 'abs(dEtaInSeed): ' + str(abs(electronDEtaIns[ielectronPt]))
-            #    print 'abs(dPhiIn): ' + str(abs(electronDPhiIns[ielectronPt]))
-            #    print 'H/E: '+ str(electronHoEs[ielectronPt])
-            #    print 'abs(1/E-1/p): ' + str(electronooEmooPs[ielectronPt])
-            #    print 'expected missing inner hits: ' + str(electronMissingHits[ielectronPt])
-            #    nManualNotMediumNoIsoEl += 1.0
-            #if manualEisTight and not eIsTightNoIso :
-            #    print 'Tight manual cuts do not match no iso'
-            #    print 'electron abs(eta): ' + str(abs(electronSCEtas[ielectronPt]))
-            #    print 'full5x5_sigmaIetaIeta: ' + str(electronFull5x5siees[ielectronPt])
-            #    print 'abs(dEtaInSeed): ' + str(abs(electronDEtaIns[ielectronPt]))
-            #    print 'abs(dPhiIn): ' + str(abs(electronDPhiIns[ielectronPt]))
-            #    print 'H/E: '+ str(electronHoEs[ielectronPt])
-            #    print 'abs(1/E-1/p): ' + str(electronooEmooPs[ielectronPt])
-            #    print 'expected missing inner hits: ' + str(electronMissingHits[ielectronPt])
-            #    nManualNotTightNoIsoEl += 1.0
-            #if eIsMediumNoIso and not manualEisMedium :
-            #    nMediumNoIsoNotManual += 1.0
-            #if eIsTightNoIso and not manualEisTight :
-            #    nTightNoIsoNotManual += 1.0
+            if manualEisMedium and not eIsMediumNoIso :
+                print 'Medium manual cuts do not match no iso'
+                print 'electron abs(eta): ' + str(abs(electronSCEtas[ielectronPt]))
+                print 'full5x5_sigmaIetaIeta: ' + str(electronFull5x5siees[ielectronPt])
+                print 'abs(dEtaInSeed): ' + str(abs(electronDEtaIns[ielectronPt]))
+                print 'abs(dPhiIn): ' + str(abs(electronDPhiIns[ielectronPt]))
+                print 'H/E: '+ str(electronHoEs[ielectronPt])
+                print 'abs(1/E-1/p): ' + str(electronooEmooPs[ielectronPt])
+                print 'expected missing inner hits: ' + str(electronMissingHits[ielectronPt])
+                nManualNotMediumNoIsoEl += 1.0
+            if manualEisTight and not eIsTightNoIso :
+                print 'Tight manual cuts do not match no iso'
+                print 'electron abs(eta): ' + str(abs(electronSCEtas[ielectronPt]))
+                print 'full5x5_sigmaIetaIeta: ' + str(electronFull5x5siees[ielectronPt])
+                print 'abs(dEtaInSeed): ' + str(abs(electronDEtaIns[ielectronPt]))
+                print 'abs(dPhiIn): ' + str(abs(electronDPhiIns[ielectronPt]))
+                print 'H/E: '+ str(electronHoEs[ielectronPt])
+                print 'abs(1/E-1/p): ' + str(electronooEmooPs[ielectronPt])
+                print 'expected missing inner hits: ' + str(electronMissingHits[ielectronPt])
+                nManualNotTightNoIsoEl += 1.0
+            if eIsMediumNoIso and not manualEisMedium :
+                nMediumNoIsoNotManual += 1.0
+            if eIsTightNoIso and not manualEisTight :
+                nTightNoIsoNotManual += 1.0
 
             # Additional d0 / dz cuts
             passD0 = False
@@ -1683,16 +1692,16 @@ for event in events :
                 if electronDzs[ielectronPt] < 0.20 :
                     passDz = True
 
-            if manualEisMedium and passD0 and passDz and isElectronConVeto[ielectronPt] :
+            if manualEisMedium and passD0 and passDz :
                 nTrueMedium += 1.0
-            if manualEisMedium and passD0 and passDz and not isElectronConVeto[ielectronPt] :
+            if manualEisMediumNoVeto and passD0 and passDz and isElectronConVeto[ielectronPt] :
                 nFakeMedium += 1.0
-            if manualEisTight and passD0 and passDz and isElectronConVeto[ielectronPt] :
+            if manualEisTight and passD0 and passDz :
                 nTrueTight += 1.0
-            if manualEisTight and passD0 and passDz and not isElectronConVeto[ielectronPt] :
+            if manualEisTightNoVeto and passD0 and passDz and isElectronConVeto[ielectronPt] :
                 nFakeTight += 1.0
 
-            if not (manualEisMedium and passD0 and passDz) :
+            if not (manualEisMediumNoVeto and passD0 and passDz) :
                 continue
 
             p4 = ROOT.TLorentzVector()
@@ -1704,21 +1713,21 @@ for event in events :
             elCharge.push_back(electronCharges[ielectronPt])
             elMiniIso.push_back(electronMiniIsos[ielectronPt])
 
-            if isElectronConVeto[ielectronPt] : #Electrons for cleaning pass full Medium ID
+            if manualEisMedium : #Electrons for cleaning pass full Medium ID
                 elCand.append(p4)
                 lepCand.append(p4)
                 elCandKey.append(elKeys[ielectronPt])
                 lepCandKey.append(elKeys[ielectronPt])
                 
-            if manualEisTight :
+            if manualEisTightNoVeto :
                 elTight.push_back(1)
             else :
                 elTight.push_back(0)
                 
             if isElectronConVeto[ielectronPt] :
-                elPassConVeto.push_back(1)
-            else :
                 elPassConVeto.push_back(0)
+            else :
+                elPassConVeto.push_back(1)
                 
     # --------------------------
     # get muons
@@ -1826,6 +1835,12 @@ for event in events :
             continue
     else :
         nPassLep += 1
+        if (passMuTrig and len(muCand) == 1 and nTrueMedium == 0):
+            nPassLepMu += 1
+        if (passElTrig and nTrueMedium == 1 and len(muCand) == 0):
+            nPassLepElTrue += 1
+        if (passElTrig and nTrueMedium == 0 and nFakeMedium >= 1 and len(muCand) == 0):
+            nPassLepElFake += 1
 
     # -------------------------------------------------------------------------------------
     # read MET 
@@ -2473,34 +2488,37 @@ print 'Dilepton channel: ' + str(nDilepParton)
 print 'Hadronic channel: ' + str(nHadParton)
 print 'Hadronic top in wrong hemisphere: ' + str(nWrongHemisphere)
 print '-------------------------------'
-print 'Pass nPV:        ' + str(nPassNPV)
+print 'Pass nPV:               ' + str(nPassNPV)
 if options.semilep == 1:
-    print 'Pass LHE:        ' + str(nPassLHE)
-print 'Pass MET filter: ' + str(nPassMetFilter)
-print 'Pass rho:        ' + str(nPassRho)
+    print 'Pass LHE:               ' + str(nPassLHE)
+print 'Pass MET filter:        ' + str(nPassMetFilter)
+print 'Pass rho:               ' + str(nPassRho)
 print '-------------------------------'
-print 'Pass parton:     ' + str(nPassParton)
+print 'Pass parton:            ' + str(nPassParton)
 print '-------------------------------'
-print 'Pass particle:   ' + str(nPassParticle)
+print 'Pass particle:          ' + str(nPassParticle)
 print '-------------------------------'
-print 'Pass lepton:     ' + str(nPassLep)
-print 'Pass AK4 jet:    ' + str(nPassAK4jet)
-print 'Pass AK8 jet:    ' + str(nPassAK8jet)
-print 'Pass reco:       ' + str(nEventsPass)
+print 'Pass lepton:            ' + str(nPassLep)
+print '  mu channel:           ' + str(nPassLepMu)
+print '  el channel, signal:   ' + str(nPassLepElTrue)
+print '  el channel, sideband: ' + str(nPassLepElFake)
+print 'Pass AK4 jet:           ' + str(nPassAK4jet)
+print 'Pass AK8 jet:           ' + str(nPassAK8jet)
+print 'Pass reco:              ' + str(nEventsPass)
 print '-------------------------------'
-#if nEleRaw != 0 :
-#    print 'Fraction of all medium electrons not passing twiki cuts: ' + str(nMediumNotManualEl / nEleRaw)
-#    print 'Fraction of all electrons passing twiki cuts not medium: ' + str(nManualNotMediumEl / nEleRaw)
-#    print 'Fraction of all tight electrons not passing twiki cuts:  ' + str(nTightNotManualEl / nEleRaw)
-#    print 'Fraction of all electrons passing twiki cuts not tight:  ' + str(nManualNotTightEl / nEleRaw)
-#    print '-------------------------------'
-#    print 'Fraction of all medium no iso electrons not passing twiki cuts: ' + str(nMediumNoIsoNotManualEl / nEleRaw)
-#    print 'Fraction of all electrons passing twiki cuts not medium no iso: ' + str(nManualNotMediumNoIsoEl / nEleRaw)
-#    print 'Fraction of all tight no iso electrons not passing twiki cuts:  ' + str(nTightNoIsoNotManualEl / nEleRaw)
-#    print 'Fraction of all electrons passing twiki cuts not tight no iso:  ' + str(nManualNotTightNoIsoEl / nEleRaw)
-#else :
-#    print 'No electrons!'
-#print '-------------------------------'
+if nEleRaw != 0 :
+    print 'Fraction of all medium electrons not passing twiki cuts: ' + str(nMediumNotManualEl / nEleRaw)
+    print 'Fraction of all electrons passing twiki cuts not medium: ' + str(nManualNotMediumEl / nEleRaw)
+    print 'Fraction of all tight electrons not passing twiki cuts:  ' + str(nTightNotManualEl / nEleRaw)
+    print 'Fraction of all electrons passing twiki cuts not tight:  ' + str(nManualNotTightEl / nEleRaw)
+    print '-------------------------------'
+    print 'Fraction of all medium no iso electrons not passing twiki cuts: ' + str(nMediumNoIsoNotManualEl / nEleRaw)
+    print 'Fraction of all electrons passing twiki cuts not medium no iso: ' + str(nManualNotMediumNoIsoEl / nEleRaw)
+    print 'Fraction of all tight no iso electrons not passing twiki cuts:  ' + str(nTightNoIsoNotManualEl / nEleRaw)
+    print 'Fraction of all electrons passing twiki cuts not tight no iso:  ' + str(nManualNotTightNoIsoEl / nEleRaw)
+else :
+    print 'No electrons!'
+print '-------------------------------'
 if nMuRaw != 0:
     print 'Fraction of all tight muons not passing twiki cuts:      ' + str(nTightNotManualMu / nMuRaw)
     print 'Fraction of all muons passing twiki cuts not tight:      ' + str(nManualNotTightMu / nMuRaw)
