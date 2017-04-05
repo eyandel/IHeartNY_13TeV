@@ -851,8 +851,17 @@ nPassLepMu = 0
 nPassLepElTrue = 0
 nPassLepElFake = 0
 nPassAK4jet = 0
+nPassAK4jetMu = 0
+nPassAK4jetElTrue = 0
+nPassAK4jetElFake = 0
 nPassAK8jet = 0
+nPassAK8jetMu = 0
+nPassAK8jetElTrue = 0
+nPassAK8jetElFake = 0
 nEventsPass = 0
+nPassRecoMu = 0
+nPassRecoElTrue = 0
+nPassRecoElFake = 0
 
 nLooseNotManualEl = 0.0
 nManualNotLooseEl = 0.0
@@ -1594,7 +1603,7 @@ for event in events :
                 continue
             nEleRaw += 1.0
             manualEisMedium = False
-            manualEisMediumNoVeto = True
+            manualEisMediumNoVeto = False
             if abs( electronSCEtas[ielectronPt] ) <= 1.479 :
                 if abs(electronDEtaIns[ielectronPt]) < 0.00311 :
                     if abs(electronDPhiIns[ielectronPt] ) < 0.103 :
@@ -1728,7 +1737,7 @@ for event in events :
                 elPassConVeto.push_back(0)
             else :
                 elPassConVeto.push_back(1)
-                
+
     # --------------------------
     # get muons
     # --------------------------
@@ -1857,7 +1866,7 @@ for event in events :
     met = math.sqrt(met_px*met_px + met_py*met_py)
     metv = ROOT.TLorentzVector()
     metv.SetPtEtaPhiM( met, 0.0, metphi, 0.0)
-            
+    
     # -------------------------------------------------------------------------------------
     # read AK4 jet information
     # -------------------------------------------------------------------------------------
@@ -2004,7 +2013,7 @@ for event in events :
             UncertJetAK4.setJetPhi(jetP4Raw.Phi())
             UncertJetAK4.setJetPt(jetP4.Perp())
             unc = UncertJetAK4.getUncertainty(True)
-
+            
             # JER
             jetP4_JERup = ROOT.TLorentzVector
             jetP4_JERdown = ROOT.TLorentzVector
@@ -2013,6 +2022,7 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
+                smearfacAK4 = smearfunc.Gaus(0.0,ak4JERs[ijet])
                 if ak4MatchedGenJetPts[ijet] > 0:
                     genJetP4 = ROOT.TLorentzVector()
                     genJetP4.SetPtEtaPhiE(ak4MatchedGenJetPts[ijet],ak4MatchedGenJetEtas[ijet],ak4MatchedGenJetPhis[ijet],ak4MatchedGenJetEnergys[ijet])
@@ -2027,14 +2037,14 @@ for event in events :
                         jetP4_JERdown *= ak4JERSFdowns[ijet]
                         jetP4_JERdown += genJetP4
                     else:
-                        jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)))
-                        jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)))
-                        jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)))
+                        jetP4 *= (1.0 + smearfacAK4*math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)))
+                        jetP4_JERup   = jetP4 * (1.0 + smearfacAK4*math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)))
+                        jetP4_JERdown = jetP4 * (1.0 + smearfacAK4*math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)))
                 else:
-                    jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)))
-                    jetP4_JERup   = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)))
-                    jetP4_JERdown = jetP4 * (1.0 + smearfunc.Gaus(0.0,ak4JERs[ijet])*math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)))
-
+                    jetP4 *= (1.0 + smearfacAK4*math.sqrt(max(0.0,ak4JERSFnoms[ijet]*ak4JERSFnoms[ijet]-1)))
+                    jetP4_JERup   = jetP4 * (1.0 + smearfacAK4*math.sqrt(max(0.0,ak4JERSFups[ijet]*ak4JERSFups[ijet]-1)))
+                    jetP4_JERdown = jetP4 * (1.0 + smearfacAK4*math.sqrt(max(0.0,ak4JERSFdowns[ijet]*ak4JERSFdowns[ijet]-1)))
+            
             metv -= jetP4
 
             if jetP4.Perp() > 15. and abs(jetP4.Eta()) < 3.0:
@@ -2089,7 +2099,13 @@ for event in events :
             continue
     else :
         nPassAK4jet += 1
-        
+        if (passMuTrig and len(muCand) == 1 and nTrueMedium == 0):
+            nPassAK4jetMu += 1
+        if (passElTrig and nTrueMedium == 1 and len(muCand) == 0):
+            nPassAK4jetElTrue += 1
+        if (passElTrig and nTrueMedium == 0 and nFakeMedium >= 1 and len(muCand) == 0):
+            nPassAK4jetElFake += 1
+
     # -------------------------------------------------------------------------------------
     # now we can calculate electron / muon 2D cuts
     # -------------------------------------------------------------------------------------
@@ -2340,6 +2356,7 @@ for event in events :
             
             # Scale jet pt if there is a matched gen jet
             if options.isMC:
+                smearfacAK8 = smearfunc.Gaus(0.0,ak8JERs[ijet])
                 if ak8MatchedGenJetPts[ijet] > 0:
                     AK8genJetP4 = ROOT.TLorentzVector()
                     AK8genJetP4.SetPtEtaPhiE(ak8MatchedGenJetPts[ijet],ak8MatchedGenJetEtas[ijet],ak8MatchedGenJetPhis[ijet],ak8MatchedGenJetEnergys[ijet])
@@ -2353,16 +2370,16 @@ for event in events :
                         AK8jetP4_JERdown = AK8jetP4 - AK8genJetP4
                         AK8jetP4_JERdown *= ak8JERSFdowns[ijet]
                         AK8jetP4_JERdown += AK8genJetP4
-
+            
                     else:
-                        AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)))
-                        AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)))
-                        AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)))
+                        AK8jetP4 *= (1.0 + smearfacAK8*math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)))
+                        AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfacAK8*math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)))
+                        AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfacAK8*math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)))
                 else:
-                    AK8jetP4 *= (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)))
-                    AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)))
-                    AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfunc.Gaus(0.0,ak8JERs[ijet])*math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)))
-
+                    AK8jetP4 *= (1.0 + smearfacAK8*math.sqrt(max(0.0,ak8JERSFnoms[ijet]*ak8JERSFnoms[ijet]-1)))
+                    AK8jetP4_JERup   = AK8jetP4 * (1.0 + smearfacAK8*math.sqrt(max(0.0,ak8JERSFups[ijet]*ak8JERSFups[ijet]-1)))
+                    AK8jetP4_JERdown = AK8jetP4 * (1.0 + smearfacAK8*math.sqrt(max(0.0,ak8JERSFdowns[ijet]*ak8JERSFdowns[ijet]-1)))
+                    
             metv -= AK8jetP4
 
             if (AK8jetP4.Perp() < TOP_PT_CUT or abs(AK8jetP4.Eta()) > MAX_JET_ETA):
@@ -2437,7 +2454,13 @@ for event in events :
             continue
     else :
         nPassAK8jet += 1
-                
+        if (passMuTrig and len(muCand) == 1 and nTrueMedium == 0):
+            nPassAK8jetMu += 1
+        if (passElTrig and nTrueMedium == 1 and len(muCand) == 0):
+            nPassAK8jetElTrue += 1
+        if (passElTrig and nTrueMedium == 0 and nFakeMedium >= 1 and len(muCand) == 0):
+            nPassAK8jetElFake += 1
+   
 
     metPt.push_back(metv.Perp())
     metPhi.push_back(metv.Phi())
@@ -2445,7 +2468,13 @@ for event in events :
 
     if passReco :
         nEventsPass += 1
-        
+        if (passMuTrig and len(muCand) == 1 and nTrueMedium == 0):
+            nPassRecoMu += 1
+        if (passElTrig and nTrueMedium == 1 and len(muCand) == 0):
+            nPassRecoElTrue += 1
+        if (passElTrig and nTrueMedium == 0 and nFakeMedium >= 1 and len(muCand) == 0):
+            nPassRecoElFake += 1
+
     eventWeight_nom.push_back(weight_nom)
     if options.isMC:
         eventWeight_puUp.push_back(weight_puUp)
@@ -2503,8 +2532,17 @@ print '  mu channel:           ' + str(nPassLepMu)
 print '  el channel, signal:   ' + str(nPassLepElTrue)
 print '  el channel, sideband: ' + str(nPassLepElFake)
 print 'Pass AK4 jet:           ' + str(nPassAK4jet)
+print '  mu channel:           ' + str(nPassAK4jetMu)
+print '  el channel, signal:   ' + str(nPassAK4jetElTrue)
+print '  el channel, sideband: ' + str(nPassAK4jetElFake)
 print 'Pass AK8 jet:           ' + str(nPassAK8jet)
+print '  mu channel:           ' + str(nPassAK8jetMu)
+print '  el channel, signal:   ' + str(nPassAK8jetElTrue)
+print '  el channel, sideband: ' + str(nPassAK8jetElFake)
 print 'Pass reco:              ' + str(nEventsPass)
+print '  mu channel:           ' + str(nPassRecoMu)
+print '  el channel, signal:   ' + str(nPassRecoElTrue)
+print '  el channel, sideband: ' + str(nPassRecoElFake)
 print '-------------------------------'
 if nEleRaw != 0 :
     print 'Fraction of all medium electrons not passing twiki cuts: ' + str(nMediumNotManualEl / nEleRaw)
