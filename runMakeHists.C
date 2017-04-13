@@ -7,7 +7,7 @@
 using namespace std;
 
 #include "makeHists.C"
-#include "BTagCalibrationStandalone.cc"
+#include "BTagCalibrationStandalone.cpp"
 
 R__LOAD_LIBRARY(RooUnfold/libRooUnfold.so)
 

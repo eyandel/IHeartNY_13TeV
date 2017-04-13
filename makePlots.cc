@@ -115,7 +115,7 @@ void drawCMS(Double_t x,Double_t y, bool prel) {
   ll.SetTextAngle(0);
   ll.SetNDC();
   ll.SetTextColor(1);
-  ll.DrawLatex(0.69,0.94,"37.9 fb^{-1} (13 TeV)");
+  ll.DrawLatex(0.69,0.94,"35.9 fb^{-1} (13 TeV)");
 
 }
 
@@ -147,7 +147,7 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
     h_qcd = (TH1F*) qcd->hist();
   }
   else {
-    h_qcd = getQCDData( DIR, DIRqcd, var, region, channel, "nom", usePost); // Currently taking QCD from data sideband with normalization from MC in signal region
+    h_qcd = (TH1F*) getQCDData( DIR, DIRqcd, var, region, channel, "nom", usePost); // Currently taking QCD from data sideband with normalization from MC in signal region
   }
   TH1F* h_wjets = (TH1F*) wjets->hist();
   TH1F* h_ttbar = (TH1F*) ttbar->hist();
@@ -170,22 +170,22 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
 
   // -------------------------------------------------------------------------------------
   // various hist plotting edits
-  if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet") || hist.Contains("lepAbsEta") || hist.Contains("ak8jetTau") || hist.Contains("ak8jetSDsubjetMaxCSV") || (region == "1t0b" && hist.Contains("ak4jetEta")) || hist.Contains("Raw"))){
-    if (h_qcd) h_qcd->Rebin(2);
-    if (h_wjets) h_wjets->Rebin(2);
-    if (h_singletop) h_singletop->Rebin(2);
-    if (h_ttbar_nonSemiLep) h_ttbar_nonSemiLep->Rebin(2);
-    if (h_ttbar) h_ttbar->Rebin(2);
-    h_data->Rebin(2);
-  }
-
-  if (hist.Contains("ak8jetTau") || (region == "1t0b" && hist.Contains("ak4jetEta")) || hist.Contains("ak8jetSDsubjetMaxCSV")) {
+  if (hist.Contains("lepAbsEta") || hist.Contains("ak8jetTau") || hist.Contains("ak8jetSDsubjetMaxCSV") || hist.Contains("ak4jetEta")) {
     if (h_qcd) h_qcd->Rebin(5);
     if (h_wjets) h_wjets->Rebin(5);
     if (h_singletop) h_singletop->Rebin(5);
     if (h_ttbar_nonSemiLep) h_ttbar_nonSemiLep->Rebin(5);
     if (h_ttbar) h_ttbar->Rebin(5);
     h_data->Rebin(5);
+  }
+
+  else if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet") || hist.Contains("Raw"))){
+    if (h_qcd) h_qcd->Rebin(2);
+    if (h_wjets) h_wjets->Rebin(2);
+    if (h_singletop) h_singletop->Rebin(2);
+    if (h_ttbar_nonSemiLep) h_ttbar_nonSemiLep->Rebin(2);
+    if (h_ttbar) h_ttbar->Rebin(2);
+    h_data->Rebin(2);
   }
 
   h_data->UseCurrentStyle();
@@ -240,18 +240,17 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
   TH1F* h_ratio;
   TH1F* h_ratio2;
   h_ratio = (TH1F*) h_data->Clone("ratio_"+hist);  // Data / MC
-  h_ratio->Sumw2();
+  //h_ratio->Sumw2();
   h_ratio->Divide(h_totalbkg);
   
   h_ratio2 = (TH1F*) h_totalbkg->Clone("ratio2_"+hist); // Uncertainty on Data / MC
-  h_ratio2->Sumw2();
+  //h_ratio2->Sumw2();
   for (int ib=0; ib<h_totalbkg->GetNbinsX(); ib++) {
     h_ratio2->SetBinContent(ib+1, 1.0);
     float tmperr = h_totalbkg->GetBinError(ib+1);
     float tmpcount = h_totalbkg->GetBinContent(ib+1);
     
     if (tmpcount==0) continue;
-    if (ib==0) cout << "tmperr = " << tmperr << " tmpcount = " << tmpcount << endl;
     h_ratio2->SetBinError(ib+1,tmperr/tmpcount);
   }
 
@@ -351,7 +350,7 @@ void makePlots(TString DIR, TString DIRqcd, TString channel, TString var, TStrin
   leg->AddEntry(h_ratio2, "MC Stat. Unc.","f");
   leg->Draw();
 
-  myText(0.10,0.94,1,"#intLdt = 37.9 fb^{-1}");
+  myText(0.10,0.94,1,"#intLdt = 35.9 fb^{-1}");
   myText(0.80,0.94,1,"#sqrt{s} = 13 TeV");
 
   // plot ratio part
@@ -414,22 +413,23 @@ void troubleshootQCD(TString DIR, TString var, TString channel) {
 
   // -------------------------------------------------------------------------------------
   // various hist plotting edits
-  if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet") || hist.Contains("lepAbsEta") || hist.Contains("ak8jetTau"))){
-    if (h_qcd) h_qcd->Rebin(2);
-    if (h_wjets) h_wjets->Rebin(2);
-    if (h_singletop) h_singletop->Rebin(2);
-    if (h_ttbar_nonSemiLep) h_ttbar_nonSemiLep->Rebin(2);
-    if (h_ttbar) h_ttbar->Rebin(2);
-    h_data->Rebin(2);
-  }
-
-  if (hist.Contains("ak8jetTau")){
+  
+  if (hist.Contains("ak8jetTau") || hist.Contains("lepAbsEta")){
     if (h_qcd) h_qcd->Rebin(5);
     if (h_wjets) h_wjets->Rebin(5);
     if (h_singletop) h_singletop->Rebin(5);
     if (h_ttbar_nonSemiLep) h_ttbar_nonSemiLep->Rebin(5);
     if (h_ttbar) h_ttbar->Rebin(5);
     h_data->Rebin(5);
+  }
+  
+  else if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet"))){
+    if (h_qcd) h_qcd->Rebin(2);
+    if (h_wjets) h_wjets->Rebin(2);
+    if (h_singletop) h_singletop->Rebin(2);
+    if (h_ttbar_nonSemiLep) h_ttbar_nonSemiLep->Rebin(2);
+    if (h_ttbar) h_ttbar->Rebin(2);
+    h_data->Rebin(2);
   }
 
   h_data->UseCurrentStyle();
@@ -484,18 +484,17 @@ void troubleshootQCD(TString DIR, TString var, TString channel) {
   TH1F* h_ratio;
   TH1F* h_ratio2;
   h_ratio = (TH1F*) h_data->Clone("ratio_"+hist);  // Data / MC
-  h_ratio->Sumw2();
+  //h_ratio->Sumw2();
   h_ratio->Divide(h_totalbkg);
   
   h_ratio2 = (TH1F*) h_totalbkg->Clone("ratio2_"+hist); // Uncertainty on Data / MC
-  h_ratio2->Sumw2();
+  //h_ratio2->Sumw2();
   for (int ib=0; ib<h_totalbkg->GetNbinsX(); ib++) {
     h_ratio2->SetBinContent(ib+1, 1.0);
     float tmperr = h_totalbkg->GetBinError(ib+1);
     float tmpcount = h_totalbkg->GetBinContent(ib+1);
     
     if (tmpcount==0) continue;
-    if (ib==0) cout << "tmperr = " << tmperr << " tmpcount = " << tmpcount << endl;
     h_ratio2->SetBinError(ib+1,tmperr/tmpcount);
   }
 
@@ -572,7 +571,7 @@ void troubleshootQCD(TString DIR, TString var, TString channel) {
   leg->AddEntry(h_ratio2, "MC Stat. Unc.","f");
   leg->Draw();
 
-  myText(0.10,0.94,1,"#intLdt = 37.9 fb^{-1}");
+  myText(0.10,0.94,1,"#intLdt = 35.9 fb^{-1}");
   myText(0.80,0.94,1,"#sqrt{s} = 13 TeV");
 
   // plot ratio part
@@ -620,7 +619,7 @@ void compareShapes(TString DIR, TString DIRqcd, TString channel, TString var, TS
   // -------------------------------------------------------------------------------------
   // get the TH1F versions
   
-  TH1F* h_qcd = getQCDData( DIR, DIRqcd, var, region, channel, "nom", false); // Currently taking QCD from data sideband with no triangular cut,
+  TH1F* h_qcd = (TH1F*) getQCDData( DIR, DIRqcd, var, region, channel, "nom", false); // Currently taking QCD from data sideband with no triangular cut,
                                                                 // with normalization from MC in signal region
   TH1F* h_wjets = (TH1F*) wjets->hist();
   TH1F* h_ttbar = (TH1F*) ttbar->hist();
@@ -648,18 +647,19 @@ void compareShapes(TString DIR, TString DIRqcd, TString channel, TString var, TS
   //h_singletop->SetFillColor(0);
   //h_singletop->Scale(1./h_singletop->Integral());
 
-  if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet") || hist.Contains("lepAbsEta") || hist.Contains("ak8jetTau") || (region == "1t0b" && hist.Contains("ak4jetEta")) || hist.Contains("ak8jetSDsubjetMaxCSV"))){
+  if (hist.Contains("ak4jetEta") || hist.Contains("ak8jetSDmass") || hist.Contains("ak8jetTau")){
+    if (h_qcd) h_qcd->Rebin(5);
+    h_wjets->Rebin(5);
+    h_ttbar->Rebin(5);
+  }
+
+  else if (!(hist.Contains("nAK4jet") || hist.Contains("nAK8jet") || hist.Contains("nBjet") || hist.Contains("nTjet"))){
     if (h_qcd) h_qcd->Rebin(2);
     h_wjets->Rebin(2);
     h_ttbar->Rebin(2);
     //h_singletop->Rebin(2);
   }
 
-  if (hist.Contains("ak8jetTau") || (region == "1t0b" && hist.Contains("ak4jetEta")) || hist.Contains("ak8jetSDsubjetMaxCSV")){
-    if (h_qcd) h_qcd->Rebin(5);
-    h_wjets->Rebin(5);
-    h_ttbar->Rebin(5);
-  }
 
   h_ttbar->SetMaximum(h_ttbar->GetMaximum()*1.5);
   
@@ -711,16 +711,10 @@ void makeCombineInputs(TString DIR, TString DIRqcd) {
 
   const int nchannels = 2;
   TString channels[nchannels] = {"mu","el"};
-  const int nhist = 10;
-  TString histnames[nhist] = {"lepAbsEta","lepSignEta","ak4jetEta","ak8jetTau21",
-			      "lepAbsEta","lepSignEta","ak4jetEta","ak8jetSDsubjetMaxCSV",
-			      "ak8jetSDsubjetMaxCSV","ak8jetSDmass"};
-  TString regions[nhist] = {"0t","0t","0t","0t",
-			    "1t0b","1t0b","1t0b","1t0b",
-			    "1t1b","1t1b"};
-  int rebinby[nhist] = {5,5,5,5,
-			5,5,5,5,
-			5,2};
+  const int nhist = 5;
+  TString histnames[nhist] = {"ak8jetTau21","ak8jetTau21","ak8jetTau21","ak8jetTau32","ak8jetSDmass"};
+  TString regions[nhist] = {"0t","0t0b","0t1b","1t0b","1t1b"};
+  int rebinby[nhist] = {5,5,5,5,2};
   const int nsys = 13;
   TString sysnames[nsys] = {"nom","puUp","puDown","JECUp","JECDown","JERUp","JERDown","lepUp","lepDown","BTagUp","BTagDown","TopTagUp","TopTagDown"};
   
@@ -862,7 +856,7 @@ void makeQCDComp(TString DIR, TString DIRqcd, TString channel, TString var) {
   TH1F* h_sigQCDMC = (TH1F*) sigQCDMC->hist();
   TH1F* h_sideQCDMC = (TH1F*) sideQCDMC->hist();
 
-  TH1F* h_sideQCDData = getQCDData(DIR,DIRqcd,var,"Pre",channel,"nom", false);
+  TH1F* h_sideQCDData = (TH1F*) getQCDData(DIR,DIRqcd,var,"Pre",channel,"nom", false);
 
   h_sigQCDMC->SetLineColor(2);
   h_sigQCDMC->SetMarkerColor(2);
@@ -874,16 +868,16 @@ void makeQCDComp(TString DIR, TString DIRqcd, TString channel, TString var) {
   h_sideQCDMC->Sumw2();
   h_sideQCDData->Sumw2();
 
-  if (var != "nAK4jet" && var != "nAK8jet" && var != "nBjet" && var != "nTjet" && !(hist.Contains("ak4jetEta") || hist.Contains("ak8jetSDsubjetMaxCSV") || hist.Contains("lepAbsEta"))){
-    h_sigQCDMC->Rebin(2);
-    h_sideQCDMC->Rebin(2);
-    h_sideQCDData->Rebin(2);
-  }
-
-  else if (hist.Contains("ak8jetSDsubjetMaxCSV")){
+  if (hist.Contains("ak8jetSDsubjetMaxCSV") || hist.Contains("ak4jetEta") || hist.Contains("lepAbsEta")){
     h_sigQCDMC->Rebin(5);
     h_sideQCDMC->Rebin(5);
     h_sideQCDData->Rebin(5);
+  }
+
+  else if (var != "nAK4jet" && var != "nAK8jet" && var != "nBjet" && var != "nTjet"){
+    h_sigQCDMC->Rebin(2);
+    h_sideQCDMC->Rebin(2);
+    h_sideQCDData->Rebin(2);
   }
 
   if (var == "ht"){
@@ -1030,7 +1024,7 @@ void makeTable(TString DIR, TString DIRqcd, TString channel, bool inSideband, bo
       SummedHist* qcd = getQCDMC(DIRqcd, what, regions[ii], channel, inSideband, "nom", false);
       h_qcd = (TH1F*) qcd->hist();
     }
-    else h_qcd = getQCDData(DIR,DIRqcd,what, regions[ii],channel,"nom", false);
+    else h_qcd = (TH1F*) getQCDData(DIR,DIRqcd,what, regions[ii],channel,"nom", false);
     
     // error on pre-fit counts
     for (int ib=0; ib<h_ttbar_semiLep->GetNbinsX(); ib++) {
@@ -1118,14 +1112,220 @@ void makeTable(TString DIR, TString DIRqcd, TString channel, bool inSideband, bo
   }
 }
 
+void plotWJetsSplit(TString var, TString region, TString channel){
+  TH1::AddDirectory(kFALSE); 
+  setStyle();
+
+  TString hist = var+region;
+    
+  // get histograms
+  SummedHist* wjets_bb = getWJets( "histfiles_full2016/", var, region, channel, false, "nom", false, "bb");
+  SummedHist* wjets_b  = getWJets( "histfiles_full2016/", var, region, channel, false, "nom", false, "b");
+  SummedHist* wjets_cc = getWJets( "histfiles_full2016/", var, region, channel, false, "nom", false, "cc");
+  SummedHist* wjets_c  = getWJets( "histfiles_full2016/", var, region, channel, false, "nom", false, "c");
+  SummedHist* wjets_l  = getWJets( "histfiles_full2016/", var, region, channel, false, "nom", false, "l");
+
+  // -------------------------------------------------------------------------------------
+  // get the TH1F versions
+  TH1F* h_bb = (TH1F*) wjets_bb->hist();
+  TH1F* h_b  = (TH1F*) wjets_b->hist();
+  TH1F* h_cc = (TH1F*) wjets_cc->hist();
+  TH1F* h_c  = (TH1F*) wjets_c->hist();
+  TH1F* h_l  = (TH1F*) wjets_l->hist();
+
+  int rebinfac;
+  if (hist.Contains("lepEta") || hist.Contains("ak8jetTau") || hist.Contains("ak4jetEta")) rebinfac = 5;
+  else rebinfac = 2;
+  
+  h_bb->Rebin(rebinfac);
+  h_b->Rebin(rebinfac);
+  h_cc->Rebin(rebinfac);
+  h_c->Rebin(rebinfac);
+  h_l->Rebin(rebinfac);
+
+  // create stack & summed histogram for ratio plot
+  THStack* h_stack = new THStack();    
+  h_stack->Add(h_bb);
+  h_stack->Add(h_b);
+  h_stack->Add(h_cc);
+  h_stack->Add(h_c);
+  h_stack->Add(h_l);
+
+  TH1F* h_totalHF = (TH1F*) h_bb->Clone("total_"+hist);
+  //h_totalHF->Sumw2();
+  h_totalHF->Add(h_b);
+  h_totalHF->Add(h_cc);
+  h_totalHF->Add(h_c);
+  h_totalHF->Scale(1.0/h_totalHF->Integral());
+
+  // -------------------------------------------------------------------------------------
+  
+  TH1F* h_ratio;
+  TH1F* h_ratio2;
+  h_ratio = (TH1F*) h_l->Clone("ratio_"+hist);  // Data / MC
+  //h_ratio->Sumw2();
+  h_ratio->Scale(1.0/h_ratio->Integral());
+  h_ratio->Divide(h_totalHF);
+  
+  h_ratio2 = (TH1F*) h_totalHF->Clone("ratio2_"+hist); // Uncertainty on Data / MC
+  //h_ratio2->Sumw2();
+  for (int ib=0; ib<h_totalHF->GetNbinsX(); ib++) {
+    h_ratio2->SetBinContent(ib+1, 1.0);
+    float tmperr = h_totalHF->GetBinError(ib+1);
+    float tmpcount = h_totalHF->GetBinContent(ib+1);
+    
+    if (tmpcount==0) continue;
+    h_ratio2->SetBinError(ib+1,tmperr/tmpcount);
+  }
+
+  // -------------------------------------------------------------------------------------
+  // plotting!
+
+  TCanvas* c = new TCanvas("c_"+hist,"c_"+hist,900,800);
+  TPad* p1 = new TPad("datamcp1_"+hist,"datamcp1_"+hist,0,0.3,1,1);
+  p1->SetTopMargin(0.08);
+  p1->SetBottomMargin(0.05);
+  p1->SetNumber(1);
+  TPad* p2 = new TPad("datamcp2_"+hist,"datamcp2_"+hist,0,0,1,0.3);
+  p2->SetNumber(2);
+  p2->SetTopMargin(0.05);
+  p2->SetBottomMargin(0.35);
+  
+  p1->Draw();
+  p2->Draw();
+  p1->cd();
+  
+  h_ratio2->SetMarkerSize(0);
+  h_ratio2->SetLineColor(0);
+  h_ratio2->SetFillColor(15);
+  h_ratio2->SetFillStyle(1001);
+  
+  h_ratio->GetXaxis()->SetTitle(h_totalHF->GetXaxis()->GetTitle());
+  h_stack->Draw("hist");
+
+  float xmin = 0.71;
+  float ymin = 0.52;
+
+  float xwidth = 0.20;
+  float ywidth = 0.38;
+
+  //Legend top left
+  if (var == "ak8jetTau32" || var == "ak8jetTau21" || var == "ak8jetSDmass") xmin = 0.16;
+
+  // legend
+  TLegend* leg;
+  leg = new TLegend(xmin,ymin,xmin+xwidth,ymin+ywidth);
+  leg->SetBorderSize(0);
+  leg->SetFillStyle(0);
+  leg->SetTextFont(42);
+  leg->SetTextSize(0.045);
+  leg->AddEntry(h_bb,     "W+bb", "f");
+  leg->AddEntry(h_b,      "W+b", "f");
+  leg->AddEntry(h_cc,     "W+cc", "f");
+  leg->AddEntry(h_c,      "W+c", "f");
+  leg->AddEntry(h_l,      "W+l" , "f");
+  leg->AddEntry(h_ratio2, "MC Stat. Unc.","f");
+  leg->Draw();
+
+  myText(0.10,0.94,1,"#intLdt = 35.9 fb^{-1}");
+  myText(0.80,0.94,1,"#sqrt{s} = 13 TeV");
+
+  // plot ratio part
+  p2->cd();
+  p2->SetGridy();
+  h_ratio->UseCurrentStyle();
+  h_ratio->SetMarkerStyle(8);
+  h_ratio->SetMarkerSize(1);
+  h_ratio->Draw("le0p");
+  h_ratio2->Draw("same,e2");
+  h_ratio->Draw("le0p,same");
+  h_ratio->SetMaximum(1.8);
+  h_ratio->SetMinimum(0.2);
+  h_ratio->GetYaxis()->SetNdivisions(2,4,0,false);
+  h_ratio->GetYaxis()->SetTitle("l / HF");
+  h_ratio->GetXaxis()->SetLabelSize(26);
+  h_ratio->GetYaxis()->SetLabelSize(26);
+  h_ratio->GetXaxis()->SetTitleOffset(2.8);
+  h_ratio->GetYaxis()->SetTitleOffset(1.4);
+  h_ratio->GetXaxis()->SetTitleSize(32);
+  h_ratio->GetYaxis()->SetTitleSize(32);
+
+  // save output
+  TString outname = "Plots/splitWJets_"+channel+"_"+hist+".pdf";
+  c->SaveAs(outname);
+
+  // Cleanup, since we are using gDirectory(kFALSE)
+  h_stack->Delete();
+  leg->Delete();
+
+}
+
+void calcBtagSF(TString channel, TString sys){
+  SummedHist* ttbar            = getTTbar("histfiles_full2016/", "bTagSFvsPt", "", channel, false, sys, false);
+  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep("histfiles_full2016/", "bTagSFvsPt", "", channel, false, sys, false);
+  SummedHist* singletop        = getSingleTop("histfiles_full2016/", "bTagSFvsPt", "", channel, false, sys, false);
+  SummedHist* wjets            = getWJets("histfiles_full2016/", "bTagSFvsPt", "", channel, false, sys, false);
+  SummedHist* qcd              = getQCDMC("histfiles_full2016/", "bTagSFvsPt", "", channel, false, sys, false);
+
+  TH2F* h_ttbar = (TH2F*) ttbar->hist();
+  TH2F* h_ttbar_nonSemiLep = (TH2F*) ttbar_nonSemiLep->hist();
+  TH2F* h_singletop = (TH2F*) singletop->hist();
+  TH2F* h_wjets = (TH2F*) wjets->hist();
+  TH2F* h_qcd = (TH2F*) qcd->hist();
+  /*
+  h_ttbar->Sumw2();
+  h_ttbar_nonSemiLep->Sumw2();
+  h_singletop->Sumw2();
+  h_wjets->Sumw2();
+  h_qcd->Sumw2();
+  */
+  TH2F* h_total = (TH2F*) h_ttbar->Clone();
+  h_total->Add(h_ttbar_nonSemiLep);
+  h_total->Add(h_singletop);
+  h_total->Add(h_wjets);
+  h_total->Add(h_qcd);
+
+  double avgSF = h_total->GetMean(1);
+  cout << "Average SF in " << channel << " channel for " << sys << " variation is " << avgSF << endl;
+  
+}
+
+void plot2D(TString sample, TString hist){
+  
+  SummedHist* hsum;
+  if (sample == "ttbar") hsum = getTTbar("histfiles_full2016/", hist, "", "el", false, "nom", false);
+  if (sample == "qcd") hsum = getQCDMC("histfiles_full2016/", hist, "", "el", false, "nom", false);
+  if (sample == "data") hsum = getData("histfiles_full2016/", hist, "", "el", false);
+
+  TH2F* h_tmp = (TH2F*) hsum->hist();
+  cout << "Number of events in " << hist << " is " << h_tmp->GetSum() << endl;
+
+  gStyle->SetOptTitle(0);
+  gStyle->SetOptStat(0);
+  TCanvas* c = new TCanvas("c","c",900,700);
+  c->SetLeftMargin(0.18);
+  c->SetRightMargin(0.12);
+  c->SetBottomMargin(0.12);
+  h_tmp->GetZaxis()->SetLabelSize(0.04);
+  h_tmp->Draw("COLZ");
+  gPad->Update();
+  TPaletteAxis *ttbar_palette = (TPaletteAxis*)h_tmp->GetListOfFunctions()->FindObject("palette");
+  ttbar_palette->SetX1NDC(0.88);
+  ttbar_palette->SetX2NDC(0.93);
+  ttbar_palette->SetY1NDC(0.12);
+  ttbar_palette->SetY2NDC(0.9);
+  gPad->Modified();
+  gPad->Update();
+  c->SaveAs("Plots/"+hist+"_"+sample+".pdf");
+}
+
 void combineResults(TString channel, TString fit) {
 
   TH1::AddDirectory(kFALSE); 
   setStyle();
 
-  const int nhist = 3;
-  TString whatB[nhist] = {"ak4jetEta0t","ak4jetEta1t0b","ak8jetSDmass1t1b"};
-  TString what5[nhist] = {"ak8jetTau210t","ak4jetEta1t0b","ak8jetSDmass1t1b"};
+  const int nhist = 4;
+  TString what[nhist] = {"ak8jetTau210t0b","ak8jetTau210t1b","ak8jetTau321t0b","ak8jetSDmass1t1b"};
   const int ncats = 5;
   TString cats[ncats] = {"TTbar","SingleTop","WJets","QCD","total"};
   
@@ -1140,9 +1340,7 @@ void combineResults(TString channel, TString fit) {
   RooArgSet* norm_post = (RooArgSet*) f_postfit->Get("norm_fit_s");
 
   for (int ih = 0; ih < nhist; ih++){
-    TString thishist = "";
-    if (fit.Contains("B")) thishist = whatB[ih];
-    if (fit.Contains("5")) thishist = what5[ih];
+    TString thishist = what[ih];
 
     TH1F* h_data    = (TH1F*) f_prefit->Get(thishist+"_"+channel+"/data_obs");
     counts_data[ih] = h_data->GetSum();
@@ -1277,7 +1475,7 @@ void combineResults(TString channel, TString fit) {
       float xwidth = 0.18;
       float ywidth = 0.32;
       
-      if (thishist == "ak8jetSDmass1t1b") xmin = 0.16;
+      if (thishist == "ak8jetSDmass1t1b" || thishist.Contains("ak8jetTau")) xmin = 0.16;
 
       // legend
       TLegend* leg;
@@ -1294,7 +1492,7 @@ void combineResults(TString channel, TString fit) {
       leg->AddEntry(h_ratio2, "MC Stat. Unc.","f");
       leg->Draw();
 
-      myText(0.10,0.94,1,"#intLdt = 37.9 fb^{-1}");
+      myText(0.10,0.94,1,"#intLdt = 35.9 fb^{-1}");
       myText(0.80,0.94,1,"#sqrt{s} = 13 TeV");
       
       // plot ratio part
@@ -1312,7 +1510,7 @@ void combineResults(TString channel, TString fit) {
       h_ratio->GetYaxis()->SetTitle("Data / MC");
       h_ratio->GetXaxis()->SetLabelSize(26);
       h_ratio->GetYaxis()->SetLabelSize(26);
-      h_ratio->GetXaxis()->SetTitleOffset(2.8);
+      h_ratio->GetXaxis()->SetTitleOffset(1.0);
       h_ratio->GetYaxis()->SetTitleOffset(1.4);
       h_ratio->GetXaxis()->SetTitleSize(32);
       h_ratio->GetYaxis()->SetTitleSize(32);
@@ -1389,7 +1587,8 @@ void make2DScans(TString DIR, TString channel) {
   
   // get histograms
   for (int ii = 0; ii < 7; ii ++){
-    TH2F* h_signal = (TH2F*) getSignal( DIR, hists[ii], "", channel, false );
+    SummedHist* signal = getTTbar(DIR, hists[ii], "", channel, false, "nom", false);
+    TH2F* h_signal = (TH2F*) signal->hist();
     TH2F* h_bkg = (TH2F*) getBackground( DIR, hists[ii], "", channel, false);
 
     //Construct test statistic per bin
@@ -1428,7 +1627,8 @@ void make1DScans(TString DIR, TString channel) {
   
   // get histograms
   for (int ii = 0; ii < 5; ii ++){
-    TH1F* h_signal = (TH1F*) getSignal( DIR, hists[ii], "Pre", channel, false );
+    SummedHist* signal = getTTbar(DIR, hists[ii], "Pre", channel, false, "nom", false);
+    TH1F* h_signal = (TH1F*) signal->hist(true);
     cout << "Got signal" << endl;
     TH1F* h_bkg = (TH1F*) getBackground( DIR, hists[ii], "Pre", channel, false);
     cout << "Got background" << endl;
@@ -1472,17 +1672,16 @@ void makeEffPlots(TString channel, TString which) {
   
   for (int ii = 0; ii < niso; ii ++){
     // Get signal
-    TH1F* h_signal_pre = (TH1F*) getSignal("histfiles_mMu_mEl_Loose/", which, "Pre", channel, false ); //These should be for no iso
-    TH1F* h_signal_post = (TH1F*) getSignal("histfiles_mMu_mEl_"+isos[ii]+"/", which, "Pre", channel, false ); //These should be with iso
+    SummedHist* signal_pre = getTTbar("histfiles_mMu_mEl_Loose/", which, "Pre", channel, false, "nom", false ); //These should be for no iso
+    SummedHist* signal_post = getTTbar("histfiles_mMu_mEl_"+isos[ii]+"/", which, "Pre", channel, false, "nom", false ); //These should be with iso
+    TH1F* h_signal_pre = (TH1F*) signal_pre->hist(true);
+    TH1F* h_signal_post = (TH1F*) signal_post->hist(true);
 
     // Get QCD
     SummedHist* bkg_pre = getQCDMC("histfiles_mMu_mEl_Loose/",which, "Pre",channel,false,"nom", false);
     SummedHist* bkg_post = getQCDMC("histfiles_mMu_mEl_"+isos[ii]+"/",which, "Pre",channel,false,"nom",false);
-    TH1F* h_bkg_pre = (TH1F*) bkg_pre->hist();
-    TH1F* h_bkg_post = (TH1F*) bkg_post->hist();
-
-    h_bkg_pre->SetFillColor(0);
-    h_bkg_post->SetFillColor(0);
+    TH1F* h_bkg_pre = (TH1F*) bkg_pre->hist(true);
+    TH1F* h_bkg_post = (TH1F*) bkg_post->hist(true);
 
     h_signal_pre->Rebin(2);
     h_bkg_pre->Rebin(2);
@@ -1561,21 +1760,16 @@ void makeEffPlotsFinal() {
     TH1F* h_bkg_eff[2];
     for (int jj = 0; jj < 2; jj++){
       // get histograms
-      TH1F* h_signal_pre = (TH1F*) getSignal("histfiles_mMu_mEl_Loose/", hists[ii], "Pre", channels[jj], false );
-      h_signal_pre->Sumw2();
-      TH1F* h_signal_post = (TH1F*) getSignal("histfiles_mMu_tEl_MiniIso10/", hists[ii], "Pre", channels[jj], false );
-      h_signal_post->Sumw2();
-
+      SummedHist* signal_pre = getTTbar("histfiles_mMu_mEl_Loose/", hists[ii], "Pre", channels[jj], false, "nom", false);
+      SummedHist* signal_post = getTTbar("histfiles_mMu_tEl_MiniIso10/", hists[ii], "Pre", channels[jj], false, "nom", false);
+      TH1F* h_signal_pre = (TH1F*) signal_pre->hist(true);
+      TH1F* h_signal_post = (TH1F*) signal_post->hist(true);
+      
       //This version uses QCD only
       SummedHist* bkg_pre = getQCDMC("histfiles_mMu_mEl_Loose/",hists[ii],"Pre",channels[jj],false,"nom",false);
       SummedHist* bkg_post = getQCDMC("histfiles_mMu_tEl_MiniIso10/",hists[ii],"Pre",channels[jj],false,"nom",false);
-      TH1F* h_bkg_pre = (TH1F*) bkg_pre->hist();
-      h_bkg_pre->Sumw2();
-      TH1F* h_bkg_post = (TH1F*) bkg_post->hist();
-      h_bkg_post->Sumw2();
-
-      h_bkg_pre->SetFillColor(0);
-      h_bkg_post->SetFillColor(0);
+      TH1F* h_bkg_pre = (TH1F*) bkg_pre->hist(true);
+      TH1F* h_bkg_post = (TH1F*) bkg_post->hist(true);
 
       h_signal_pre->Rebin(2);
       h_bkg_pre->Rebin(2);
@@ -1726,8 +1920,131 @@ void drawROCCurve(TString channel){
   lh->SetTextFont(42);
   lh->Draw();	
   
-  c->SaveAs("ROCCurve_"+channel+".pdf");
+  c->SaveAs("Plots/ROCCurve_"+channel+".pdf");
   
+}
+
+void checkElID(){
+  //Compare signal and sideband shapes for electron pt, eta; AK4 eta
+  TString histnames[3] = {"elPt","elEta","ak4jetEta"};
+  TString sidebands[16] = {"1a","1b","1c","1d","2a","2b","2c","2d","3a","3b","3c","3d","4a","4b","4c","4d"};
+  for (int ii = 0; ii < 3; ii++){
+    for (int jj = 0; jj < 4; jj++){
+      SummedHist* signal = getQCDMC("histfiles_full2016/", histnames[ii]+"PassSel", "", "el", false, "nom", false, true);
+      TH1F* h_sig = (TH1F*) signal->hist();
+      SummedHist* sidebandA = getQCDMC("histfiles_full2016/", histnames[ii]+"PassQCD"+sidebands[4*jj+0], "", "el", false, "nom", false, true);
+      TH1F* h_sideA = (TH1F*) sidebandA->hist();
+      SummedHist* sidebandB = getQCDMC("histfiles_full2016/", histnames[ii]+"PassQCD"+sidebands[4*jj+1], "", "el", false, "nom", false, true);
+      TH1F* h_sideB = (TH1F*) sidebandB->hist();
+      SummedHist* sidebandC = getQCDMC("histfiles_full2016/", histnames[ii]+"PassQCD"+sidebands[4*jj+2], "", "el", false, "nom", false, true);
+      TH1F* h_sideC = (TH1F*) sidebandC->hist();
+      SummedHist* sidebandD = getQCDMC("histfiles_full2016/", histnames[ii]+"PassQCD"+sidebands[4*jj+3], "", "el", false, "nom", false, true);
+      TH1F* h_sideD = (TH1F*) sidebandD->hist();
+      
+      cout << "*********************" << endl;
+      cout << "Signal: " << h_sig->GetSum() << endl;
+      cout << "Sideband " << sidebands[4*jj+0] << ": " << h_sideA->GetSum() << endl;
+      cout << "Sideband " << sidebands[4*jj+1] << ": " << h_sideB->GetSum() << endl;
+      cout << "Sideband " << sidebands[4*jj+2] << ": " << h_sideC->GetSum() << endl;
+      cout << "Sideband " << sidebands[4*jj+3] << ": " << h_sideD->GetSum() << endl;
+      cout << "*********************" << endl;
+      
+      h_sig->Rebin(5);
+      h_sideA->Rebin(5);
+      h_sideB->Rebin(5);
+      h_sideC->Rebin(5);
+      h_sideD->Rebin(5);
+      
+      h_sig->Scale(1.0/h_sig->Integral());
+      h_sideA->Scale(1.0/h_sideA->Integral());
+      h_sideB->Scale(1.0/h_sideB->Integral());
+      h_sideC->Scale(1.0/h_sideC->Integral());
+      h_sideD->Scale(1.0/h_sideD->Integral());
+      
+      TH1F* h_ratioA = (TH1F*) h_sig->Clone();
+      h_ratioA->Divide(h_sideA);
+      TH1F* h_ratioB = (TH1F*) h_sig->Clone();
+      h_ratioB->Divide(h_sideB);
+      TH1F* h_ratioC = (TH1F*) h_sig->Clone();
+      h_ratioC->Divide(h_sideC);
+      TH1F* h_ratioD = (TH1F*) h_sig->Clone();
+      h_ratioD->Divide(h_sideD);
+      
+      // Plot
+      TCanvas* c = new TCanvas("c_"+histnames[ii],"c_"+histnames[ii],900,800);
+      TPad* p1 = new TPad("p1_"+histnames[ii],"p1_"+histnames[ii],0,0.3,1,1);
+      p1->SetTopMargin(0.08);
+      p1->SetBottomMargin(0.05);
+      p1->SetNumber(1);
+      TPad* p2 = new TPad("p2_"+histnames[ii],"p2_"+histnames[ii],0,0,1,0.3);
+      p2->SetNumber(2);
+      p2->SetTopMargin(0.05);
+      p2->SetBottomMargin(0.35);
+      
+      p1->Draw();
+      p2->Draw();
+      p1->cd();
+      
+      h_ratioA->GetXaxis()->SetTitle(h_sig->GetXaxis()->GetTitle());
+      h_sig->GetXaxis()->SetTitle("");
+      
+      h_sig->SetFillColor(0);
+      h_sig->SetLineColor(1);
+      h_sideA->SetFillColor(0);
+      h_sideA->SetLineColor(kRed);
+      h_sideB->SetFillColor(0);
+      h_sideB->SetLineColor(kBlue);
+      h_sideC->SetFillColor(0);
+      h_sideC->SetLineColor(kGreen);
+      h_sideD->SetFillColor(0);
+      h_sideD->SetLineColor(kOrange);
+      h_ratioA->SetFillColor(0);
+      h_ratioA->SetLineColor(kRed);
+      h_ratioB->SetFillColor(0);
+      h_ratioB->SetLineColor(kBlue);
+      h_ratioC->SetFillColor(0);
+      h_ratioC->SetLineColor(kGreen);
+      h_ratioD->SetFillColor(0);
+      h_ratioD->SetLineColor(kOrange);
+      
+      h_sig->Draw("hist");
+      h_sideA->Draw("hist,same");
+      h_sideB->Draw("hist,same");
+      h_sideC->Draw("hist,same");
+      h_sideD->Draw("hist,same");
+      
+      TLegend* leg = new TLegend(0.45,0.6,0.75,0.8);
+      leg->SetBorderSize(0);
+      leg->SetFillStyle(0);
+      leg->SetTextFont(42);
+      leg->SetTextSize(0.045);
+      leg->AddEntry(h_sig, "Signal region", "l");
+      leg->AddEntry(h_sideA, "Sideband "+sidebands[4*jj+0], "l");
+      leg->AddEntry(h_sideB, "Sideband "+sidebands[4*jj+1], "l");
+      leg->AddEntry(h_sideC, "Sideband "+sidebands[4*jj+2], "l");
+      leg->AddEntry(h_sideD, "Sideband "+sidebands[4*jj+3], "l");
+      leg->Draw();
+      
+      p2->cd();
+      h_ratioA->Draw("hist");
+      h_ratioB->Draw("hist,same");
+      h_ratioC->Draw("hist,same");
+      h_ratioD->Draw("hist,same");
+      h_ratioA->SetMaximum(2.0);
+      h_ratioA->SetMinimum(0.0);
+      h_ratioA->GetYaxis()->SetNdivisions(2,4,0,false);
+      h_ratioA->GetYaxis()->SetTitle("Signal / Sideband");
+      h_ratioA->GetXaxis()->SetLabelSize(0.1);
+      h_ratioA->GetYaxis()->SetLabelSize(0.1);
+      h_ratioA->GetXaxis()->SetTitleOffset(1.0);
+      h_ratioA->GetYaxis()->SetTitleOffset(0.5);
+      h_ratioA->GetXaxis()->SetTitleSize(0.12);
+      h_ratioA->GetYaxis()->SetTitleSize(0.1);
+
+      TString itos = Form("%d",jj+1);
+      c->SaveAs("Plots/compQCD_elID_"+histnames[ii]+"_side"+itos+".pdf");
+    }
+  }
 }
 
 

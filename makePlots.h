@@ -17,8 +17,8 @@
 // various declarations
 // -------------------------------------------------------------------------------------
 
-const double LUM[2] = {37941.57,37941.57}; //pb-1
-// TODO: use correct electron lumi, account for missing files
+const double LUM[2] = {35867.0,35867.0}; //pb-1
+// TODO: use correct lumis for B2G datasets (rather than lumi for total golden 2016 dataset)
 
 // -------------------------------------------------------------------------------------
 // helper class for summed, weighted histograms (e.g. single top)
@@ -31,17 +31,18 @@ class SummedHist {
   };
   
   // return the summed histogram if created, else create it (summing up histograms in vector hists_) 
-  TH1F* hist() { 
+  TH1* hist(bool noFill = false) { 
     if (summedHist_ != 0) {
+      if (noFill) summedHist_->SetFillColor(0);
       return summedHist_; 
     }
     else if (hists_.size() == 0) {
       return 0; 
     } 
     else {
-      summedHist_ = (TH1F*)hists_[0]->Clone();
+      summedHist_ = (TH1*)hists_[0]->Clone();
       summedHist_->SetName( name_ );
-      summedHist_->SetFillColor( color_ );
+      if (!noFill) summedHist_->SetFillColor( color_ );
       for (unsigned int j = 1; j<hists_.size(); ++j) {
 	summedHist_->Add( hists_[j], 1.0 );
       }
@@ -50,13 +51,13 @@ class SummedHist {
   }
   
   // return the vector of input histograms  
-  std::vector<TH1F*> const & hists() const {
+  std::vector<TH1*> const & hists() const {
     return hists_;
   }
   
   // add histogram to the vector of inputs
-  void push_back( TH1F const * ihist, double norm ) {
-    TH1F* clone = (TH1F*) ihist->Clone();
+  void push_back( TH1 const * ihist, double norm ) {
+    TH1* clone = (TH1*) ihist->Clone();
     TString iname( name_ );
     iname += hists_.size();
     clone->SetName( iname );
@@ -68,65 +69,68 @@ class SummedHist {
 
  protected : 
   
-  std::vector<TH1F*> hists_;
+  std::vector<TH1*> hists_;
   std::vector<double> norms_;
   
   TString name_; 
   int color_;
-  TH1F* summedHist_; 
+  TH1* summedHist_; 
   
 };
 
-TH1* getHist(TString filename, TString histname, TString region){
+TH1* getHist(TString filename, TString histname, TString region, TString split = ""){
   TH1::AddDirectory(kFALSE); 
 
+  TString append = "";
+  if (split != "") append = "_"+split;
+  
   TFile* infile = TFile::Open( filename );
   TH1* hist;
   if (region == "1t1b" || region == "1t" || region == "1b" || region == "Pre" || region == "") {
-    hist = (TH1*) infile->Get(histname+region);
-    hist->Sumw2();
+    hist = (TH1*) infile->Get(histname+region+append);
+    //hist->Sumw2();
   }
   if (region == "1t0b"){
-    hist = (TH1*) infile->Get(histname+"1t");
-    hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b");
-    h_tmp->Sumw2();
+    hist = (TH1*) infile->Get(histname+"1t"+append);
+    //hist->Sumw2();
+    TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b"+append);
+    //h_tmp->Sumw2();
     hist->Add(h_tmp,-1.0);
     delete h_tmp;
   }
   if (region == "0t1b"){
-    hist = (TH1*) infile->Get(histname+"1b");
-    hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b");
-    h_tmp->Sumw2();
+    hist = (TH1*) infile->Get(histname+"1b"+append);
+    //hist->Sumw2();
+    TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b"+append);
+    //h_tmp->Sumw2();
     hist->Add(h_tmp,-1.0);
     delete h_tmp;
   }
   if (region == "0t"){
-    hist = (TH1*) infile->Get(histname+"Pre");
-    hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1t");
-    h_tmp->Sumw2();
+    hist = (TH1*) infile->Get(histname+"Pre"+append);
+    //hist->Sumw2();
+    TH1* h_tmp = (TH1*) infile->Get(histname+"1t"+append);
+    //h_tmp->Sumw2();
     hist->Add(h_tmp,-1.0);
     delete h_tmp;
   }
   if (region == "0b"){
-    hist = (TH1*) infile->Get(histname+"Pre");
-    hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1b");
-    h_tmp->Sumw2();
+    hist = (TH1*) infile->Get(histname+"Pre"+append);
+    //hist->Sumw2();
+    TH1* h_tmp = (TH1*) infile->Get(histname+"1b"+append);
+    //h_tmp->Sumw2();
     hist->Add(h_tmp,-1.0);
     delete h_tmp;
   }
   if (region == "0t0b"){
-    hist = (TH1*) infile->Get(histname+"Pre");
-    hist->Sumw2();
-    TH1* h_tmp1 = (TH1*) infile->Get(histname+"1t");
-    TH1* h_tmp2 = (TH1*) infile->Get(histname+"1b");
-    TH1* h_tmp3 = (TH1*) infile->Get(histname+"1t1b");
-    h_tmp1->Sumw2();
-    h_tmp2->Sumw2();
-    h_tmp3->Sumw2();
+    hist = (TH1*) infile->Get(histname+"Pre"+append);
+    //hist->Sumw2();
+    TH1* h_tmp1 = (TH1*) infile->Get(histname+"1t"+append);
+    TH1* h_tmp2 = (TH1*) infile->Get(histname+"1b"+append);
+    TH1* h_tmp3 = (TH1*) infile->Get(histname+"1t1b"+append);
+    //h_tmp1->Sumw2();
+    //h_tmp2->Sumw2();
+    //h_tmp3->Sumw2();
     hist->Add(h_tmp3);
     hist->Add(h_tmp2,-1.0);
     hist->Add(h_tmp1,-1.0);
@@ -143,7 +147,7 @@ TH1* getHist(TString filename, TString histname, TString region){
 // W+jets
 // -------------------------------------------------------------------------------------
 
-SummedHist * getWJets( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
+SummedHist * getWJets( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, TString split = "") {
 
   TString append = "";
   if (isQCD) append = "_qcd";
@@ -173,12 +177,19 @@ SummedHist * getWJets( TString DIR, TString histname, TString region, TString ch
     1.329 * 1.21 * LUM[ich] / 6324934.,
     0.03216 * 1.21 * LUM[ich] / 2384260.,
   };
+
+  int plotcolor = kGreen-3;
+  if (split == "bb") plotcolor = kRed+1;
+  if (split == "b") plotcolor = kRed-7;
+  if (split == "cc") plotcolor = 6;
+  if (split == "c") plotcolor = kGreen-3;
+  if (split == "l") plotcolor = kYellow;
   
-  SummedHist* wjets = new SummedHist( histname, kGreen-3 );
+  SummedHist* wjets = new SummedHist( histname, plotcolor );
   
   for (int i=0 ; i<nwjets; i++) {
     TString iname = DIR + "hists_" + wjets_names[i] + "_" + channel + "_" + syst + append + ".root";
-    TH1F* hist = (TH1F*) getHist(iname,histname,region);
+    TH1* hist = (TH1*) getHist(iname,histname,region,split);
     if (hist->Integral() > 0.0) wjets->push_back( hist, wjets_norms[i] );
   }
   
@@ -221,7 +232,7 @@ SummedHist * getSingleTop( TString DIR, TString histname, TString region, TStrin
   
   for (int i=0; i<nsingletop; i++) {
     TString iname = DIR + "hists_" + singletop_names[i] + "_" + channel + "_" + syst + append + ".root";
-    TH1F* hist = (TH1F*) getHist(iname,histname,region);
+    TH1* hist = (TH1*) getHist(iname,histname,region);
     if (hist->Integral() > 0.0) singletop->push_back( hist, singletop_norms[i] );
   }
   
@@ -248,7 +259,7 @@ SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, 
   
   SummedHist* ttbar = new SummedHist( histname, kRed-7);
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + "_" + syst + append + ".root";
-  TH1F* hist = (TH1F*) getHist(iname,histname,region);
+  TH1* hist = (TH1*) getHist(iname,histname,region);
   if (hist->Integral() > 0.0) ttbar->push_back( hist, ttbar_norm );
   
   return ttbar;
@@ -274,7 +285,7 @@ SummedHist * getTTbar( TString DIR, TString histname, TString region, TString ch
   
   SummedHist* ttbar = new SummedHist( histname, kRed+1);
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + "_" + syst + append + ".root";
-  TH1F* hist = (TH1F*) getHist(iname,histname,region);
+  TH1* hist = (TH1*) getHist(iname,histname,region);
   if (hist->Integral() > 0.0) ttbar->push_back( hist, ttbar_norm );
   
   return ttbar;
@@ -285,7 +296,7 @@ SummedHist * getTTbar( TString DIR, TString histname, TString region, TString ch
 // QCD
 // -------------------------------------------------------------------------------------
 
-SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
+SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, bool elID = false) {
 
   TString append = "";
   if (isQCD) append = "_qcd";
@@ -318,7 +329,8 @@ SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString ch
   
   for (int i=0; i<nqcd; i++) {
     TString iname = DIR + "hists_" + qcd_names[i] + "_" + channel + "_" + syst + append + ".root";
-    TH1F* hist = (TH1F*) getHist(iname,histname,region);
+    if (elID) iname = DIR + "hists_" + qcd_names[i] + "_elID.root";
+    TH1* hist = (TH1*) getHist(iname,histname,region);
     if (hist->Integral() > 0.0) qcd->push_back( hist, qcd_norms[i] );
   }
   
@@ -334,7 +346,7 @@ SummedHist * getData( TString DIR, TString histname, TString region, TString cha
   SummedHist* data = new SummedHist( histname, 0 );
   
   TString iname = DIR + "hists_Data_" + channel + append + ".root";
-  TH1F* hist = (TH1F*) getHist(iname,histname,region);
+  TH1* hist = (TH1*) getHist(iname,histname,region);
   if (hist->Integral() > 0.0) data->push_back( hist, 1.0 );
   
   return data;
@@ -373,7 +385,7 @@ float getQCDnorm( TString DIR, TString channel, TString region, TString syst, bo
   
   for (int i=0; i<nqcd; i++) {
     TString iname = DIR + "hists_" + qcd_names[i] + "_" + channel + "_" + syst + append + ".root";
-    TH1F* hist = (TH1F*) getHist(iname,"lepPhi",region);
+    TH1* hist = (TH1*) getHist(iname,"lepPhi",region);
     if (hist->Integral() > 0.0) hist->Scale(qcd_norms[i]);
     n_qcd += hist->Integral();
   }
@@ -382,7 +394,7 @@ float getQCDnorm( TString DIR, TString channel, TString region, TString syst, bo
   
 }
 
-TH1F * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString region, TString channel, TString syst, bool usePost) {
+TH1 * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString region, TString channel, TString syst, bool usePost) {
 
   SummedHist* wjets = getWJets( sideDIR, histname, region, channel, true, syst, usePost);
   SummedHist* singletop = getSingleTop( sideDIR, histname, region, channel, true, syst, usePost );
@@ -390,14 +402,14 @@ TH1F * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString reg
   SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( sideDIR, histname, region, channel, true, syst, usePost );
   SummedHist* data = getData( sideDIR, histname, region, channel, true);
   
-  TH1F* h_wjets = (TH1F*) wjets->hist();
-  TH1F* h_singletop = (TH1F*) singletop->hist();
-  TH1F* h_ttbar = (TH1F*) ttbar->hist();
-  TH1F* h_ttbar_nonSemiLep = (TH1F*) ttbar_nonSemiLep->hist();
-  TH1F* h_data = (TH1F*) data->hist();
+  TH1* h_wjets = (TH1*) wjets->hist();
+  TH1* h_singletop = (TH1*) singletop->hist();
+  TH1* h_ttbar = (TH1*) ttbar->hist();
+  TH1* h_ttbar_nonSemiLep = (TH1*) ttbar_nonSemiLep->hist();
+  TH1* h_data = (TH1*) data->hist();
 
   if (h_data) {
-    TH1F* h_qcd = (TH1F*) h_data->Clone("QCD");
+    TH1* h_qcd = (TH1*) h_data->Clone("QCD");
     if (h_wjets) h_qcd->Add(h_wjets,-1.0);
     if (h_singletop) h_qcd->Add(h_singletop,-1.0);
     if (h_ttbar) h_qcd->Add(h_ttbar,-1.0);
@@ -420,25 +432,6 @@ TH1F * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString reg
     return h_qcd;
   }
   else return 0;
-  
-}
-
-TObject * getSignal( TString DIR, TString histname, TString region, TString channel, bool isQCD ) {
-
-  TString append = "";
-  if (isQCD) append = "_qcd";
-
-  int ich = 0;
-  if (channel == "el") ich = 1;
-
-  TString ttbar_name = "PowhegPythia8_semilep";
-  double ttbar_norm = 831.76 * LUM[ich] / 77229341.;
-    
-  TString iname = DIR + "hists_" + ttbar_name + "_" + channel + append + "_nom.root";
-  TH2F* ttbar = (TH2F*) getHist(iname,histname,region);
-  if (ttbar->Integral() > 0.0) ttbar->Scale(ttbar_norm);
-  
-  return ttbar;
   
 }
 
