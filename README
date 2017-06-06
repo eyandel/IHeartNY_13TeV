@@ -2,12 +2,17 @@ IHeartNY_13TeV
 
 13 TeV implementation of code for boosted ttbar differential cross section. Currently designed to run on B2G EDM ntuple files and create slimmed trees for later analysis.
 
-Initial setup:
-setenv SCRAM_ARCH slc6_amd64_gcc530 ; ###chs/ tcsh 
-export SCRAM_ARCH=slc6_amd64_gcc530 ; ### bash
-cmsrel CMSSW_8_0_10_patch2
-cd CMSSW_8_0_10_patch2/src
-cmsenv
+Setting up:
+
+Create CMSSW area
+  setenv SCRAM_ARCH slc6_amd64_gcc530 ; ###chs/ tcsh 
+  export SCRAM_ARCH=slc6_amd64_gcc530 ; ### bash
+  cmsrel CMSSW_8_0_10_patch2
+  cd CMSSW_8_0_10_patch2/src
+  cmsenv
+
+Clone git repository
+  git clone https://github.com/dittmer/IHeartNY_13TeV.git Analysis/IHeartNY -b v8.0.x_v2.1
 
 Description of files: 
   PSet.py -- defines input files for standalone running
@@ -16,8 +21,11 @@ Description of files:
   crabConfig_*.py -- crab3 config files
 
 To run as standalone:
-Modify PSet.py to include files you want to run on (get file names from DAS)
-source execute_*.sh
+  Modify PSet.py to include files you want to run on (get file names from DAS)
+  voms-proxy-init --voms cms
+  source execute_*.sh
 
 To run using Crab3:
-crab submit -c crabConfig_*.py
+  voms-proxy-init --voms cms
+  source /cvmfs/cms.cern.ch/crab3/crab.csh
+  crab submit -c crabConfig_*.py
