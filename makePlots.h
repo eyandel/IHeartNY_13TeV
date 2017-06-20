@@ -44,7 +44,7 @@ class SummedHist {
       summedHist_->SetName( name_ );
       if (!noFill) summedHist_->SetFillColor( color_ );
       for (unsigned int j = 1; j<hists_.size(); ++j) {
-	summedHist_->Add( hists_[j], 1.0 );
+	if (hists_[j]->Integral() > 0.0) summedHist_->Add( hists_[j], 1.0 );
       }
       return summedHist_; 
     };
@@ -61,7 +61,7 @@ class SummedHist {
     TString iname( name_ );
     iname += hists_.size();
     clone->SetName( iname );
-    clone->Scale( norm );
+    if (clone->Integral() > 0.0) clone->Scale( norm );
     hists_.push_back( clone );
     norms_.push_back( norm );
   };
@@ -83,64 +83,68 @@ TH1* getHist(TString filename, TString histname, TString region, TString split =
 
   TString append = "";
   if (split != "") append = "_"+split;
-  
+
   TFile* infile = TFile::Open( filename );
   TH1* hist;
-  if (region == "1t1b" || region == "1t" || region == "1b" || region == "Pre" || region == "") {
-    hist = (TH1*) infile->Get(histname+region+append);
-    //hist->Sumw2();
+  if (histname == "counts"){
+    Double_t err_pre, err_1b, err_1t, err_1t1b;
+    TH1F* h_pre = (TH1F*) infile->Get("ak4jetEtaPre"+append);
+    TH1F* h_1t = (TH1F*) infile->Get("ak4jetEta1t"+append);
+    TH1F* h_1t1b = (TH1F*) infile->Get("ak4jetEta1t1b"+append);
+    hist = new TH1F("count","",3,-0.5,2.5);
+    hist->SetBinContent(1,h_pre->IntegralAndError(0,h_pre->GetNbinsX()+1,err_pre) - h_1t->IntegralAndError(0,h_1t->GetNbinsX()+1,err_1t));
+    hist->SetBinError(1,sqrt(pow(err_pre,2)+pow(err_1t,2)));
+    hist->SetBinContent(2,h_1t->IntegralAndError(0,h_1t->GetNbinsX()+1,err_1t) - h_1t1b->IntegralAndError(0,h_1t1b->GetNbinsX()+1,err_1t1b));
+    hist->SetBinError(2,sqrt(pow(err_1t,2)+pow(err_1t1b,2)));
+    hist->SetBinContent(3,h_1t1b->IntegralAndError(0,h_1t1b->GetNbinsX()+1,err_1t1b));
+    hist->SetBinError(3,err_1t1b);
+    delete h_pre;
+    delete h_1t;
+    delete h_1t1b;
   }
-  if (region == "1t0b"){
-    hist = (TH1*) infile->Get(histname+"1t"+append);
-    //hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b"+append);
-    //h_tmp->Sumw2();
-    hist->Add(h_tmp,-1.0);
-    delete h_tmp;
-  }
-  if (region == "0t1b"){
-    hist = (TH1*) infile->Get(histname+"1b"+append);
-    //hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b"+append);
-    //h_tmp->Sumw2();
-    hist->Add(h_tmp,-1.0);
-    delete h_tmp;
-  }
-  if (region == "0t"){
-    hist = (TH1*) infile->Get(histname+"Pre"+append);
-    //hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1t"+append);
-    //h_tmp->Sumw2();
-    hist->Add(h_tmp,-1.0);
-    delete h_tmp;
-  }
-  if (region == "0b"){
-    hist = (TH1*) infile->Get(histname+"Pre"+append);
-    //hist->Sumw2();
-    TH1* h_tmp = (TH1*) infile->Get(histname+"1b"+append);
-    //h_tmp->Sumw2();
-    hist->Add(h_tmp,-1.0);
-    delete h_tmp;
-  }
-  if (region == "0t0b"){
-    hist = (TH1*) infile->Get(histname+"Pre"+append);
-    //hist->Sumw2();
-    TH1* h_tmp1 = (TH1*) infile->Get(histname+"1t"+append);
-    TH1* h_tmp2 = (TH1*) infile->Get(histname+"1b"+append);
-    TH1* h_tmp3 = (TH1*) infile->Get(histname+"1t1b"+append);
-    //h_tmp1->Sumw2();
-    //h_tmp2->Sumw2();
-    //h_tmp3->Sumw2();
-    hist->Add(h_tmp3);
-    hist->Add(h_tmp2,-1.0);
-    hist->Add(h_tmp1,-1.0);
-    delete h_tmp1;
-    delete h_tmp2;
-    delete h_tmp3;
+  else {
+    if (region == "1t1b" || region == "1t" || region == "1b" || region == "Pre" || region == "") {
+      hist = (TH1*) infile->Get(histname+region+append);
+    }
+    if (region == "1t0b"){
+      hist = (TH1*) infile->Get(histname+"1t"+append);
+      TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b"+append);
+      hist->Add(h_tmp,-1.0);
+      delete h_tmp;
+    }
+    if (region == "0t1b"){
+      hist = (TH1*) infile->Get(histname+"1b"+append);
+      TH1* h_tmp = (TH1*) infile->Get(histname+"1t1b"+append);
+      hist->Add(h_tmp,-1.0);
+      delete h_tmp;
+    }
+    if (region == "0t"){
+      hist = (TH1*) infile->Get(histname+"Pre"+append);
+      TH1* h_tmp = (TH1*) infile->Get(histname+"1t"+append);
+      hist->Add(h_tmp,-1.0);
+      delete h_tmp;
+    }
+    if (region == "0b"){
+      hist = (TH1*) infile->Get(histname+"Pre"+append);
+      TH1* h_tmp = (TH1*) infile->Get(histname+"1b"+append);
+      hist->Add(h_tmp,-1.0);
+      delete h_tmp;
+    }
+    if (region == "0t0b"){
+      hist = (TH1*) infile->Get(histname+"Pre"+append);
+      TH1* h_tmp1 = (TH1*) infile->Get(histname+"1t"+append);
+      TH1* h_tmp2 = (TH1*) infile->Get(histname+"1b"+append);
+      TH1* h_tmp3 = (TH1*) infile->Get(histname+"1t1b"+append);
+      hist->Add(h_tmp3);
+      hist->Add(h_tmp2,-1.0);
+      hist->Add(h_tmp1,-1.0);
+      delete h_tmp1;
+      delete h_tmp2;
+      delete h_tmp3;
+    }
   }
   delete infile;
-  return hist;
-  
+  return hist;  
 }
 
 // -------------------------------------------------------------------------------------
@@ -190,7 +194,7 @@ SummedHist * getWJets( TString DIR, TString histname, TString region, TString ch
   for (int i=0 ; i<nwjets; i++) {
     TString iname = DIR + "hists_" + wjets_names[i] + "_" + channel + "_" + syst + append + ".root";
     TH1* hist = (TH1*) getHist(iname,histname,region,split);
-    if (hist->Integral() > 0.0) wjets->push_back( hist, wjets_norms[i] );
+    wjets->push_back( hist, wjets_norms[i] );
   }
   
   return wjets;
@@ -198,10 +202,53 @@ SummedHist * getWJets( TString DIR, TString histname, TString region, TString ch
 }
 
 // -------------------------------------------------------------------------------------
+// Miscellaneous other -- WW, WZ, ZZ, Z+jets (will split into diboson and Z+jets if significant...)
+// -------------------------------------------------------------------------------------
+
+SummedHist * getBoson( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, TString split = "") {
+
+  TString append = "";
+  if (isQCD) append = "_qcd";
+  if (usePost) append += "_post";
+
+  int ich = 0;
+  if (channel == "el") ich = 1;
+  
+  const int nboson = 4;
+  
+  TString boson_names[nboson] = {
+    "WW",
+    "WZ",
+    "ZZ",
+    "ZJets",
+  };
+  
+  double boson_norms[nboson] = {
+    118.7 * LUM[ich] / 6987124., //Xsec / Nevents from Louise -- source?
+    44.9 * LUM[ich] / 2995828.,
+    15.4 * LUM[ich] / 990064.,
+    5765 * LUM[ich] / 42923575., //Nevents from Louise, xsec from AN-17-003
+  };
+
+  int plotcolor = kViolet-6;
+  
+  SummedHist* boson = new SummedHist( histname, plotcolor );
+  
+  for (int i=0 ; i<nboson; i++) {
+    TString iname = DIR + "hists_" + boson_names[i] + "_" + channel + "_" + syst + append + ".root";
+    TH1* hist = (TH1*) getHist(iname,histname,region,split);
+    boson->push_back( hist, boson_norms[i] );
+  }
+  
+  return boson;
+  
+}
+
+// -------------------------------------------------------------------------------------
 // single top
 // -------------------------------------------------------------------------------------
 
-SummedHist * getSingleTop( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
+SummedHist * getSingleTop( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, TString split = "") {
 
   TString append = "";
   if (isQCD) append = "_qcd";
@@ -225,15 +272,15 @@ SummedHist * getSingleTop( TString DIR, TString histname, TString region, TStrin
     80.95 * LUM[ich] / 3928063.,  // BR from https://twiki.cern.ch/twiki/bin/view/Main/EdbrBackup (second-hand, but can't find original source)
     35.9 * LUM[ich] / 992024.,    // BR is needed because s-channel sample is leptonic final state only
     35.9 * LUM[ich] / 998276.,
-    10.32 * 0.322 * LUM[ich] / 1000000.,
+    10.32 * 0.322 * LUM[ich] / 1000000., //AN-17-012 has 7.26 for this (xsec * BR)... which is correct?
   };
   
   SummedHist* singletop = new SummedHist( histname, 6 );
   
   for (int i=0; i<nsingletop; i++) {
     TString iname = DIR + "hists_" + singletop_names[i] + "_" + channel + "_" + syst + append + ".root";
-    TH1* hist = (TH1*) getHist(iname,histname,region);
-    if (hist->Integral() > 0.0) singletop->push_back( hist, singletop_norms[i] );
+    TH1* hist = (TH1*) getHist(iname,histname,region,split);
+    singletop->push_back( hist, singletop_norms[i] );
   }
   
   return singletop;
@@ -245,7 +292,7 @@ SummedHist * getSingleTop( TString DIR, TString histname, TString region, TStrin
 // non-semileptonic ttbar
 // -------------------------------------------------------------------------------------
 
-SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost ) {
+SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, TString split = "" ) {
 
   TString append = "";
   if (isQCD) append = "_qcd";
@@ -259,8 +306,8 @@ SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, 
   
   SummedHist* ttbar = new SummedHist( histname, kRed-7);
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + "_" + syst + append + ".root";
-  TH1* hist = (TH1*) getHist(iname,histname,region);
-  if (hist->Integral() > 0.0) ttbar->push_back( hist, ttbar_norm );
+  TH1* hist = (TH1*) getHist(iname,histname,region,split);
+  ttbar->push_back( hist, ttbar_norm );
   
   return ttbar;
   
@@ -271,7 +318,7 @@ SummedHist * getTTbarNonSemiLep( TString DIR, TString histname, TString region, 
 // signal ttbar
 // -------------------------------------------------------------------------------------
 
-SummedHist * getTTbar( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost) {
+SummedHist * getTTbar( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, TString split = "") {
   
   TString append = "";
   if (isQCD) append = "_qcd";
@@ -285,8 +332,8 @@ SummedHist * getTTbar( TString DIR, TString histname, TString region, TString ch
   
   SummedHist* ttbar = new SummedHist( histname, kRed+1);
   TString iname = DIR + "hists_" + ttbar_name + "_" + channel + "_" + syst + append + ".root";
-  TH1* hist = (TH1*) getHist(iname,histname,region);
-  if (hist->Integral() > 0.0) ttbar->push_back( hist, ttbar_norm );
+  TH1* hist = (TH1*) getHist(iname,histname,region,split);
+  ttbar->push_back( hist, ttbar_norm );
   
   return ttbar;
   
@@ -296,7 +343,7 @@ SummedHist * getTTbar( TString DIR, TString histname, TString region, TString ch
 // QCD
 // -------------------------------------------------------------------------------------
 
-SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, bool elID = false) {
+SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString syst, bool usePost, TString split = "", bool elID = false) {
 
   TString append = "";
   if (isQCD) append = "_qcd";
@@ -330,15 +377,15 @@ SummedHist * getQCDMC( TString DIR, TString histname, TString region, TString ch
   for (int i=0; i<nqcd; i++) {
     TString iname = DIR + "hists_" + qcd_names[i] + "_" + channel + "_" + syst + append + ".root";
     if (elID) iname = DIR + "hists_" + qcd_names[i] + "_elID.root";
-    TH1* hist = (TH1*) getHist(iname,histname,region);
-    if (hist->Integral() > 0.0) qcd->push_back( hist, qcd_norms[i] );
+    TH1* hist = (TH1*) getHist(iname,histname,region,split);
+    qcd->push_back( hist, qcd_norms[i] );
   }
   
   return qcd;
   
 }
 
-SummedHist * getData( TString DIR, TString histname, TString region, TString channel, bool isQCD) {
+SummedHist * getData( TString DIR, TString histname, TString region, TString channel, bool isQCD, TString split = "") {
   
   TString append = "";
   if (isQCD) append = "_qcd";
@@ -346,81 +393,50 @@ SummedHist * getData( TString DIR, TString histname, TString region, TString cha
   SummedHist* data = new SummedHist( histname, 0 );
   
   TString iname = DIR + "hists_Data_" + channel + append + ".root";
-  TH1* hist = (TH1*) getHist(iname,histname,region);
-  if (hist->Integral() > 0.0) data->push_back( hist, 1.0 );
+  TH1* hist = (TH1*) getHist(iname,histname,region,split);
+  data->push_back( hist, 1.0 );
   
   return data;
   
 }
 
-float getQCDnorm( TString DIR, TString channel, TString region, TString syst, bool usePost) {
+TH1 * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString region, TString channel, TString syst, bool usePost, TString split = "") {
 
-  TString append = "";
-  if (usePost) append += "_post";
-
-  int ich = 0;
-  if (channel == "el") ich = 1;
-
-  const int nqcd = 5;
-  
-  TString qcd_names[nqcd] = {
-    //"QCD_HT300to500",
-    "QCD_HT500to700",
-    "QCD_HT700to1000",
-    "QCD_HT1000to1500",
-    "QCD_HT1500to2000",
-    "QCD_HT2000toInf"
-  };
-
-  double qcd_norms[nqcd] = {
-    //347700. * LUM[ich] / 17035891., // Cross sections are from AN-15-136, which is a bit random and not actually correct for the samples I use
-    32100. * LUM[ich] / 18929951.,  // Hopefully they are close enough...
-    6831. * LUM[ich] / 15629253.,  
-    1207. * LUM[ich] / 4767100.,
-    119.9 * LUM[ich] / 3970819.,
-    25.24 * LUM[ich] / 1991645.,
-  };
-
-  float n_qcd = 0.0;
-  
-  for (int i=0; i<nqcd; i++) {
-    TString iname = DIR + "hists_" + qcd_names[i] + "_" + channel + "_" + syst + append + ".root";
-    TH1* hist = (TH1*) getHist(iname,"lepPhi",region);
-    if (hist->Integral() > 0.0) hist->Scale(qcd_norms[i]);
-    n_qcd += hist->Integral();
+  if (histname == "counts") {
+    SummedHist* qcd = getQCDMC(sigDIR,histname,region,channel,false,syst,usePost);
+    return qcd->hist();
   }
-  
-  return n_qcd;
-  
-}
 
-TH1 * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString region, TString channel, TString syst, bool usePost) {
-
-  SummedHist* wjets = getWJets( sideDIR, histname, region, channel, true, syst, usePost);
-  SummedHist* singletop = getSingleTop( sideDIR, histname, region, channel, true, syst, usePost );
-  SummedHist* ttbar = getTTbar( sideDIR, histname, region, channel, true, syst, usePost );
-  SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( sideDIR, histname, region, channel, true, syst, usePost );
-  SummedHist* data = getData( sideDIR, histname, region, channel, true);
-  
-  TH1* h_wjets = (TH1*) wjets->hist();
-  TH1* h_singletop = (TH1*) singletop->hist();
-  TH1* h_ttbar = (TH1*) ttbar->hist();
-  TH1* h_ttbar_nonSemiLep = (TH1*) ttbar_nonSemiLep->hist();
-  TH1* h_data = (TH1*) data->hist();
-
-  if (h_data) {
+  else {
+    //SummedHist* boson = getBoson( sideDIR, histname, region, channel, true, syst, usePost,split);
+    SummedHist* wjets = getWJets( sideDIR, histname, region, channel, true, syst, usePost,split);
+    SummedHist* singletop = getSingleTop( sideDIR, histname, region, channel, true, syst, usePost,split );
+    SummedHist* ttbar = getTTbar( sideDIR, histname, region, channel, true, syst, usePost,split );
+    SummedHist* ttbar_nonSemiLep = getTTbarNonSemiLep( sideDIR, histname, region, channel, true, syst, usePost,split );
+    SummedHist* data = getData( sideDIR, histname, region, channel, true,split);
+    
+    //TH1* h_boson = (TH1*) boson->hist();
+    TH1* h_wjets = (TH1*) wjets->hist();
+    TH1* h_singletop = (TH1*) singletop->hist();
+    TH1* h_ttbar = (TH1*) ttbar->hist();
+    TH1* h_ttbar_nonSemiLep = (TH1*) ttbar_nonSemiLep->hist();
+    TH1* h_data = (TH1*) data->hist();
+    
     TH1* h_qcd = (TH1*) h_data->Clone("QCD");
-    if (h_wjets) h_qcd->Add(h_wjets,-1.0);
-    if (h_singletop) h_qcd->Add(h_singletop,-1.0);
-    if (h_ttbar) h_qcd->Add(h_ttbar,-1.0);
-    if (h_ttbar_nonSemiLep) h_qcd->Add(h_ttbar_nonSemiLep,-1.0);
-
+    //h_qcd->Add(h_boson,-1.0);
+    h_qcd->Add(h_wjets,-1.0);
+    h_qcd->Add(h_singletop,-1.0);
+    h_qcd->Add(h_ttbar,-1.0);
+    h_qcd->Add(h_ttbar_nonSemiLep,-1.0);
+      
     for (int ii = 1; ii < h_qcd->GetNbinsX()+1; ii++){
       if (h_qcd->GetBinContent(ii) < 0.0) h_qcd->SetBinContent(ii,0.0);
     }
-    
-    float n_qcd = getQCDnorm(sigDIR,channel,region,syst,usePost);
-    h_qcd->Scale(n_qcd / h_qcd->Integral());
+    SummedHist* qcd_mc = getQCDMC(sigDIR,histname,region,channel,false,syst,usePost,split);
+    TH1F* h_qcd_mc = (TH1F*) qcd_mc->hist();
+    float n_qcd = 0.0;
+    n_qcd = h_qcd_mc->GetSum();
+    if (h_qcd->Integral() > 0.0) h_qcd->Scale(n_qcd / h_qcd->Integral());
     h_qcd->SetFillColor(kYellow);
     
     //wjets->Delete();
@@ -431,8 +447,6 @@ TH1 * getQCDData(TString sigDIR, TString sideDIR, TString histname, TString regi
     
     return h_qcd;
   }
-  else return 0;
-  
 }
 
 TObject * getBackground( TString DIR, TString histname, TString region, TString channel, bool isQCD ) {
@@ -443,7 +457,7 @@ TObject * getBackground( TString DIR, TString histname, TString region, TString 
   int ich = 0;
   if (channel == "el") ich = 1;
   
-  const int nbkg = 18;
+  const int nbkg = 22;
   
   TString bkg_names[nbkg] = {
     "PowhegPythia8_nonsemilep",
@@ -464,7 +478,11 @@ TObject * getBackground( TString DIR, TString histname, TString region, TString 
     "QCD_HT700to1000",
     "QCD_HT1000to1500",
     "QCD_HT1500to2000",
-    "QCD_HT2000toInf"
+    "QCD_HT2000toInf",
+    "WW",
+    "WZ",
+    "ZZ",
+    "ZJets"
   };
   
   double bkg_norms[nbkg] = {
@@ -487,6 +505,10 @@ TObject * getBackground( TString DIR, TString histname, TString region, TString 
     1207. * LUM[ich] / 4767100., 
     119.9 * LUM[ich] / 3970819.,
     25.24 * LUM[ich] / 1991645.,
+    118.7 * LUM[ich] / 6987124., //WW
+    44.9 * LUM[ich] / 2995828.,  //WZ
+    15.4 * LUM[ich] / 990064.,   //ZZ
+    5765 * LUM[ich] / 42923575., //ZJets
   };
   
   TH2F* bkg_hists[nbkg];
@@ -504,6 +526,28 @@ TObject * getBackground( TString DIR, TString histname, TString region, TString 
 
   return bkg;
   
+}
+
+TH1F* adjustRange(TH1F* h_input, float xlow, float xhigh){
+  if (!h_input) return 0;
+  const int xbins = h_input->GetXaxis()->GetNbins();
+  double edges[xbins];
+  h_input->GetXaxis()->GetLowEdge(edges);
+  int lowbin = 1;
+  int highbin = xbins;
+  for (int ii = 0; ii < xbins; ii++){
+    if (edges[ii] <= xlow) lowbin = ii+1;
+    if (edges[xbins-1-ii] >= xhigh) highbin = xbins-ii-1;
+  }
+  const int xbins_new = highbin - lowbin + 1;
+  TString xlabel = h_input->GetXaxis()->GetTitle();
+  TString ylabel = h_input->GetYaxis()->GetTitle();
+  TH1F* h_output = new TH1F(h_input->GetName(),";"+xlabel+";"+ylabel,xbins_new,edges[lowbin-1],edges[highbin-1]+h_input->GetBinWidth(1));
+  for (int ii = 0; ii < xbins_new; ii++){
+    h_output->SetBinContent(ii+1,h_input->GetBinContent(lowbin+ii));
+    h_output->SetBinError(ii+1,h_input->GetBinError(lowbin+ii));
+  }
+  return h_output;
 }
 
 

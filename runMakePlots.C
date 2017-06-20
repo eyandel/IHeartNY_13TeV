@@ -19,9 +19,9 @@ void runMakePlots(TString toPlot = "final"){
   gROOT->ProcessLine("gErrorIgnoreLevel = 1;");
 
   TString channels[2] = {"mu","el"};
-  const int nregion = 6;
-  TString regions[nregion] = {"Pre","0t","0t0b","0t1b","1t0b","1t1b"};
-  const int nhist = 28;
+  const int nregion = 4;
+  TString regions[nregion] = {"Pre","0t","1t0b","1t1b"};
+  const int nhist = 24;
   TString hists[nhist] = {"metPt",
 			  "ht",
 			  "htLep",
@@ -35,21 +35,16 @@ void runMakePlots(TString toPlot = "final"){
 			  "ak8jetPhi",
 			  "ak8jetY",
 			  "ak8jetMass",
-			  "ak8jetTau1",
-			  "ak8jetTau2",
-			  "ak8jetTau3",
 			  "ak8jetTau32",
 			  "ak8jetTau21",
-			  "ak8jetCSV",
 			  "ak8jetSDmass",
-			  "ak8jetSDsubjetMaxCSV",
-			  "ak8jetSDm01",
+			  "ak8jetSubjetMaxCSV",
 			  "lepPt",
 			  "lepEta",
 			  "lepAbsEta",
 			  "lepSignEta",
 			  "lepPhi",
-			  //"lepBJetdR",
+			  "lepBJetdR",
 			  //"lepTJetdR",
 			  //"lepBJetPtRel",
 			  "lepMiniIso"
@@ -69,9 +64,10 @@ void runMakePlots(TString toPlot = "final"){
 
   if (toPlot == "all" || toPlot == "selOpt"){
 
-    make1DScans("histfiles_80X_mMu_tEl_MiniIso10/","mu");
-    make1DScans("histfiles_80X_mMu_tEl_MiniIso10/","el");
-    
+    make1DScans("mu");
+    make1DScans("el");
+
+    /*
     TString opthists[5] = {"metPt","ht","htLep","lepBJetdR","lepTJetdR"};
     
     for (int ii = 0; ii < 5; ii++){
@@ -82,6 +78,7 @@ void runMakePlots(TString toPlot = "final"){
     makeTable("histfiles_80X_mMu_tEl_MiniIso10/","histfiles_80X_mMu_tEl_MiniIso10/","el",false,true,false);
     
     cout << endl << "Finished with selection optimization plots!" << endl << endl;
+    */
   }
 
   if (toPlot == "all" || toPlot == "final"){
@@ -93,12 +90,14 @@ void runMakePlots(TString toPlot = "final"){
 	for (int kk = 0; kk < nhist; kk++){
 	  makePlots("histfiles_full2016/","histfiles_full2016/",channels[ii],hists[kk],regions[jj],false,unBlind,false);
 	}
-	plotWJetsSplit("ak4jetEta",regions[jj],channels[ii]);
-	plotWJetsSplit("lepEta",regions[jj],channels[ii]);
-	plotWJetsSplit("ak8jetTau21",regions[jj],channels[ii]);
-	plotWJetsSplit("ak8jetTau32",regions[jj],channels[ii]);
-	plotWJetsSplit("ak8jetSDmass",regions[jj],channels[ii]);
       }
+      //plotWJetsSplit("ak4jetEta","0t",channels[ii]);
+      //plotWJetsSplit("ak4jetEta","1t0b",channels[ii]);
+      //plotWJetsSplit("lepEta","0t",channels[ii]);
+      //plotWJetsSplit("lepEta","1t0b",channels[ii]);
+      //plotWJetsSplit("ak8jetTau21","0t",channels[ii]);
+      //plotWJetsSplit("ak8jetTau32","1t0b",channels[ii]);
+      //plotWJetsSplit("ak8jetSDmass","1t1b",channels[ii]);
     }
     
     makePlots("histfiles_full2016/","histfiles_full2016/","mu","nAK4jet","Pre",false,unBlind,false);
@@ -125,10 +124,10 @@ void runMakePlots(TString toPlot = "final"){
     makePlots("histfiles_full2016/","histfiles_full2016/","el","ak4METdPhiRaw","",true,true,false);
     makePlots("histfiles_full2016/","histfiles_full2016/","el","ak8METdPhiRaw","",true,true,false);
 
-    plot2D("ttbar","bTagSFvsPt");
-    plot2D("qcd","bTagSFvsPt");
-    plot2D("ttbar","bTagSFvsCSV");
-    plot2D("qcd","bTagSFvsCSV");
+    //plot2D("ttbar","bTagSFvsPt");
+    //plot2D("qcd","bTagSFvsPt");
+    //plot2D("ttbar","bTagSFvsCSV");
+    //plot2D("qcd","bTagSFvsCSV");
     
     cout << endl << "Finished with regular plots!" << endl << endl;
 
@@ -141,6 +140,11 @@ void runMakePlots(TString toPlot = "final"){
       makeQCDComp("histfiles_full2016/","histfiles_full2016/",channels[ii],"nAK8jet");
       makeQCDComp("histfiles_full2016/","histfiles_full2016/",channels[ii],"nTjet");
     }
+
+    //for (int ii = 0; ii < nhist; ii++){
+    //  compLepQCD("histfiles_full2016/",hists[ii],true);
+    //  compLepQCD("histfiles_full2016/",hists[ii],false);
+    //}
     
     cout << endl << "Finished with QCD comparison plots!" << endl << endl;
     
@@ -156,7 +160,7 @@ void runMakePlots(TString toPlot = "final"){
     
     //makeCombineInputs("histfiles_full2016/","histfiles_full2016/");
     
-    cout << endl << "Finished making combine inputs!" << endl << endl;
+    //cout << endl << "Finished making combine inputs!" << endl << endl;
 
     makeTable("histfiles_full2016/","histfiles_full2016/","mu",true,true,unBlind);
     cout << endl;
@@ -200,10 +204,11 @@ void runMakePlots(TString toPlot = "final"){
   }
 
   if (toPlot == "combine"){
-    combineResults("mu","muC");
-    combineResults("el","elC");
-    combineResults("mu","combC");
-    combineResults("el","combC");
+    //makeCombineInputs("histfiles_full2016/","histfiles_full2016/");
+    combineResults("mu","mu26");
+    combineResults("el","el26");
+    combineResults("mu","comb26");
+    combineResults("el","comb26");
   }
 
   if (toPlot == "troubleshoot"){
