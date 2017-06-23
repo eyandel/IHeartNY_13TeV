@@ -200,15 +200,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TH1D* h_ptGenTopModDown_fine = new TH1D("ptGenTopModDown_fine", ";p_{T}(generated top) [GeV]; Events / 5 GeV", 330, 350., 2000.);
   TH1D* h_ptRecoTopModDown_fine = new TH1D("ptRecoTopModDown_fine", ";p_{T}(reconstructed top) [GeV]; Events / 5 GeV", 330, 350., 2000.);
 
-  const int nbins = 8;
-  float bins[nbins+1] = {400.0,450.0,525.0,600.0,700.0,800.0,925.0,1200.0,2000.0};
+  const int nbins = 7;
+  float bins[nbins+1] = {400.0,450.0,525.0,600.0,700.0,800.0,925.0,1200.0};
   TH1D* h_bins = new TH1D("bins",";;",nbins,bins);
   const int nbins2 = 9;
   float bins2[nbins2+1] = {350.0,400.0,450.0,525.0,600.0,700.0,800.0,925.0,1200.0,2000.0};
   TH1D* h_bins2 = new TH1D("bins2",";;",nbins2,bins2);
 
-  const int nbins_split = 16;
-  float bins_split[nbins_split+1] = {400.0, 425.0, 450.0, 485.0, 525.0, 560.0, 600.0, 650.0, 700.0, 750.0, 800.0, 860.0, 925.0, 1060.0, 1200.0, 1600.0, 2000.0};
+  const int nbins_split = 14;
+  float bins_split[nbins_split+1] = {400.0, 425.0, 450.0, 485.0, 525.0, 560.0, 600.0, 650.0, 700.0, 750.0, 800.0, 860.0, 925.0, 1060.0, 1200.};
   TH1D* h_bins_split = new TH1D("bins_split",";;",nbins_split,bins_split);
   const int nbins2_split = 18;
   float bins2_split[nbins2_split+1] = {350.0, 375.0, 400.0, 425.0, 450.0, 485.0, 525.0, 560.0, 600.0, 650.0, 700.0, 750.0, 800.0, 860.0, 925.0, 1060.0, 1200.0, 1600.0, 2000.0};
@@ -252,9 +252,11 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   float LUM = 35867.0; //From https://hypernews.cern.ch/HyperNews/CMS/get/physics-announcements/4495/1.html -- not filtered for SingleMuon or SingleElectron yet
 
   double weight_response = LUM * 831.76 / 77229341.; //lum * xsec / Nevents for PowhegPythia8
+  if (sample.Contains("p2")) weight_response = LUM * 831.76 / (78006311. * 1191. / 1192.);
 
   // Correction factors for miss events in response matrix
-  TFile* f_corr = TFile::Open("corrFac_miss.root");
+  TString append = sample.Contains("p2") ? "_p2" : "";
+  TFile* f_corr = TFile::Open("corrFac_miss"+append+".root");
   TH1D* h_corr1 = (TH1D*) f_corr->Get("corrFac1_miss_"+channel+"_"+systematic)->Clone();
   TH1D* h_corr2 = (TH1D*) f_corr->Get("corrFac2_miss_"+channel+"_"+systematic)->Clone();
   f_corr->Close();
@@ -351,7 +353,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       if (truthChannel_TO->at(0) == 0 && channel == "el") continue;
       if (truthChannel_TO->at(0) == 1 && channel == "mu") continue;
 
-      if (genTopPt_TO->at(0) < 350.0) continue;
+      if (genTopPt_TO->at(0) < 350.0 || genTopPt_TO->at(0) > 2000.0) continue;
 
       int ibin = h_corr1->FindBin(genTopPt_TO->at(0));
       corr_fac1 = h_corr1->GetBinContent(ibin);
@@ -377,7 +379,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       h_response2_split->Fill(299.0, genTopPt_TO->at(0),weight_parton*corr_fac2*weight_response);
       h_response2_noweight->Fill(299.0, genTopPt_TO->at(0),weight_parton*weight_response);
 
-      if (genTopPt_TO->at(0) < MINTOPPT) continue;
+      if (genTopPt_TO->at(0) < MINTOPPT || genTopPt_TO->at(0) > 1200.0) continue;
 
       h_ptGenTop->Fill(genTopPt_TO->at(0),weight);
       h_ptGenTopMod->Fill(genTopPt_TO->at(0),weight*w_ptup);
@@ -536,6 +538,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   vector<float>* eldRPt40              = 0;
   vector<float>* eldRPt45              = 0;
   vector<int>*   elTight               = 0;
+  vector<int>*   elPassConVeto         = 0;
   vector<float>* elCharge              = 0;
   vector<float>* ak4jetPt              = 0;
   vector<float>* ak4jetEta             = 0;
@@ -639,6 +642,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   TBranch* b_eldRPt40              ;
   TBranch* b_eldRPt45              ;
   TBranch* b_elTight               ;
+  TBranch* b_elPassConVeto         ;
   TBranch* b_elCharge              ;
   TBranch* b_ak4jetPt              ;
   TBranch* b_ak4jetEta             ;
@@ -740,6 +744,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
   tree->SetBranchAddress("eldRPt40"               , &eldRPt40            , &b_eldRPt40            );
   tree->SetBranchAddress("eldRPt45"               , &eldRPt45            , &b_eldRPt45            );
   tree->SetBranchAddress("elTight"                , &elTight             , &b_elTight             );
+  if (sample.Contains("fullTruth_p2")) tree->SetBranchAddress("elPassConVeto"          , &elPassConVeto       , &b_elPassConVeto       );
   tree->SetBranchAddress("elCharge"               , &elCharge            , &b_elCharge            );
   tree->SetBranchAddress("ak4jetPt"               , &ak4jetPt            , &b_ak4jetPt            );
   tree->SetBranchAddress("ak4jetEta"              , &ak4jetEta           , &b_ak4jetEta           );
@@ -1355,7 +1360,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	corr_fac1 = h_corr1->GetBinContent(ibin);
 	corr_fac2 = h_corr2->GetBinContent(ibin);
 
-	if (genTopPt->at(0) > 350.0) {
+	if (genTopPt->at(0) > 350.0 && genTopPt->at(0) < 2000.0) {
 	  passPartonLoose = true;
 
 	  h_ptGenTop_fine->Fill(genTopPt->at(0),weight);
@@ -1366,7 +1371,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  h_ptGenTopMod2->Fill(genTopPt->at(0),weight*unfold_w_ptup);
 	  h_ptGenTopModDown2->Fill(genTopPt->at(0),weight*unfold_w_ptdn);
 
-	  if (genTopPt->at(0) > MINTOPPT){
+	  if (genTopPt->at(0) > MINTOPPT && genTopPt->at(0) < 1200.0){
 	    passParton = true;
 	
 	    h_ptGenTop->Fill(genTopPt->at(0),weight);	    
@@ -1583,6 +1588,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     if ((int)elPt->size() != 0) {
       for (int iel = 0; iel < (int)elPt->size(); iel++){
 	if (elEta->at(iel) > 2.1) continue;
+	if (sample.Contains("fullTruth_p2") && elPassConVeto->at(iel) == 0) continue;
 	float dRclosest = 99.;
 	float ptRelClosest = -1.0;
 	if ((int)ak4Jets.size() != 0){
@@ -1674,13 +1680,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
       
       if (channel == "el" && (int)elPtRelPt15->size() != 0){
 	if (lepID == "Medium" || (lepID == "Tight" && elTight->at(0))){
-	  h_2DisoPt15->Fill(eldRPt15->at(0),elPtRelPt15->at(0),weight);
-	  h_2DisoPt20->Fill(eldRPt20->at(0),elPtRelPt20->at(0),weight);
-	  h_2DisoPt25->Fill(eldRPt25->at(0),elPtRelPt25->at(0),weight);
-	  h_2DisoPt30->Fill(eldRPt30->at(0),elPtRelPt30->at(0),weight);
-	  h_2DisoPt35->Fill(eldRPt35->at(0),elPtRelPt35->at(0),weight);
-	  h_2DisoPt40->Fill(eldRPt40->at(0),elPtRelPt40->at(0),weight);
-	  h_2DisoPt45->Fill(eldRPt45->at(0),elPtRelPt45->at(0),weight);
+	  if (!sample.Contains("fullTruth_p2") || elPassConVeto->at(0) == 1){
+	    h_2DisoPt15->Fill(eldRPt15->at(0),elPtRelPt15->at(0),weight);
+	    h_2DisoPt20->Fill(eldRPt20->at(0),elPtRelPt20->at(0),weight);
+	    h_2DisoPt25->Fill(eldRPt25->at(0),elPtRelPt25->at(0),weight);
+	    h_2DisoPt30->Fill(eldRPt30->at(0),elPtRelPt30->at(0),weight);
+	    h_2DisoPt35->Fill(eldRPt35->at(0),elPtRelPt35->at(0),weight);
+	    h_2DisoPt40->Fill(eldRPt40->at(0),elPtRelPt40->at(0),weight);
+	    h_2DisoPt45->Fill(eldRPt45->at(0),elPtRelPt45->at(0),weight);
+	  }
 	}
 	
 	noIsoCount += weight;
@@ -1688,7 +1696,9 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	for (int ii = 0; ii < 30; ii ++){
 	  for (int jj = 0; jj < (int)elPt->size(); jj++){
 	    if (lepID == "Medium" || (lepID == "Tight" && elTight->at(jj))){
-	      if (elMiniIso->at(jj) < MiniIsoCuts[ii]) MiniIsoCounts[ii] += weight;
+	      if (!sample.Contains("fullTruth_p2") || elPassConVeto->at(jj) == 1){
+		if (elMiniIso->at(jj) < MiniIsoCuts[ii]) MiniIsoCounts[ii] += weight;
+	      }
 	    }
 	  }
 	}
@@ -1697,13 +1707,15 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  for (int jj = 0; jj < 4; jj++){
 	    for (int kk = 0; kk < (int)elPtRelPt15->size(); kk++){
 	      if (lepID == "Medium" || (lepID == "Tight" && elTight->at(kk))){
-		if (elPtRelPt15->at(kk) > PtRelCuts[ii] || eldRPt15->at(kk) > dRCuts[jj]) Count2DIso[0][ii][jj] += weight;
-		if (elPtRelPt20->at(kk) > PtRelCuts[ii] || eldRPt20->at(kk) > dRCuts[jj]) Count2DIso[1][ii][jj] += weight;
-		if (elPtRelPt25->at(kk) > PtRelCuts[ii] || eldRPt25->at(kk) > dRCuts[jj]) Count2DIso[2][ii][jj] += weight;
-		if (elPtRelPt30->at(kk) > PtRelCuts[ii] || eldRPt30->at(kk) > dRCuts[jj]) Count2DIso[3][ii][jj] += weight;
-		if (elPtRelPt35->at(kk) > PtRelCuts[ii] || eldRPt35->at(kk) > dRCuts[jj]) Count2DIso[4][ii][jj] += weight;
-		if (elPtRelPt40->at(kk) > PtRelCuts[ii] || eldRPt40->at(kk) > dRCuts[jj]) Count2DIso[5][ii][jj] += weight;
-		if (elPtRelPt45->at(kk) > PtRelCuts[ii] || eldRPt45->at(kk) > dRCuts[jj]) Count2DIso[6][ii][jj] += weight;
+		if (!sample.Contains("fullTruth_p2") || elPassConVeto->at(kk) == 1){
+		  if (elPtRelPt15->at(kk) > PtRelCuts[ii] || eldRPt15->at(kk) > dRCuts[jj]) Count2DIso[0][ii][jj] += weight;
+		  if (elPtRelPt20->at(kk) > PtRelCuts[ii] || eldRPt20->at(kk) > dRCuts[jj]) Count2DIso[1][ii][jj] += weight;
+		  if (elPtRelPt25->at(kk) > PtRelCuts[ii] || eldRPt25->at(kk) > dRCuts[jj]) Count2DIso[2][ii][jj] += weight;
+		  if (elPtRelPt30->at(kk) > PtRelCuts[ii] || eldRPt30->at(kk) > dRCuts[jj]) Count2DIso[3][ii][jj] += weight;
+		  if (elPtRelPt35->at(kk) > PtRelCuts[ii] || eldRPt35->at(kk) > dRCuts[jj]) Count2DIso[4][ii][jj] += weight;
+		  if (elPtRelPt40->at(kk) > PtRelCuts[ii] || eldRPt40->at(kk) > dRCuts[jj]) Count2DIso[5][ii][jj] += weight;
+		  if (elPtRelPt45->at(kk) > PtRelCuts[ii] || eldRPt45->at(kk) > dRCuts[jj]) Count2DIso[6][ii][jj] += weight;
+		}
 	      }
 	    }
 	  }
@@ -1714,7 +1726,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // ------------------------
     // Preselection
     // ------------------------
-    
+
     // Require exactly one good mu/el and veto additional el/mu
     if (iso == "Loose"){
       if (channel == "mu" && !(nMuForVeto == 1 && nElForVeto == 0)) continue; 
@@ -2059,7 +2071,7 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
     // Fill response
     // ----------------------------
 
-    if (passTopTag && passBtag){
+    if (passTopTag && passBtag && ak8Jets.at(itopJetCand).Perp() < 2000.0){
       h_ptRecoTop2->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
       h_ptRecoTop_fine->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
       h_ptRecoTop2_split->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
@@ -2090,31 +2102,8 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	  h_response2_noweight->Fill(ak8Jets.at(itopJetCand).Perp(),299.0,weight_parton*weight_response);
 	}
       }
-      
-      if (ak8Jets.at(itopJetCand).Perp() > MINTOPPT){
-	h_ptRecoTop->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
-	h_ptRecoTop_split->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
-	h_ptRecoTopMod->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
-	h_ptRecoTopMod_split->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
-	h_ptRecoTopModDown->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
-	h_ptRecoTopModDown_split->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
-
-	if (isSignal){
-	  if (passParton) {
-	    response.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
-	    response_split.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
-	    h_response->Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
-	    h_response_split->Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
-	  }
-	  else {
-	    response.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
-	    response_split.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
-	    h_response->Fill(ak8Jets.at(itopJetCand).Perp(),299.0,weight*btagSF*toptagSF*weight_response);
-	    h_response_split->Fill(ak8Jets.at(itopJetCand).Perp(),299.0,weight*btagSF*toptagSF*weight_response);
-	  }
-	}
-      }
     }
+
     else{
       if (passPartonLoose && isSignal) {
 	response2            .Miss(genTopPt->at(0),weight_parton*corr_fac2*weight_response);
@@ -2124,13 +2113,38 @@ void makeHists(TString INDIR, TString OUTDIR, TString sample, TString channel, b
 	h_response_fine      ->Fill(299.0, genTopPt->at(0),weight_parton*corr_fac2*weight_response);
 	h_response2_split    ->Fill(299.0, genTopPt->at(0),weight_parton*corr_fac2*weight_response);
 	h_response2_noweight ->Fill(299.0, genTopPt->at(0),weight_parton*weight_response);
+      }
+    }
+      
+    if (passTopTag && passBtag && ak8Jets.at(itopJetCand).Perp() > MINTOPPT && ak8Jets.at(itopJetCand).Perp() < 1200.0){
+      h_ptRecoTop->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTop_split->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF);
+      h_ptRecoTopMod->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopMod_split->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptup);
+      h_ptRecoTopModDown->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
+      h_ptRecoTopModDown_split->Fill(ak8Jets.at(itopJetCand).Perp(),weight*toptagSF*btagSF*unfold_w_ptdn);
 
-	if (passParton){
-	  response         .Miss(genTopPt->at(0),weight_parton*corr_fac1*weight_response);
-	  response_split   .Miss(genTopPt->at(0),weight_parton*corr_fac1*weight_response);
-	  h_response       ->Fill(299.0, genTopPt->at(0),weight_parton*corr_fac1*weight_response);
-	  h_response_split ->Fill(299.0, genTopPt->at(0),weight_parton*corr_fac1*weight_response);
+      if (isSignal){
+	if (passParton) {
+	  response.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  response_split.Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  h_response->Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
+	  h_response_split->Fill(ak8Jets.at(itopJetCand).Perp(),genTopPt->at(0),weight*btagSF*toptagSF*weight_response);
 	}
+	else {
+	  response.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  response_split.Fake(ak8Jets.at(itopJetCand).Perp(),weight*btagSF*toptagSF*weight_response);
+	  h_response->Fill(ak8Jets.at(itopJetCand).Perp(),299.0,weight*btagSF*toptagSF*weight_response);
+	  h_response_split->Fill(ak8Jets.at(itopJetCand).Perp(),299.0,weight*btagSF*toptagSF*weight_response);
+	}
+      }
+    }
+    else {
+      if (passParton){
+	response         .Miss(genTopPt->at(0),weight_parton*corr_fac1*weight_response);
+	response_split   .Miss(genTopPt->at(0),weight_parton*corr_fac1*weight_response);
+	h_response       ->Fill(299.0, genTopPt->at(0),weight_parton*corr_fac1*weight_response);
+	h_response_split ->Fill(299.0, genTopPt->at(0),weight_parton*corr_fac1*weight_response);
       }
     }
 
