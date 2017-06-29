@@ -122,15 +122,15 @@ f_ttbar_odd_2  = TFile("histfiles_full2016/hists_PowhegPythia8_fullTruth_p2_"+mu
 # -------------------------------------------------------------------------------------
 
 if options.type == "full":
-    response = f_ttbar.Get("response_pt_split")
-    response2 = f_ttbar_2.Get("response_pt_split")
+    response = f_ttbar.Get("response2_pt_split")
+    response2 = f_ttbar_2.Get("response2_pt_split")
 elif options.type == "half" :
-    response = f_ttbar_odd.Get("response_pt_split")
-    response2 = f_ttbar_odd_2.Get("response_pt_split")
+    response = f_ttbar_odd.Get("response2_pt_split")
+    response2 = f_ttbar_odd_2.Get("response2_pt_split")
 elif options.type == "each" : #unfold p1 with p2
-    response = f_ttbar_2.Get("response_pt_split")
+    response = f_ttbar_2.Get("response2_pt_split")
 else :
-    response = f_ttbar_odd.Get("response_pt_split")
+    response = f_ttbar_odd.Get("response2_pt_split")
     
 TH1.AddDirectory(0)
 
@@ -147,15 +147,15 @@ for sysname in sysnames:
     f_ttbar_sys_odd_2  = TFile("histfiles_full2016/hists_PowhegPythia8_fullTruth_p2_"+muOrEl+"_"+sysname+"_odd_post.root")
 
     if options.type == "full":
-        response_sys = f_ttbar.Get("response_pt_split")
-        response2_sys = f_ttbar_2.Get("response_pt_split")
+        response_sys = f_ttbar_sys.Get("response2_pt_split")
+        response2_sys = f_ttbar_sys_2.Get("response2_pt_split")
     elif options.type == "half" :
-        response_sys = f_ttbar_odd.Get("response_pt_split")
-        response2_sys = f_ttbar_odd_2.Get("response_pt_split")
+        response_sys = f_ttbar_sys_odd.Get("response2_pt_split")
+        response2_sys = f_ttbar_sys_odd_2.Get("response2_pt_split")
     elif options.type == "each" : #unfold p1 with p2
-        response_sys = f_ttbar_2.Get("response_pt_split")
+        response_sys = f_ttbar_sys_2.Get("response2_pt_split")
     else :
-        response_sys = f_ttbar_odd.Get("response_pt_split")
+        response_sys = f_ttbar_sys_odd.Get("response2_pt_split")
 
     Hres_tmp = makeResponse(response_sys)
     if options.type == "full" or options.type == "half" :
@@ -180,20 +180,20 @@ fout = TFile("UnfoldingPlots/closureTest_TUnfold_pt_"+muOrEl+"_"+options.type+".
 
 if options.type == "full":
     if options.toy == "up" :
-        thisMeas = f_ttbar.Get("ptRecoTopMod_split").Clone()
-        thisTrue = f_ttbar.Get("ptGenTopMod").Clone()
-        thisMeas2 = f_ttbar_2.Get("ptRecoTopMod_split").Clone()
-        thisTrue2 = f_ttbar_2.Get("ptGenTopMod").Clone()
+        thisMeas = f_ttbar.Get("ptRecoTopMod2_split").Clone()
+        thisTrue = f_ttbar.Get("ptGenTopMod2").Clone()
+        thisMeas2 = f_ttbar_2.Get("ptRecoTopMod2_split").Clone()
+        thisTrue2 = f_ttbar_2.Get("ptGenTopMod2").Clone()
     elif options.toy == "dn" :
-        thisMeas = f_ttbar.Get("ptRecoTopModDown_split").Clone() 
-        thisTrue = f_ttbar.Get("ptGenTopModDown").Clone() 
-        thisMeas2 = f_ttbar_2.Get("ptRecoTopModDown_split").Clone() 
-        thisTrue2 = f_ttbar_2.Get("ptGenTopModDown").Clone() 
+        thisMeas = f_ttbar.Get("ptRecoTopModDown2_split").Clone() 
+        thisTrue = f_ttbar.Get("ptGenTopModDown2").Clone() 
+        thisMeas2 = f_ttbar_2.Get("ptRecoTopModDown2_split").Clone() 
+        thisTrue2 = f_ttbar_2.Get("ptGenTopModDown2").Clone() 
     else : 
-        thisMeas = f_ttbar.Get("ptRecoTop_split").Clone() 
-        thisTrue = f_ttbar.Get("ptGenTop").Clone()
-        thisMeas2 = f_ttbar_2.Get("ptRecoTop_split").Clone() 
-        thisTrue2 = f_ttbar_2.Get("ptGenTop").Clone()
+        thisMeas = f_ttbar.Get("ptRecoTop2_split").Clone() 
+        thisTrue = f_ttbar.Get("ptGenTop2").Clone()
+        thisMeas2 = f_ttbar_2.Get("ptRecoTop2_split").Clone() 
+        thisTrue2 = f_ttbar_2.Get("ptGenTop2").Clone()
     removeFakes(thisMeas,response)
     removeFakes(thisMeas2,response2)
     thisMeas.Add(thisMeas2)
@@ -203,20 +203,20 @@ if options.type == "full":
 
 elif options.type == "half":
     if options.toy == "up" :
-        thisMeas = f_ttbar_even.Get("ptRecoTopMod_split").Clone()
-        thisTrue = f_ttbar_even.Get("ptGenTopMod").Clone()
-        thisMeas2 = f_ttbar_even_2.Get("ptRecoTopMod_split").Clone()
-        thisTrue2 = f_ttbar_even_2.Get("ptGenTopMod").Clone()
+        thisMeas = f_ttbar_even.Get("ptRecoTopMod2_split").Clone()
+        thisTrue = f_ttbar_even.Get("ptGenTopMod2").Clone()
+        thisMeas2 = f_ttbar_even_2.Get("ptRecoTopMod2_split").Clone()
+        thisTrue2 = f_ttbar_even_2.Get("ptGenTopMod2").Clone()
     elif options.toy == "dn" :
-        thisMeas = f_ttbar_even.Get("ptRecoTopModDown_split").Clone() 
-        thisTrue = f_ttbar_even.Get("ptGenTopModDown").Clone() 
-        thisMeas2 = f_ttbar_even_2.Get("ptRecoTopModDown_split").Clone() 
-        thisTrue2 = f_ttbar_even_2.Get("ptGenTopModDown").Clone() 
+        thisMeas = f_ttbar_even.Get("ptRecoTopModDown2_split").Clone() 
+        thisTrue = f_ttbar_even.Get("ptGenTopModDown2").Clone() 
+        thisMeas2 = f_ttbar_even_2.Get("ptRecoTopModDown2_split").Clone() 
+        thisTrue2 = f_ttbar_even_2.Get("ptGenTopModDown2").Clone() 
     else : 
-        thisMeas = f_ttbar_even.Get("ptRecoTop_split").Clone() 
-        thisTrue = f_ttbar_even.Get("ptGenTop").Clone() 
-        thisMeas2 = f_ttbar_even_2.Get("ptRecoTop_split").Clone() 
-        thisTrue2 = f_ttbar_even_2.Get("ptGenTop").Clone()
+        thisMeas = f_ttbar_even.Get("ptRecoTop2_split").Clone() 
+        thisTrue = f_ttbar_even.Get("ptGenTop2").Clone() 
+        thisMeas2 = f_ttbar_even_2.Get("ptRecoTop2_split").Clone() 
+        thisTrue2 = f_ttbar_even_2.Get("ptGenTop2").Clone()
     removeFakes(thisMeas,response)
     removeFakes(thisMeas2,response2)
     thisMeas.Add(thisMeas2)
@@ -226,28 +226,28 @@ elif options.type == "half":
     
 elif options.type == "each" : #unfold p1 with p2
     if options.toy == "up" :
-        thisMeas = f_ttbar.Get("ptRecoTopMod_split").Clone()
-        thisTrue = f_ttbar.Get("ptGenTopMod").Clone()
+        thisMeas = f_ttbar.Get("ptRecoTopMod2_split").Clone()
+        thisTrue = f_ttbar.Get("ptGenTopMod2").Clone()
     elif options.toy == "dn" :
-        thisMeas = f_ttbar.Get("ptRecoTopModDown_split").Clone() 
-        thisTrue = f_ttbar.Get("ptGenTopModDown").Clone() 
+        thisMeas = f_ttbar.Get("ptRecoTopModDown2_split").Clone() 
+        thisTrue = f_ttbar.Get("ptGenTopModDown2").Clone() 
     else : 
-        thisMeas = f_ttbar.Get("ptRecoTop_split").Clone() 
-        thisTrue = f_ttbar.Get("ptGenTop").Clone()
+        thisMeas = f_ttbar.Get("ptRecoTop2_split").Clone() 
+        thisTrue = f_ttbar.Get("ptGenTop2").Clone()
     removeFakes(thisMeas,response)
     thisMeas.Scale( lum * 831.76 / 77229341.)
     thisTrue.Scale( lum * 831.76 / 77229341.)
 
 else :
     if options.toy == "up" :
-        thisMeas = f_ttbar_even.Get("ptRecoTopMod_split").Clone()
-        thisTrue = f_ttbar_even.Get("ptGenTopMod").Clone()
+        thisMeas = f_ttbar_even.Get("ptRecoTopMod2_split").Clone()
+        thisTrue = f_ttbar_even.Get("ptGenTopMod2").Clone()
     elif options.toy == "dn" :
-        thisMeas = f_ttbar_even.Get("ptRecoTopModDown_split").Clone() 
-        thisTrue = f_ttbar_even.Get("ptGenTopModDown").Clone() 
+        thisMeas = f_ttbar_even.Get("ptRecoTopModDown2_split").Clone() 
+        thisTrue = f_ttbar_even.Get("ptGenTopModDown2").Clone() 
     else : 
-        thisMeas = f_ttbar_even.Get("ptRecoTop_split").Clone() 
-        thisTrue = f_ttbar_even.Get("ptGenTop").Clone()
+        thisMeas = f_ttbar_even.Get("ptRecoTop2_split").Clone() 
+        thisTrue = f_ttbar_even.Get("ptGenTop2").Clone()
     removeFakes(thisMeas,response)
     thisMeas.Scale( lum * 831.76 * 2.0 / 77229341.)
     thisTrue.Scale( lum * 831.76 * 2.0 / 77229341.)
@@ -318,7 +318,7 @@ for ibin in xrange(0,nbinsTrue) :
     hDiff_bin.append(hDiff_tmp)
         
 for itoy in xrange(0,ntoys) :
-    unfold_tmp = TUnfoldDensity(Hres,TUnfold.kHistMapOutputVert, TUnfold.kRegModeCurvature, TUnfold.kEConstraintArea, TUnfoldDensity.kDensityModeBinWidth)
+    unfold_tmp = TUnfoldDensity(Hres,TUnfold.kHistMapOutputVert, TUnfold.kRegModeDerivative, TUnfold.kEConstraintNone, TUnfoldDensity.kDensityModeBinWidth)
     unfold_tmp.SetInput(hToy_i[itoy])
     for sysname in sysnames:
         unfold_tmp.AddSysError(Hres_sys[sysname],sysname,TUnfold.kHistMapOutputVert,TUnfoldDensity.kSysErrModeMatrix)
@@ -383,7 +383,7 @@ hBias_pt.Write()
 # Done with toys, doing actual unfolding
 # -------------------------------------------------------------------------------------
 
-unfold = TUnfoldDensity(Hres,TUnfold.kHistMapOutputVert, TUnfold.kRegModeCurvature, TUnfold.kEConstraintArea, TUnfoldDensity.kDensityModeBinWidth)
+unfold = TUnfoldDensity(Hres,TUnfold.kHistMapOutputVert, TUnfold.kRegModeDerivative, TUnfold.kEConstraintNone, TUnfoldDensity.kDensityModeBinWidth)
 unfold.SetInput(thisMeas)
 for sysname in sysnames:
     unfold.AddSysError(Hres_sys[sysname],sysname,TUnfold.kHistMapOutputVert,TUnfoldDensity.kSysErrModeMatrix)
