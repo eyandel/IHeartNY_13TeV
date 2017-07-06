@@ -30,3 +30,5 @@ To run using Crab3:
   voms-proxy-init --voms cms
   source /cvmfs/cms.cern.ch/crab3/crab.csh
   crab submit -c crabConfig_*.py
+
+test
